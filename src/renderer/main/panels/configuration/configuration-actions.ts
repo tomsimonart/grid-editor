@@ -318,7 +318,7 @@ export function updateAction(index: number, newConfig: ConfigObject) {
       config.name = tempName;
       return s;
     });
-    configManager.refresh();
+
     logger.set({
       type: "fail",
       mode: 0,

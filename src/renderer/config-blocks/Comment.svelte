@@ -29,7 +29,7 @@
 
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
-  import { AtomicInput } from "@intechstudio/grid-uikit";
+  import AtomicInput from "./components/AtomicInput.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "./_validators";
 
@@ -38,22 +38,18 @@
 
   const dispatch = createEventDispatcher();
 
-  let loaded = false;
-
   let scriptValue = ""; // local script part
 
-  $: if (config.script && !loaded) {
-    scriptValue = config.script.split("--[[")[1].split("]]")[0];
-    loaded = true;
+  $: handleConfigChange(config.script);
+
+  function handleConfigChange(script) {
+    scriptValue = GridScript.humanize(script.split("--[[")[1].split("]]")[0]);
   }
 
-  $: if (scriptValue && loaded) {
-    sendData(scriptValue);
+  $: if (scriptValue) {
+    console.log(scriptValue);
+    sendData(GridScript.shortify(scriptValue));
   }
-
-  onDestroy(() => {
-    loaded = false;
-  });
 
   function sendData(e) {
     dispatch("output", { short: "c", script: `--[[${e}]]` });
@@ -71,15 +67,15 @@
     <div class="text-gray-500 text-sm pb-1">Comment</div>
 
     <AtomicInput
-      value={GridScript.humanize(scriptValue)}
+      bind:value={scriptValue}
       {validator}
       on:validator={(e) => {
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:change={(e) => {
+      on:input={(e) => {
         let newValue = e.detail;
-        sendData(GridScript.shortify(newValue));
+        sendData(newValue);
       }}
     />
   </div>
