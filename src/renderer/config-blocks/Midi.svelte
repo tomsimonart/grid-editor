@@ -43,14 +43,14 @@
   };
 </script>
 
-<script>
+<script lang="ts">
   import { createEventDispatcher, onDestroy } from "svelte";
   import { AtomicInput } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { AtomicSuggestions } from "@intechstudio/grid-uikit";
-  import { config_panel_blocks } from "../main/panels/configuration/Configuration";
   import { Script } from "./_script_parsers.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
+  import { GridEvent } from "./../runtime/runtime";
 
   import { Validator } from "./_validators";
 
@@ -62,6 +62,7 @@
   import { MusicalNotes } from "../main/panels/MidiMonitor/MidiMonitor.store";
 
   let loaded = false;
+  let event = config.parent as GridEvent;
 
   const dispatch = createEventDispatcher();
 
@@ -655,7 +656,7 @@
 
   let suggestions = [];
 
-  $: if ($config_panel_blocks) {
+  $: if ($event) {
     renderSuggestions();
   }
 
@@ -683,9 +684,10 @@
       suggestions = _suggestions;
     }
 
-    const index = $config_panel_blocks.findIndex((e) => e.id === config.id);
+    const actions = $event.config;
+    const index = actions.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $config_panel_blocks,
+      configs: actions,
       index: index,
     });
     suggestions = suggestions.map((s) => [...localDefinitions, ...s]);

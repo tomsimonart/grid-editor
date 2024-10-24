@@ -48,8 +48,8 @@
   import { AtomicInput, MeltCheckbox } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { AtomicSuggestions } from "@intechstudio/grid-uikit";
-  import { config_panel_blocks } from "../main/panels/configuration/Configuration";
   import { LocalDefinitions } from "../runtime/runtime.store";
+  import { GridEvent } from "./../runtime/runtime";
 
   import { Validator } from "./_validators.js";
 
@@ -60,6 +60,7 @@
   import TabButton from "../main/user-interface/TabButton.svelte";
 
   const dispatch = createEventDispatcher();
+  let event = config.parent as GridEvent;
 
   const validators = [
     (e) => {
@@ -170,9 +171,10 @@
   let suggestions = [];
 
   function renderSuggestions() {
-    const index = $config_panel_blocks.findIndex((e) => e.id === config.id);
+    const actions = $event.config;
+    const index = actions.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $config_panel_blocks,
+      configs: actions,
       index: index,
     });
 
@@ -182,7 +184,7 @@
     suggestions[3] = [...localDefinitions];
   }
 
-  $: if ($config_panel_blocks) {
+  $: if ($event) {
     renderSuggestions();
   }
 

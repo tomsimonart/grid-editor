@@ -31,7 +31,7 @@
   };
 </script>
 
-<script>
+<script lang="ts">
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
   import { AtomicInput } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
@@ -40,13 +40,14 @@
   import { LocalDefinitions } from "../runtime/runtime.store";
 
   import { AtomicSuggestions } from "@intechstudio/grid-uikit";
-  import { config_panel_blocks } from "../main/panels/configuration/Configuration";
 
   import { Validator } from "./_validators";
+  import { GridEvent } from "./../runtime/runtime";
 
   export let config;
 
   let loaded = false;
+  let event = config.parent as GridEvent;
 
   const dispatch = createEventDispatcher();
 
@@ -96,10 +97,11 @@
     [],
   ];
 
-  $: if ($config_panel_blocks) {
-    const index = $config_panel_blocks.findIndex((e) => e.id === config.id);
+  $: {
+    const actions = $event.config;
+    const index = actions.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $config_panel_blocks,
+      configs: actions,
       index: index,
     });
     suggestions = _suggestions.map((s, i) => {

@@ -60,9 +60,9 @@
 
   import { Validator } from "./_validators";
   import { AtomicSuggestions } from "@intechstudio/grid-uikit";
-  import { config_panel_blocks } from "../main/panels/configuration/Configuration";
   import { get } from "svelte/store";
   import { ElementType } from "@intechstudio/grid-protocol";
+  import { GridEvent } from "./../runtime/runtime";
 
   export let config;
   export let humanScript;
@@ -71,6 +71,7 @@
   export let index;
 
   let loaded = false;
+  let event = config.parent as GridEvent;
 
   const dispatch = createEventDispatcher();
 
@@ -129,14 +130,15 @@
 
   let suggestions = [];
 
-  $: if ($config_panel_blocks) {
+  $: if ($event) {
     updateSuggestions();
   }
 
   function updateSuggestions() {
-    const index = $config_panel_blocks.findIndex((e) => e.id === config.id);
+    const actions = $event.config;
+    const index = actions.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $config_panel_blocks,
+      configs: actions,
       index: index,
     });
     suggestions = _suggestions.map((s, i) => {

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import MultiEventView from "./../configuration/MultiEventView.svelte";
+  import { modal } from "./../../modals/modal.store.ts";
   import { config_panel_blocks } from "./../configuration/Configuration";
   import { logger } from "./../../../runtime/runtime.store";
   import { get } from "svelte/store";
@@ -272,6 +274,15 @@
   {/if}
 
   {#if activePreferenceMenu == PreferenceMenu.DEVELOPER}
+    <Block>
+      <BlockTitle>Multi Event view</BlockTitle>
+      <MoltenButton
+        title={"Open"}
+        click={() => {
+          modal.show({ component: MultiEventView });
+        }}
+      />
+    </Block>
     <Block>
       <BlockTitle>NVM Defrag</BlockTitle>
       <BlockBody>

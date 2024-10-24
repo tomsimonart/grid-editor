@@ -1,33 +1,14 @@
 <script lang="ts">
-  import { config_panel_blocks } from "./Configuration.ts";
-  import { PasteActionsResult } from "./Configuration";
-  import { appSettings } from "./../../../runtime/app-helper.store.js";
+  import ActionList from "./ActionList.svelte";
   import { get } from "svelte/store";
   import ElementSelectionPanel from "./ElementSelectionPanel.svelte";
-  import { Analytics } from "../../../runtime/analytics.js";
-  import { fly, fade } from "svelte/transition";
-  import { flip } from "svelte/animate";
-  import * as eases from "svelte/easing";
+  import { fly } from "svelte/transition";
   import EventPanel from "./EventPanel.svelte";
   import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
   import { logger, runtime, user_input } from "../../../runtime/runtime.store";
-  import {
-    config_panel_blocks,
-    user_input_event,
-    lastOpenedActionblocksInsert,
-    ActionBlock,
-  } from "./Configuration";
+  import { config_panel_blocks, user_input_event } from "./Configuration";
   import Toolbar from "./components/Toolbar.svelte";
-  import DropZone from "./components/DropZone.svelte";
-  import DynamicWrapper from "./components/DynamicWrapper.svelte";
   import ExportConfigs from "./components/ExportConfigs.svelte";
-  import {
-    changeOrder,
-    config_drag,
-    DragEvent,
-  } from "../../_actions/move.action.js";
-  import AddActionLine from "./components/AddActionLine.svelte";
-  import AddAction from "./components/AddAction.svelte";
   import AddActionButton from "./components/AddActionButton.svelte";
   import {
     mergeActionsToCode,
@@ -42,19 +23,7 @@
     addActions,
   } from "../../../runtime/operations";
 
-  //////////////////////////////////////////////////////////////////////////////
-  /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
-  //////////////////////////////////////////////////////////////////////////////
-
-  let scrollHeight = "100%";
-  let draggedIndexes: number[] = [];
-  let autoScroll;
-  let dropIndex = undefined;
   let isSystemEventSelected = false;
-
-  //////////////////////////////////////////////////////////////////////////////
-  /////////////////       REACTIVE STATEMENTS        ///////////////////////////
-  //////////////////////////////////////////////////////////////////////////////
 
   $: {
     const les = $lua_error_store;
@@ -65,10 +34,6 @@
   }
 
   $: isSystemEventSelected = $user_input.elementnumber == 255;
-
-  //////////////////////////////////////////////////////////////////////////////
-  /////////////////           EVENT HANDLERS          //////////////////////////
-  //////////////////////////////////////////////////////////////////////////////
 
   function handleError(e) {
     switch (e.type) {
@@ -88,82 +53,6 @@
           message: `${e.device}: Keyboard events are disabled until storing.`,
         });
         break;
-    }
-  }
-
-  function handleDrop(e) {
-    if (typeof dropIndex === "undefined") {
-      return;
-    }
-
-    const offset = Math.min(...draggedIndexes) > dropIndex ? 0 : -1;
-
-    //Check for incorrect dropzones
-    const firstIndex = draggedIndexes.at(0);
-    const lastIndex = draggedIndexes.at(-1);
-    if (dropIndex >= firstIndex && dropIndex <= lastIndex + 1) {
-      return;
-    }
-
-    const ui = get(user_input);
-    const event = runtime.findEvent(
-      ui.dx,
-      ui.dy,
-      ui.pagenumber,
-      ui.elementnumber,
-      ui.eventtype
-    );
-
-    const blocks = get(config_panel_blocks)
-      .map((e) => e.action)
-      .filter((e, n) => draggedIndexes.includes(n));
-
-    const trueDropIndex =
-      dropIndex - (offset === -1 ? blocks.length - 1 : 0) + offset;
-
-    event.remove(...blocks);
-    event.insert(trueDropIndex, ...blocks);
-  }
-
-  function handleDragStart(e) {
-    config_drag.set(new DragEvent());
-  }
-
-  function handleDragEnd(e) {
-    config_drag.set(undefined);
-    dropIndex = undefined;
-    draggedIndexes = [];
-    clearInterval(autoScroll);
-  }
-
-  function handleDragTargetChange(e) {
-    draggedIndexes = e.detail.id;
-  }
-
-  function handleDropTargetChange(e) {
-    const { index } = e.detail;
-    dropIndex = index;
-  }
-
-  function handleDrag(e) {
-    if (typeof $config_drag !== "undefined") {
-      const configList = document.getElementById("cfg-list");
-      const mouseY = e.clientY - configList.getBoundingClientRect().top;
-      const configListHeight = configList.offsetHeight;
-      const treshold = 60;
-      const lowerThreshold = configListHeight - mouseY <= treshold;
-      const upperThreshold =
-        configListHeight - mouseY > configListHeight - treshold;
-      clearInterval(autoScroll);
-      if (lowerThreshold) {
-        autoScroll = setInterval(() => {
-          configList.scrollTop += 5;
-        }, 10);
-      } else if (upperThreshold) {
-        autoScroll = setInterval(() => {
-          configList.scrollTop -= 5;
-        }, 10);
-      }
     }
   }
 
@@ -329,93 +218,8 @@
           />
         </div>
 
-        <!-- svelte-ignore a11y-no-static-element-interactions -->
-        <div
-          use:changeOrder={(this,
-          { configs: $config_panel_blocks.map((e) => e.action) })}
-          on:drag-start={handleDragStart}
-          on:drag-target={handleDragTargetChange}
-          on:drop={handleDrop}
-          on:drag-end={handleDragEnd}
-          class="flex flex-col h-full relative justify-between"
-        >
-          {#if $config_panel_blocks.length === 0 && $runtime.modules.length > 0}
-            <div class="mt-2">
-              <AddAction
-                index={0}
-                text={"There are no actions configured on this event."}
-                on:paste={handlePaste}
-                on:new-config={handleAddConfig}
-              />
-            </div>
-          {:else}
-            <config-list
-              id="cfg-list"
-              style="height:{scrollHeight}"
-              on:height={(e) => {
-                scrollHeight = e.detail;
-              }}
-              on:mousemove={handleDrag}
-              on:mouseleave={() => {
-                clearInterval(autoScroll);
-              }}
-              class="flex flex-col w-full h-auto overflow-y-auto justify-start"
-            >
-              {#if typeof $config_drag === "undefined"}
-                <AddActionLine
-                  index={0}
-                  on:paste={handlePaste}
-                  on:new-config={handleAddConfig}
-                />
-              {:else}
-                <DropZone
-                  index={0}
-                  drag_target={draggedIndexes}
-                  thresholdTop={10}
-                  thresholdBottom={0}
-                  on:drop-target-change={handleDropTargetChange}
-                />
-              {/if}
-              {#each $config_panel_blocks as block, index (block.action.id)}
-                <anim-block
-                  animate:flip={{ duration: 300, easing: eases.backOut }}
-                  in:fade|global={{ delay: 0 }}
-                >
-                  <DynamicWrapper {index} data={block} />
-                  {#if typeof $config_drag === "undefined"}
-                    {#if typeof block.action.information.helperText !== "undefined" && ["composite_part", "composite_open"].includes(block.action.information.type) && $config_panel_blocks[index + 1]?.action.indentation === block.action.indentation && $appSettings.persistent.actionHelperText}
-                      <div class="mr-6">
-                        <AddAction
-                          text={block.action.information.helperText}
-                          index={index + 1}
-                          on:paste={handlePaste}
-                          on:new-config={handleAddConfig}
-                        />
-                      </div>
-                    {:else}
-                      <AddActionLine
-                        index={index + 1}
-                        on:paste={handlePaste}
-                        on:new-config={handleAddConfig}
-                      />
-                    {/if}
-                  {:else}
-                    <DropZone
-                      index={index + 1}
-                      thresholdTop={10}
-                      thresholdBottom={10}
-                      class={index + 1 == $config_panel_blocks.length
-                        ? "h-full"
-                        : ""}
-                      drag_target={draggedIndexes}
-                      on:drop-target-change={handleDropTargetChange}
-                    />
-                  {/if}
-                </anim-block>
-              {/each}
-            </config-list>
-          {/if}
-        </div>
+        <ActionList event={$user_input_event} />
+
         <div
           class="w-full flex justify-between mb-3"
           class:invisible={$runtime.modules.length === 0}
