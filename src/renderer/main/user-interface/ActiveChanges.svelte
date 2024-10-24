@@ -4,13 +4,15 @@
   import { logger } from "./../../runtime/runtime.store";
   import { appSettings } from "../../runtime/app-helper.store";
   import { writeBuffer } from "../../runtime/engine.store.ts";
-  import { configManager } from "./../panels/configuration/Configuration.store";
+  import { config_panel_blocks } from "./../panels/configuration/Configuration";
   import { runtime, user_input } from "../../runtime/runtime.store";
   import { moduleOverlay } from "../../runtime/moduleOverlay";
   import { Analytics } from "../../runtime/analytics.js";
   import { fade, blur } from "svelte/transition";
   import { selectedConfigStore } from "../../runtime/config-helper.store";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
+  import { connection_manager } from "../../serialport/serialport";
+  import PortSelector from "./PortSelector.svelte";
 
   let isChanges = false;
   let changes = 0;
@@ -70,20 +72,12 @@
       .clearPage(ui.pagenumber)
       .then(() => {
         clearOverlays();
-        configManager
-          .refresh()
-          .then(() => {
-            logger.set({
-              type: "success",
-              mode: 0,
-              classname: "pageclear",
-              message: `Page clear complete!`,
-            });
-          })
-          .catch((e) => {
-            console.warn(e);
-            //TODO: make feedback for fail
-          });
+        logger.set({
+          type: "success",
+          mode: 0,
+          classname: "pageclear",
+          message: `Page clear complete!`,
+        });
       })
       .catch((e) => {
         console.warn(e);
@@ -111,20 +105,12 @@
         .discardPage(ui.pagenumber)
         .then(() => {
           clearOverlays();
-          configManager
-            .refresh()
-            .then(() => {
-              logger.set({
-                type: "success",
-                mode: 0,
-                classname: "pagediscard",
-                message: `Discard complete!`,
-              });
-            })
-            .catch((e) => {
-              console.warn(e);
-              //TODO: make feedback for fail
-            });
+          logger.set({
+            type: "success",
+            mode: 0,
+            classname: "pagediscard",
+            message: `Discard complete!`,
+          });
         })
         .catch((e) => {
           console.warn(e);
@@ -145,6 +131,19 @@
       });
     }
   }
+
+  const ports = connection_manager.ports;
+
+  function handleConnectModules(e) {
+    navigator.tryConnectGrid().catch((e) => {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "serialerror",
+        message: `Serial connect failed, your browser is not supperted yet.`,
+      });
+    });
+  }
 </script>
 
 <container
@@ -153,6 +152,7 @@
   class={$$props.class}
 >
   <div class="flex flex-row justify-center items-center gap-2">
+    <PortSelector visible={$ports.length > 1} disabled={isChanges} />
     <div class="flex flex-col">
       <div class="mx-4 text-white font-medium">
         {changes} active changes
@@ -209,5 +209,12 @@
     >
       <MoltenPushButton text="Clear" />
     </div>
+    {#if window.ctxProcess.buildVariables().BUILD_TARGET === "web"}
+      <MoltenPushButton
+        text="Connect"
+        style={"outlined"}
+        click={handleConnectModules}
+      />
+    {/if}
   </div>
 </container>

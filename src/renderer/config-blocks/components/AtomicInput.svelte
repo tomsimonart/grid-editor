@@ -1,54 +1,111 @@
 <script lang="ts">
+  import { MeltSelect } from "@intechstudio/grid-uikit";
   import { createEventDispatcher } from "svelte";
 
   const dispatch = createEventDispatcher();
 
-  // Props
-  export let value = "";
-  export let placeholder = "Enter text...";
+  export let inputValue = "";
+  export let suggestions: { value: string; info: string }[] = ["asd", "test"];
+  export let customClasses = "";
+  export let placeholder = "";
+  export let suggestionTarget: Element | undefined = undefined;
+  export let validator = (text: string) => {
+    return true;
+  };
   export let disabled = false;
-  export let validator = (text: string) => true; // A default validator
 
-  let isError = false; // Error state
-  let input: HTMLInputElement;
+  let isError = false;
+  let infoValue = "";
+  let displayText: any;
 
-  // Handle input change
-  function handleInput() {
-    const display = input.value;
-    isError = !validator(display);
-    console.log(display);
-    //dispatch("input", display);
-  }
+  let focus: any;
 
-  function handleBlur() {
-    const display = input.value;
-    if (!isError) {
-      //dispatch("change", display); // Finalize change on blur
+  function handleValueChange(value: any) {
+    //const newValue = GridScript.humanize(String(value));
+    if (value !== displayText) {
+      displayText = value;
     }
+    infoValue =
+      suggestions.find((s) => String(s.value).trim() == String(value).trim())
+        ?.info ?? "";
+
+    isError = !validator(displayText);
+    dispatch("validator", { isError: isError });
   }
 
   $: {
-    console.log(value);
+    handleValueChange(inputValue);
   }
+
+  function handleBlur(e) {
+    if (inputValue !== displayText) {
+      sendData(displayText);
+    }
+  }
+
+  function sendData(value: any) {
+    dispatch("change", value);
+  }
+
+  function handleFocus(e: any) {
+    dispatch("focus");
+    updateSuggestions();
+  }
+
+  function updateSuggestions() {
+    if (typeof suggestionTarget !== "undefined") {
+      const event = new CustomEvent("display", {
+        detail: {
+          data: suggestions,
+          sender: inputComponent!,
+        },
+      });
+
+      suggestionTarget.dispatchEvent(event);
+    }
+  }
+
+  function handleSuggestionSelected(e: any) {
+    const { value } = e.detail;
+    displayText = value;
+    sendData(displayText);
+  }
+
+  let inputComponent;
+
+  let temp = suggestions[0];
 </script>
 
-<!-- Template -->
-<div class="input-wrapper">
+<div class="{$$props.class} w-full relative">
   <input
-    bind:this={input}
-    id="text-input"
-    type="text"
-    bind:value
-    {placeholder}
+    bind:this={inputComponent}
     {disabled}
-    class="w-full border
-    focus:neumorph focus:rounded-lg
-    {isError
-      ? 'border-error focus:outline-error'
-      : 'focus:border-select border-secondary'}
-    bg-secondary text-white py-0.5 pl-2 rounded-none"
-    class:text-opacity-50={disabled}
-    on:input={handleInput}
+    bind:value={displayText}
+    on:focus={handleFocus}
     on:blur={handleBlur}
+    on:suggestion-select={handleSuggestionSelected}
+    type="text"
+    {placeholder}
+    class="{customClasses} w-full border
+        focus:neumorph focus:rounded-lg
+        {isError
+      ? 'border-error focus:outline-error'
+      : 'focus:border-select border-secondary'} bg-secondary text-white py-0.5 pl-2 rounded-none"
+    class:text-opacity-50={disabled}
+  />
+
+  <div class=" py-1">
+    {#if !focus && infoValue !== undefined}
+      <div class="{infoValue ? 'text-gray-500' : 'text-gray-600'} text-sm">
+        {infoValue}
+      </div>
+    {/if}
+  </div>
+
+  <MeltSelect
+    bind:target={temp}
+    options={suggestions.map((e) => {
+      return { title: e, value: e };
+    })}
   />
 </div>

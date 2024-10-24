@@ -1,9 +1,9 @@
-import { writable, get } from "svelte/store";
+import { writable, get, type Writable } from "svelte/store";
 import { writeBuffer, sendHeartbeat } from "./engine.store";
 import { appSettings } from "./app-helper.store";
 import { modal } from "../main/modals/modal.store";
 import { ProtectedStore } from "./smart-store.store";
-import { GridRuntime } from "./runtime";
+import { GridRuntime, aliveModules } from "./runtime";
 
 const setIntervalAsync = (fn, ms) => {
   fn().then(() => {
@@ -155,7 +155,7 @@ export function update_ledColorStore(descr) {
 export const logger = writable();
 
 function create_user_input() {
-  const defaultValues = {
+  const defaultValues: UserInputValue = {
     dx: undefined,
     dy: undefined,
     pagenumber: undefined,
@@ -317,6 +317,14 @@ function create_user_input() {
   };
 }
 
+export type UserInputValue = {
+  dx: number;
+  dy: number;
+  pagenumber: number;
+  elementnumber: number;
+  eventtype: number;
+};
+
 export const user_input = create_user_input();
 
 export const runtime = new GridRuntime();
@@ -366,25 +374,26 @@ const heartbeat_editor_ms = 300;
 const heartbeat_grid_ms = 250;
 
 const grid_heartbeat_interval_handler = async function () {
-  runtime.modules.forEach((device, i) => {
+  for (const device of runtime.modules) {
     if (device.architecture === "virtual") {
       return;
     }
 
-    const alive = device.alive;
+    const last =
+      get(aliveModules).find((e) => e.id === device.id)?.last ?? Date.now();
 
     // Allow less strict elapsedTimeLimit while writeBuffer is busy!
     const elapsedTimeLimit =
       get(writeBuffer).length > 0
         ? heartbeat_grid_ms * 6
         : heartbeat_grid_ms * 3;
-    const elapsedTime = Date.now() - alive;
+    const elapsedTime = Date.now() - last;
 
-    if (!alive || elapsedTime > elapsedTimeLimit) {
+    if (!last || elapsedTime > elapsedTimeLimit) {
       // TIMEOUT! let's remove the device
       runtime.destroy_module(device.dx, device.dy);
     }
-  });
+  }
 };
 
 setIntervalAsync(grid_heartbeat_interval_handler, heartbeat_grid_ms);
@@ -392,9 +401,11 @@ setIntervalAsync(grid_heartbeat_interval_handler, heartbeat_grid_ms);
 const editor_heartbeat_interval_handler = async function () {
   let type = 255;
 
+  /*
   if (runtime.unsavedChangesCount() != 0 || typeof get(modal) !== "undefined") {
     type = 254;
   }
+    */
 
   if (
     runtime.modules.length > 0 &&

@@ -1,11 +1,14 @@
-<script>
-  import { GridAction } from "./../../../../runtime/runtime.ts";
+<script lang="ts">
+  import { ActionData } from "./../../../../runtime/runtime.ts";
+  import { get } from "svelte/store";
+  import { user_input, runtime } from "./../../../../runtime/runtime.store";
+  import { GridAction } from "./../../../../runtime/runtime";
   import { SvgIcon } from "@intechstudio/grid-uikit";
   import { LocalDefinitions } from "./../../../../runtime/runtime.store";
   import {
     ClipboardKey,
     appClipboard,
-  } from "./../../../../runtime/clipboard.store.ts";
+  } from "./../../../../runtime/clipboard.store";
   import Popover from "svelte-easy-popover";
   import { createEventDispatcher } from "svelte";
 
@@ -14,13 +17,9 @@
   import { Analytics } from "../../../../runtime/analytics.js";
 
   import { getAllComponents } from "../../../../lib/_configs";
-  import {
-    ConfigObject,
-    ConfigTarget,
-    configManager,
-  } from "../Configuration.store";
+  import { config_panel_blocks } from "../Configuration";
 
-  import { lastOpenedActionblocksInsert } from "../Configuration.store";
+  import { lastOpenedActionblocksInsert } from "../Configuration";
   import { NumberToEventType } from "@intechstudio/grid-protocol";
 
   import { onMount, onDestroy } from "svelte";
@@ -69,7 +68,7 @@
 
   $: {
     try {
-      options = getAvailableOptions($configManager);
+      options = getAvailableOptions($config_panel_blocks.map((e) => e.action));
     } catch (e) {
       handleClose();
     }
@@ -82,12 +81,20 @@
   //////////////////////////////////////////////////////////////////////////////
 
   function getAvailableOptions(configs) {
-    const target = ConfigTarget.getCurrent();
+    const ui = get(user_input);
+    const target = runtime.findEvent(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber,
+      ui.eventtype
+    );
+
     if (typeof configs === "undefined" || typeof target === "undefined") {
       throw "Unexpected Error";
     }
 
-    let comp = getAllComponents();
+    let comp: any = getAllComponents();
 
     if (comp === undefined) {
       return;
@@ -182,7 +189,7 @@
     }
 
     //Filter out element type specific components
-    const eventString = NumberToEventType(target.eventType);
+    const eventString = NumberToEventType(target.type);
 
     if (eventString !== "encoder") {
       comp = comp.filter(
@@ -250,12 +257,6 @@
       },
     });
     referenceElement.dispatchEvent(event);
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Paste" },
-      mandatory: false,
-    });
   }
 
   function handleReferenceElementClick(e) {
@@ -264,18 +265,18 @@
   }
 
   function handleClickOutside(e) {
-    handleClose(e);
+    handleClose();
   }
 
-  function handleClose(e) {
+  function handleClose() {
     dispatch("close");
   }
 
   function replaceToLocalDefinition(script, segment, localDefinition) {
     if (script.includes(segment)) {
       const localDefinitions = LocalDefinitions.getFrom({
-        configs: $configManager,
-        index: Math.min(index, $configManager.length - 1),
+        configs: $config_panel_blocks,
+        index: Math.min(index, $config_panel_blocks.length - 1),
       });
       const defaultLocal = localDefinitions.find(
         (e) => e.value === localDefinition
@@ -299,15 +300,10 @@
     defaultScript = replaceToLocalDefinition(defaultScript, "glg()", "gre");
     defaultScript = replaceToLocalDefinition(defaultScript, "glb()", "blu");
     const configs = [
-      new ConfigObject({
-        short: component.information.short,
-        script: defaultScript,
-        runtimeRef: new GridAction(undefined, {
-          short: component.information.short,
-          script: defaultScript,
-        }),
-        name: undefined,
-      }),
+      new GridAction(
+        undefined,
+        new ActionData(component.information.short, defaultScript)
+      ),
     ];
 
     lastOpenedActionblocksInsert(configs[0].short);
@@ -316,15 +312,7 @@
     if (typeof compositeLua !== "undefined") {
       for (const obj of compositeLua) {
         configs.push(
-          new ConfigObject({
-            short: obj.short,
-            script: obj.script,
-            runtimeRef: new GridAction(undefined, {
-              short: obj.short,
-              script: obj.script,
-            }),
-            name: undefined,
-          })
+          new GridAction(undefined, new ActionData(obj.short, obj.script))
         );
       }
     }
@@ -337,14 +325,6 @@
     });
     referenceElement.dispatchEvent(event);
 
-    Analytics.track({
-      event: "Config Action",
-      payload: {
-        click: "Add Action",
-        actionBlock: component.information.name,
-      },
-      mandatory: false,
-    });
     handleClose();
   }
 
