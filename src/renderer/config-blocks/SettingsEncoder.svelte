@@ -26,9 +26,8 @@
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
   import { MeltCheckbox } from "@intechstudio/grid-uikit";
-  import { AtomicInput } from "@intechstudio/grid-uikit";
+  import MeltCombo from "./components/MeltCombo.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { AtomicSuggestions } from "@intechstudio/grid-uikit";
   import { Validator } from "./_validators";
 
   export let config;
@@ -45,9 +44,7 @@
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 
-  let loaded = false;
-
-  $: if (config.script && !loaded) {
+  $: {
     const arr = config.script.split("self:").slice(1);
 
     const extractParam = (index) => {
@@ -72,13 +69,7 @@
     if (sensitivityEnabled) {
       ese = param5;
     }
-
-    loaded = true;
   }
-
-  onDestroy(() => {
-    loaded = false;
-  });
 
   $: sendData(
     emo,
@@ -130,110 +121,106 @@
 <encoder-settings
   class="{$$props.class} flex flex-col w-full px-4 py-2 pointer-events-auto"
 >
-  <div class="w-full flex flex-row gap-2">
-    <div class="flex flex-col">
-      <div class="text-gray-500 text-sm pb-1 truncate">Encoder Mode</div>
-      <AtomicInput
-        value={GridScript.humanize(emo)}
-        suggestions={suggestions[0]}
-        validator={(e) => {
-          return new Validator(e).NotEmpty().Result();
-        }}
-        suggestionTarget={suggestionElement}
-        on:change={(e) => {
-          emo = GridScript.shortify(e.detail);
-        }}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
-        }}
-      />
-    </div>
+  <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
+    <MeltCombo
+      title={"Encoder Mode"}
+      value={emo}
+      suggestions={suggestions[0]}
+      validator={(e) => {
+        return new Validator(e).NotEmpty().Result();
+      }}
+      on:change={(e) => {
+        emo = e.detail;
+      }}
+      on:validator={(e) => {
+        const data = e.detail;
+        dispatch("validator", data);
+      }}
+      postProcessor={GridScript.shortify}
+      preProcessor={GridScript.humanize}
+    />
 
-    <div class="flex flex-col">
-      <div class="text-gray-500 text-sm pb-1 truncate">Encoder Velocity</div>
-      <AtomicInput
-        value={GridScript.humanize(ev0)}
-        suggestions={suggestions[1]}
-        validator={(e) => {
-          return new Validator(e).NotEmpty().Result();
-        }}
-        suggestionTarget={suggestionElement}
-        on:change={(e) => {
-          ev0 = GridScript.shortify(e.detail);
-        }}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
-        }}
-      />
-    </div>
+    <MeltCombo
+      title={"Encoder Velocity"}
+      value={ev0}
+      suggestions={suggestions[1]}
+      validator={(e) => {
+        return new Validator(e).NotEmpty().Result();
+      }}
+      on:change={(e) => {
+        ev0 = e.detail;
+      }}
+      on:validator={(e) => {
+        const data = e.detail;
+        dispatch("validator", data);
+      }}
+      postProcessor={GridScript.shortify}
+      preProcessor={GridScript.humanize}
+    />
   </div>
-
-  <AtomicSuggestions bind:component={suggestionElement} />
 
   <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
 
-  <div class="flex flex-row gap-2">
-    <div class="flex flex-col">
-      <span class="text-sm text-gray-500">Min</span>
-      <AtomicInput
-        disabled={!minMaxEnabled}
-        value={GridScript.humanize(emi)}
-        validator={(e) => {
-          return minMaxEnabled
-            ? new Validator(e).NotEmpty().Result()
-            : new Validator(e).Result();
-        }}
-        on:change={(e) => {
-          emi = GridScript.shortify(e.detail);
-        }}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
-        }}
-      />
-    </div>
-    <div class="flex flex-col">
-      <span class="text-sm text-gray-500">Max</span>
-      <AtomicInput
-        disabled={!minMaxEnabled}
-        value={GridScript.humanize(ema)}
-        validator={(e) => {
-          return minMaxEnabled
-            ? new Validator(e).NotEmpty().Result()
-            : new Validator(e).Result();
-        }}
-        on:change={(e) => {
-          ema = GridScript.shortify(e.detail);
-        }}
-        on:validator={(e) => {
-          const data = e.detail;
-          dispatch("validator", data);
-        }}
-      />
-    </div>
-  </div>
-
-  <MeltCheckbox bind:target={sensitivityEnabled} title={"Enable Sensitivity"} />
-
-  <div class="flex flex-col">
-    <span class="text-sm text-gray-500">Sensitivity</span>
-    <AtomicInput
-      disabled={!sensitivityEnabled}
-      value={GridScript.humanize(ese)}
+  <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
+    <MeltCombo
+      title={"Min"}
+      disabled={!minMaxEnabled}
+      value={emi}
       validator={(e) => {
         return minMaxEnabled
           ? new Validator(e).NotEmpty().Result()
           : new Validator(e).Result();
       }}
       on:change={(e) => {
-        ese = GridScript.shortify(e.detail);
+        emi = e.detail;
       }}
       on:validator={(e) => {
         const data = e.detail;
         dispatch("validator", data);
       }}
+      postProcessor={GridScript.shortify}
+      preProcessor={GridScript.humanize}
+    />
+
+    <MeltCombo
+      title={"Max"}
+      disabled={!minMaxEnabled}
+      value={ema}
+      validator={(e) => {
+        return minMaxEnabled
+          ? new Validator(e).NotEmpty().Result()
+          : new Validator(e).Result();
+      }}
+      on:change={(e) => {
+        ema = e.detail;
+      }}
+      on:validator={(e) => {
+        const data = e.detail;
+        dispatch("validator", data);
+      }}
+      postProcessor={GridScript.shortify}
+      preProcessor={GridScript.humanize}
     />
   </div>
+
+  <MeltCheckbox bind:target={sensitivityEnabled} title={"Enable Sensitivity"} />
+  <MeltCombo
+    title={"Sensitivity"}
+    disabled={!sensitivityEnabled}
+    value={ese}
+    validator={(e) => {
+      return minMaxEnabled
+        ? new Validator(e).NotEmpty().Result()
+        : new Validator(e).Result();
+    }}
+    on:change={(e) => {
+      ese = e.detail;
+    }}
+    on:validator={(e) => {
+      const data = e.detail;
+      dispatch("validator", data);
+    }}
+    postProcessor={GridScript.shortify}
+    preProcessor={GridScript.humanize}
+  />
 </encoder-settings>

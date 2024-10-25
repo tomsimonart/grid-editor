@@ -45,9 +45,8 @@
 
 <script>
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
-  import { AtomicInput } from "@intechstudio/grid-uikit";
+  import MeltCombo from "./components/MeltCombo.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { AtomicSuggestions } from "@intechstudio/grid-uikit";
   import { config_panel_blocks } from "../main/panels/configuration/Configuration";
   import { LocalDefinitions } from "../runtime/runtime.store";
 
@@ -58,8 +57,6 @@
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import TabButton from "../main/user-interface/TabButton.svelte";
-
-  let loaded = false;
 
   const dispatch = createEventDispatcher();
 
@@ -87,7 +84,7 @@
   const whatsInParenthesis = /\(([^)]+)\)/;
 
   // config.script cannot be undefined
-  $: if (config.script && !loaded) {
+  $: {
     const arr = config.script.split(" gms");
 
     let lsb = whatsInParenthesis.exec(arr[0]);
@@ -121,15 +118,7 @@
       param_object.base,
       param_object.value,
     ];
-
-    loaded = true;
   }
-
-  //gms(0,176,10, val%128) gms(0,176,42, val/128)
-
-  onDestroy(() => {
-    loaded = false;
-  });
 
   function sendData(e, index) {
     scriptSegments[index] = e;
@@ -717,43 +706,28 @@
     </div>
   {/if}
 
-  <div class="w-full grid grid-cols-{scriptSegments.length}">
+  <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
     {#each scriptSegments as script, i}
-      <div class="flex flex-col atomicInput gap-1">
-        <div class="text-gray-500 text-sm truncate">
-          {parameterNames[i]}
-        </div>
-        <AtomicInput
-          value={GridScript.humanize(script)}
-          suggestions={suggestions[i]}
-          validator={validators[i]}
-          suggestionTarget={suggestionElement}
-          on:validator={(e) => {
-            const data = e.detail;
-            dispatch("validator", data);
-          }}
-          on:change={(e) => {
-            sendData(GridScript.shortify(e.detail), i);
-          }}
-        />
-      </div>
+      <MeltCombo
+        title={parameterNames[i]}
+        value={script}
+        suggestions={suggestions[i]}
+        validator={validators[i]}
+        on:validator={(e) => {
+          const data = e.detail;
+          dispatch("validator", data);
+        }}
+        on:change={(e) => {
+          sendData(e.detail, i);
+        }}
+        postProcessor={GridScript.shortify}
+        preProcessor={GridScript.humanize}
+      />
     {/each}
   </div>
-
-  <AtomicSuggestions bind:component={suggestionElement} />
 
   <SendFeedback
     feedback_context="MidiFourteenBit"
     class="mt-2 text-sm text-gray-500"
   />
 </action-midi>
-
-<style global>
-  .atomicInput {
-    padding-right: 0.5rem;
-  }
-
-  .atomicInput:first-child {
-    padding-left: 0.5rem;
-  }
-</style>

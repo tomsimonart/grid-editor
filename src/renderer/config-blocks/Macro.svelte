@@ -75,7 +75,6 @@
   export let eventInfo;
   export let elementInfo;
 
-  let loaded = false;
   let macroInputField;
 
   let isChanges = false;
@@ -89,7 +88,7 @@
     lastKeyDivList = keyDivList;
   });
 
-  $: if (config.script && !loaded) {
+  $: {
     scriptToKeyList({ script: config.script });
   }
 
@@ -110,10 +109,6 @@
 
     scriptToKeyList({ script: config.script });
   }
-
-  onDestroy(() => {
-    loaded = false;
-  });
 
   function scriptToKeyList({ script }) {
     let array = [];
@@ -159,7 +154,6 @@
         keyBuffer = _keys;
         caretPos = keyBuffer.length;
         keyDivList = colorize(_keys);
-        loaded = true;
       }
     } catch (error) {
       console.warn("gsk can't be turned to config", script, error);

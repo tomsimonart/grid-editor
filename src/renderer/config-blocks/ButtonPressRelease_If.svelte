@@ -122,16 +122,9 @@
 
   let scriptSegment = ""; // local script part
 
-  let loaded = false;
-
-  $: if (config.script && !loaded) {
-    scriptSegment = GridScript.humanize(config.script.slice(3, -5));
-    loaded = true;
+  $: {
+    scriptSegment = config.script.slice(3, -5);
   }
-
-  onDestroy(() => {
-    loaded = false;
-  });
 
   function sendData(e) {
     if (parenthesis(e)) {

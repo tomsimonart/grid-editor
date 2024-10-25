@@ -29,7 +29,7 @@
 
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
-  import AtomicInput from "./components/AtomicInput.svelte";
+  import MeltCombo from "./components/MeltCombo.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "./_validators";
 
@@ -43,12 +43,11 @@
   $: handleConfigChange(config.script);
 
   function handleConfigChange(script) {
-    scriptValue = GridScript.humanize(script.split("--[[")[1].split("]]")[0]);
+    scriptValue = script.split("--[[")[1].split("]]")[0];
   }
 
   $: if (scriptValue) {
-    console.log(scriptValue);
-    sendData(GridScript.shortify(scriptValue));
+    sendData(scriptValue);
   }
 
   function sendData(e) {
@@ -63,20 +62,18 @@
 <element-name
   class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
 >
-  <div class="w-full px-2">
-    <div class="text-gray-500 text-sm pb-1">Comment</div>
-
-    <AtomicInput
-      value={GridScript.humanize(scriptValue)}
-      {validator}
-      on:validator={(e) => {
-        const data = e.detail;
-        dispatch("validator", data);
-      }}
-      on:input={(e) => {
-        let newValue = e.detail;
-        sendData(newValue);
-      }}
-    />
-  </div>
+  <MeltCombo
+    title={"Comment"}
+    value={scriptValue}
+    {validator}
+    on:validator={(e) => {
+      const data = e.detail;
+      dispatch("validator", data);
+    }}
+    on:change={(e) => {
+      sendData(e.detail);
+    }}
+    postProcessor={GridScript.shortify}
+    preProcessor={GridScript.humanize}
+  />
 </element-name>

@@ -3,16 +3,18 @@ import preprocess from "svelte-preprocess";
 import path, { resolve } from "path";
 import monacoEditorPlugin from "vite-plugin-monaco-editor";
 import copy from "rollup-plugin-copy";
+import { preprocessMeltUI, sequence } from "@melt-ui/pp";
 
 export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
   return {
     plugins: [
       svelte({
-        preprocess: [
+        preprocess: sequence([
           preprocess({
             postcss: true,
           }),
-        ],
+          preprocessMeltUI(), // add to the end!
+        ]),
       }),
       monacoEditorPlugin,
       ...additionalPlugins,

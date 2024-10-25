@@ -51,8 +51,6 @@
    * @locals []
    */
 
-  let loaded = false;
-
   let scriptSegments = [{ variable: "", value: "" }];
 
   let codeEditorContent = "";
@@ -63,16 +61,10 @@
   export let commitState = 1;
 
   // config.script cannot be undefined
-  $: if (config.script /* && !loaded*/) {
+  $: {
     // this works differently from normal _utils...
     scriptSegments = localsToConfig({ script: config.script });
-
-    loaded = true;
   }
-
-  onDestroy(() => {
-    loaded = false;
-  });
 
   function saveChangesOnInput(e, i, k) {
     scriptSegments[i][k] = e;

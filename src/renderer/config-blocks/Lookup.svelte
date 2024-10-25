@@ -36,9 +36,8 @@
 
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
-  import { AtomicInput } from "@intechstudio/grid-uikit";
+  import MeltCombo from "./components/MeltCombo.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { AtomicSuggestions } from "@intechstudio/grid-uikit";
   import { config_panel_blocks } from "../main/panels/configuration/Configuration";
   import { LocalDefinitions } from "../runtime/runtime.store";
 
@@ -50,16 +49,11 @@
 
   const dispatch = createEventDispatcher();
 
-  let loaded = false;
-
   let scriptSegments = [];
   let lookupTable = {};
 
-  // Using onDestroy() and loaded flag may help ever changing reactivity
-
-  $: if (config.script && !loaded) {
+  $: {
     lookupTable = createLookupTable(config.script);
-    loaded = true;
   }
 
   $: if (lookupTable.source || lookupTable.pairs.length) {
@@ -135,27 +129,24 @@
 <config-lookup
   class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
 >
-  <div class="flex flex-col p-2">
-    <div class="text-gray-500 text-sm pb-1">Source</div>
-    <AtomicInput
-      {suggestions}
-      placeholder={"Incoming value to match"}
-      value={GridScript.humanize(lookupTable.source)}
-      suggestionTarget={suggestionElement1}
-      validator={(e) => {
-        return new Validator(e).NotEmpty().Result();
-      }}
-      on:change={(e) => {
-        lookupTable.source = GridScript.shortify(e.detail);
-      }}
-      on:validator={(e) => {
-        const data = e.detail;
-        dispatch("validator", data);
-      }}
-    />
-  </div>
-
-  <AtomicSuggestions bind:component={suggestionElement1} />
+  <MeltCombo
+    title={"Source"}
+    {suggestions}
+    placeholder={"Incoming value to match"}
+    value={lookupTable.source}
+    validator={(e) => {
+      return new Validator(e).NotEmpty().Result();
+    }}
+    on:change={(e) => {
+      lookupTable.source = e.detail;
+    }}
+    on:validator={(e) => {
+      const data = e.detail;
+      dispatch("validator", data);
+    }}
+    postProcessor={GridScript.shortify}
+    preProcessor={GridScript.humanize}
+  />
 
   <div class="w-full p-2 flex flex-col">
     <div class="flex text-gray-500 text-sm">
@@ -211,27 +202,24 @@
     {/each}
   </div>
 
-  <div class="flex flex-col p-2">
-    <div class="text-gray-500 text-sm pb-1">Destination</div>
-    <AtomicInput
-      placeholder={"Variable name to load the lookup result"}
-      {suggestions}
-      value={GridScript.humanize(lookupTable.destination)}
-      suggestionTarget={suggestionElement2}
-      on:change={(e) => {
-        lookupTable.destination = GridScript.shortify(e.detail);
-      }}
-      validator={(e) => {
-        return new Validator(e).NotEmpty().Result();
-      }}
-      on:validator={(e) => {
-        const data = e.detail;
-        dispatch("validator", data);
-      }}
-    />
-  </div>
-
-  <AtomicSuggestions bind:component={suggestionElement2} />
+  <MeltCombo
+    title={"Destination"}
+    placeholder={"Variable name to load the lookup result"}
+    {suggestions}
+    value={lookupTable.destination}
+    on:change={(e) => {
+      lookupTable.destination = e.detail;
+    }}
+    validator={(e) => {
+      return new Validator(e).NotEmpty().Result();
+    }}
+    on:validator={(e) => {
+      const data = e.detail;
+      dispatch("validator", data);
+    }}
+    postProcessor={GridScript.shortify}
+    preProcessor={GridScript.humanize}
+  />
 
   <div class="w-full flex group p-2">
     <!-- svelte-ignore a11y-click-events-have-key-events -->

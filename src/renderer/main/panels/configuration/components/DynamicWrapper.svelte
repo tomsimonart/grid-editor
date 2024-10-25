@@ -70,6 +70,7 @@
   function handleValidator(e) {
     const data = e.detail;
     validationError = data.isError;
+    console.log(validationError);
   }
 
   function handleToggle(e) {
@@ -139,7 +140,8 @@
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
-    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!$action.checkSyntax()
+    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!$action.checkSyntax() ||
+    validationError
       ? 'border-error'
       : 'border-transparent'} bri"
     id={configIndexToId(index)}
@@ -177,13 +179,10 @@
         {#if (toggled && $action.information.toggleable) || typeof header === "undefined"}
           <!-- Body of the Action block when toggled -->
           <div class="bg-secondary bg-opacity-30 h-full w-full">
-            {console.log(action)}
             <svelte:component
               this={component}
-              class="h-full w-full px-2"
               {index}
-              config={action}
-              syntaxError={!$action.checkSyntax()}
+              config={$action}
               on:replace={handleReplace}
               on:validator={handleValidator}
               on:output={handleOutput}
