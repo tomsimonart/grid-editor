@@ -134,7 +134,7 @@
             solutions.push(element);
           } else if (element.type === "notification") {
             if (
-              typeof element.version == "undefined" ||
+              typeof element.version === "undefined" ||
               element.version ===
                 window.ctxProcess.configuration()?.EDITOR_VERSION
             ) {
