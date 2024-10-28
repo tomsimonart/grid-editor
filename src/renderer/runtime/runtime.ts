@@ -261,7 +261,6 @@ export class ActionData extends NodeData {
     const event = this.parent as GridEvent;
     for (let i = 0; i < event.config.length; ++i) {
       let action = event.config[i];
-
       if (action.id === this.id) {
         if (
           ["composite_part", "composite_close"].includes(
@@ -329,7 +328,9 @@ export class GridAction extends RuntimeNode<ActionData> {
   }
 
   static getInformation(short: string): ActionBlockInformation {
+    console.log(short);
     const result = getComponentInformation({ short: short });
+    console.log(result);
     return result.information as ActionBlockInformation;
   }
 

@@ -19,6 +19,7 @@
   import {
     updateAction,
     replaceAction,
+    syncWithGrid,
   } from "./../../../../runtime/operations";
 
   const dispatch = createEventDispatcher();
@@ -62,15 +63,20 @@
     lastOpenedActionblocksInsert(newAction.short);
   }
 
-  function handleOutput(e) {
+  function handleUpdateAction(e) {
     const { short, script, name } = e.detail;
-    updateAction(data.action, new ActionData(short, script, name));
+    updateAction(data.action, new ActionData(short, script, name), false);
+    console.log("UPDATE", script);
+  }
+
+  function handleSendActionToGrid() {
+    syncWithGrid(data.action);
+    console.log("SYNC");
   }
 
   function handleValidator(e) {
     const data = e.detail;
     validationError = data.isError;
-    console.log(validationError);
   }
 
   function handleToggle(e) {
@@ -125,6 +131,8 @@
       return s;
     });
   }
+
+  $: console.log($action);
 </script>
 
 <svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
@@ -132,7 +140,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <wrapper class="flex flex-grow outline-none" class:cursor-pointer={ctrlIsDown}>
-  {#each Array($action.indentation) as _}
+  {#each Array($action?.indentation ?? 0) as _}
     <div style="width: 15px" class="flex items-center mx-1">
       <div class="w-3 h-3 rounded-full bg-secondary" />
     </div>
@@ -182,10 +190,11 @@
             <svelte:component
               this={component}
               {index}
-              config={$action}
+              config={action}
               on:replace={handleReplace}
               on:validator={handleValidator}
-              on:output={handleOutput}
+              on:update-action={handleUpdateAction}
+              on:sync={handleSendActionToGrid}
               on:toggle={handleToggle}
             />
           </div>
@@ -197,7 +206,8 @@
             config={action}
             {index}
             on:toggle={handleToggle}
-            on:output={handleOutput}
+            on:update-action={handleUpdateAction}
+            on:sync={handleSendActionToGrid}
           />
         {/if}
       </div>

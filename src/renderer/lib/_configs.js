@@ -7,11 +7,13 @@ export async function init_config_block_library() {
   console.info("Init config block library!");
 
   let importModules = import.meta.glob("../config-blocks/*.svelte");
+  console.log(importModules);
 
   try {
     config_components = await Promise.all(
       Object.values(importModules).map((importModule) => importModule())
     );
+    console.log(config_components);
     packageComponent = await import("../config-blocks/package/Package.svelte");
     console.info("Config blocks imported!");
   } catch (err) {
@@ -37,6 +39,7 @@ export function getAllComponents() {
       information: info,
     });
   }
+  console.log(configs, configs.length);
   return configs;
 }
 

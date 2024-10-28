@@ -79,7 +79,7 @@
 
     config.script = "gmss(" + textarea.innerText.toString() + ")";
 
-    dispatch("output", { short: config.short, script: config.script });
+    dispatch("update-action", { short: config.short, script: config.script });
   }
 
   const tabs = [

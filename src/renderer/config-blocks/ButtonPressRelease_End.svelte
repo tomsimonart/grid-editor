@@ -35,21 +35,3 @@
     syntaxPreprocessor: new SyntaxPreprocessor(""),
   };
 </script>
-
-<script>
-  import { onMount, createEventDispatcher } from "svelte";
-
-  const dispatch = createEventDispatcher();
-
-  function sendData() {
-    dispatch("output", {
-      short: information.short,
-      script: information.defaultLua,
-    });
-  }
-</script>
-
-<else-block
-  class="{$$props.class} w-full h-fit flex flex-col text-white py-1 pointer-events-auto"
-  style="min-height: 2.5rem; background: {information.color};"
-/>

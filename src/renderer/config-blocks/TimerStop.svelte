@@ -63,7 +63,7 @@
   }
 
   function sendData(e) {
-    dispatch("output", { short: "gtp", script: `gtp(${e})` });
+    dispatch("update-action", { short: "gtp", script: `gtp(${e})` });
   }
 
   let suggestions = [];
@@ -88,15 +88,16 @@
 <timer-stop class="flex flex-col w-full p-2 pointer-events-auto">
   <MeltCombo
     title={"Element Number"}
-    value={scriptValue}
+    bind:value={scriptValue}
     suggestions={suggestions[0]}
     on:validator={(e) => {
       const data = e.detail;
       dispatch("validator", data);
     }}
-    on:change={(e) => {
+    on:input={(e) => {
       scriptValue = e.detail;
     }}
+    on:change={() => dispatch("sync")}
     validator={(e) => {
       return new Validator(e).NotEmpty().Result();
     }}

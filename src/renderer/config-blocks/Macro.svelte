@@ -164,7 +164,7 @@
     let script = `gks(${defaultDelay}${
       parameters.length > 0 ? "," + parameters.join(",") : ""
     })`;
-    dispatch("output", { short: "gks", script: script });
+    dispatch("update-action", { short: "gks", script: script });
   }
 
   let keyDivList = "";

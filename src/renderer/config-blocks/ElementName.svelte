@@ -50,7 +50,7 @@
   }
 
   function sendData(e) {
-    dispatch("output", { short: "sn", script: `self:gen('${e}')` });
+    dispatch("update-action", { short: "sn", script: `self:gen('${e}')` });
   }
 
   const validator = (e) => {
@@ -63,15 +63,16 @@
 >
   <MeltCombo
     title={"Element Name"}
-    value={scriptValue}
+    bind:value={scriptValue}
     {validator}
     on:validator={(e) => {
       const data = e.detail;
       dispatch("validator", data);
     }}
-    on:change={(e) => {
+    on:input={(e) => {
       sendData(e.detail);
     }}
+    on:change={() => dispatch("sync")}
     postProcessor={GridScript.shortify}
     preProcessor={GridScript.humanize}
   />

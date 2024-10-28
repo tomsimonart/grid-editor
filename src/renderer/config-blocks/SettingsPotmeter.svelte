@@ -71,7 +71,7 @@
       optional.push(`self:pmi(${p3})  self:pma(${p2})`);
     }
 
-    dispatch("output", {
+    dispatch("update-action", {
       short: "spc",
       script:
         `self:pmo(${p1})` +
@@ -112,18 +112,19 @@
 <potmeter-settings class="flex flex-col w-full px-4 py-2 pointer-events-auto">
   <MeltCombo
     title={"Bit depth"}
-    value={pmo}
+    bind:value={pmo}
     suggestions={suggestions[0]}
     validator={(e) => {
       return new Validator(e).NotEmpty().Result();
     }}
-    on:change={(e) => {
+    on:input={(e) => {
       pmo = e.detail;
     }}
     on:validator={(e) => {
       const data = e.detail;
       dispatch("validator", data);
     }}
+    on:change={() => dispatch("sync")}
     postProcessor={GridScript.shortify}
     preProcessor={GridScript.humanize}
   />
@@ -134,19 +135,20 @@
     <MeltCombo
       title={"Min"}
       disabled={!minMaxEnabled}
-      value={pmi}
+      bind:value={pmi}
       validator={(e) => {
         return minMaxEnabled
           ? new Validator(e).NotEmpty().Result()
           : new Validator(e).Result();
       }}
-      on:change={(e) => {
+      on:input={(e) => {
         pmi = e.detail;
       }}
       on:validator={(e) => {
         const data = e.detail;
         dispatch("validator", data);
       }}
+      on:change={() => dispatch("sync")}
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />
@@ -154,18 +156,19 @@
     <MeltCombo
       title={"Max"}
       disabled={!minMaxEnabled}
-      value={pma}
+      bind:value={pma}
       suggestions={suggestions[1]}
       validator={(e) => {
         return new Validator(e).NotEmpty().Result();
       }}
-      on:change={(e) => {
+      on:input={(e) => {
         pma = e.detail;
       }}
       on:validator={(e) => {
         const data = e.detail;
         dispatch("validator", data);
       }}
+      on:change={() => dispatch("sync")}
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />

@@ -139,7 +139,10 @@
     if (hiRes) {
       script.push(`gms(${channel},176,38,(${value})%128)`);
     }
-    dispatch("output", { short: config.short, script: script.join(" ") });
+    dispatch("update-action", {
+      short: config.short,
+      script: script.join(" "),
+    });
   }
 
   const channels = (length) => {
@@ -248,16 +251,17 @@
 
   <MeltCombo
     title={"Channel"}
-    value={scriptSegments.channel}
+    bind:value={scriptSegments.channel}
     suggestions={suggestions[0]}
     validator={validators[0]}
     on:validator={(e) => {
       const data = e.detail;
       dispatch("validator", data);
     }}
-    on:change={(e) => {
+    on:input={(e) => {
       scriptSegments.channel = e.detail;
     }}
+    on:change={() => dispatch("sync")}
     postProcessor={GridScript.shortify}
     preProcessor={GridScript.humanize}
   />
@@ -266,34 +270,36 @@
     <div class="flex flex-col">
       <MeltCombo
         title={"MSB"}
-        value={scriptSegments.addressMSB}
+        bind:value={scriptSegments.addressMSB}
         suggestions={suggestions[1]}
         validator={validators[1]}
         on:validator={(e) => {
           const data = e.detail;
           dispatch("validator", data);
         }}
-        on:change={(e) => {
+        on:input={(e) => {
           scriptSegments.addressMSB = e.detail;
           scriptSegments = calculateNRPNCC(scriptSegments);
         }}
+        on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}
         preProcessor={GridScript.humanize}
       />
 
       <MeltCombo
         title={"LSB"}
-        value={scriptSegments.addressLSB}
+        bind:value={scriptSegments.addressLSB}
         suggestions={suggestions[2]}
         validator={validators[2]}
         on:validator={(e) => {
           const data = e.detail;
           dispatch("validator", data);
         }}
-        on:change={(e) => {
+        on:input={(e) => {
           scriptSegments.addressLSB = e.detail;
           scriptSegments = calculateNRPNCC(scriptSegments);
         }}
+        on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}
         preProcessor={GridScript.humanize}
       />
@@ -325,18 +331,19 @@
 
     <MeltCombo
       title={"NRPN CC"}
-      value={scriptSegments.nrpnCC}
+      bind:value={scriptSegments.nrpnCC}
       suggestions={suggestions[1]}
       validator={validators[1]}
       on:validator={(e) => {
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:change={(e) => {
+      on:input={(e) => {
         scriptSegments.nrpnCC = e.detail;
         scriptSegments.addressMSB = `(${e.detail})//128`;
         scriptSegments.addressLSB = `(${e.detail})%128`;
       }}
+      on:change={() => dispatch("sync")}
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />
@@ -345,16 +352,17 @@
   <div class="w-full grid grid-cols-2 gap-2 items-center">
     <MeltCombo
       title={"Value"}
-      value={scriptSegments.value}
+      bind:value={scriptSegments.value}
       suggestions={suggestions[3]}
       validator={validators[3]}
       on:validator={(e) => {
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:change={(e) => {
+      on:input={(e) => {
         scriptSegments.value = e.detail;
       }}
+      on:change={() => dispatch("sync")}
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />

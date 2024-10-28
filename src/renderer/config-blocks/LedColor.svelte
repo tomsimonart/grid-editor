@@ -129,7 +129,7 @@ A -> B : AB-First step
       array: _temp_segments,
     });
 
-    dispatch("output", { short: config.short, script: script });
+    dispatch("update-action", { short: config.short, script: script });
   }
 
   const defaultLayerSuggestion = [
@@ -485,16 +485,17 @@ A -> B : AB-First step
     {#each [scriptSegments[0], scriptSegments[1]] as script, i}
       <MeltCombo
         title={parameterNames[i]}
-        value={script}
+        bind:value={script}
         validator={validators[i]}
         suggestions={suggestions[i]}
         on:validator={(e) => {
           const data = e.detail;
           dispatch("validator", data);
         }}
-        on:change={(e) => {
+        on:input={(e) => {
           sendData(e.detail, i);
         }}
+        on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}
         preProcessor={GridScript.humanize}
       />
@@ -530,17 +531,18 @@ A -> B : AB-First step
     {#each [scriptSegments[2], scriptSegments[3], scriptSegments[4]] as script, i}
       <MeltCombo
         title={parameterNames[i + 2]}
-        value={script}
+        bind:value={script}
         validator={validators[i + 2]}
         suggestions={suggestions[i + 2]}
         on:validator={(e) => {
           const data = e.detail;
           dispatch("validator", data);
         }}
-        on:change={(e) => {
+        on:input={(e) => {
           sendData(e.detail, i + 2);
           updatePicker(e);
         }}
+        on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}
         preProcessor={GridScript.humanize}
       />

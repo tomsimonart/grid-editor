@@ -1,6 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
-  import { createCombobox, melt } from "@melt-ui/svelte";
+  import { createCombobox, melt, type ComboboxOption } from "@melt-ui/svelte";
   import { get } from "svelte/store";
 
   export let value: any;
@@ -19,13 +19,14 @@
   };
   export let title = "";
 
-  type MeltComboOption = { info: string; value: any; disabled?: boolean };
+  type MeltComboOption = { info: string; value: any; disabled: boolean };
 
   const dispatch = createEventDispatcher();
 
   let isError = false;
   let infoValue = "";
-  let displayText: any;
+
+  let oldValue = undefined;
 
   const {
     elements: { menu, input, option, label },
@@ -35,43 +36,54 @@
     forceVisible: true,
   });
 
-  $: handleSelectionChange($selected);
-
   $: handleValueChange(value);
-
-  $: handleDisplayValueChange(displayText);
+  $: handleSelectionChange($selected);
+  $: handleInputChange($inputValue);
 
   function handleValueChange(value: any) {
-    displayText = preProcessor(value);
-  }
-
-  function handleSelectionChange(option: MeltComboOption) {
-    if (typeof option === "undefined") {
+    if ($inputValue === value) {
       return;
     }
 
-    displayText = option.value;
+    inputValue.set(preProcessor(value));
   }
 
-  function handleInputChange() {
-    const input = get(inputValue);
-    displayText = input;
-    console.log(input);
+  function handleSelectionChange(option: MeltComboOption) {
+    if (!option) {
+      return;
+    }
+
+    if (oldValue === undefined) {
+      oldValue = value;
+    }
+
+    value = option.value;
+    inputValue.set(value);
+    handleChange();
   }
 
-  function handleDisplayValueChange(display: string) {
-    inputValue.set(display);
+  function handleInputChange(input: string) {
+    if (oldValue === undefined) {
+      oldValue = value;
+    }
+
+    if (input === value) {
+      return;
+    }
+
+    value = input;
     infoValue =
-      suggestions.find(
-        (s) => String(s.value).trim() == String(displayText).trim()
-      )?.info ?? "";
-    isError = !validator(displayText);
-    dispatch("validator", { isError: isError });
+      suggestions.find((s) => String(s.value).trim() == String(input).trim())
+        ?.info || "";
+    isError = !validator($inputValue);
+    dispatch("validator", { isError });
+    dispatch("input", postProcessor(input));
+  }
 
-    if (displayText !== value) {
-      value = displayText;
-      console.log(displayText);
-      dispatch("change", postProcessor(displayText));
+  function handleChange() {
+    if (oldValue !== undefined && oldValue !== value) {
+      oldValue = undefined;
+      dispatch("change", postProcessor($inputValue));
     }
   }
 </script>
@@ -87,7 +99,7 @@
   </label>
   <input
     use:melt={$input}
-    on:input={handleInputChange}
+    on:change={handleChange}
     class="w-full flex flex-row border mb-1 {isError
       ? 'border-error'
       : 'border-black'} p-2 {disabled

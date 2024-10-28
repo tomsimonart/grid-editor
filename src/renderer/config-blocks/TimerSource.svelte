@@ -72,7 +72,7 @@
       short: config.short,
       array: scriptSegments,
     });
-    dispatch("output", { short: config.short, script: script });
+    dispatch("update-action", { short: config.short, script: script });
   }
 
   let _suggestions = [
@@ -105,16 +105,17 @@
     {#each scriptSegments as script, i}
       <MeltCombo
         title={parameterNames[i]}
-        value={script}
+        bind:value={script}
         suggestions={suggestions[i]}
         validator={validators[i]}
         on:validator={(e) => {
           const data = e.detail;
           dispatch("validator", data);
         }}
-        on:change={(e) => {
+        on:input={(e) => {
           sendData(e.detail, i);
         }}
+        on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}
         preProcessor={GridScript.humanize}
       />

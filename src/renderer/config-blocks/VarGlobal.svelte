@@ -116,7 +116,7 @@
     if (parenthesis(outputCode)) {
       committedCode = outputCode;
       outputCode = GridScript.shortify(outputCode);
-      dispatch("output", { short: "g", script: outputCode });
+      dispatch("update-action", { short: "g", script: outputCode });
       commitState = 0;
     }
 

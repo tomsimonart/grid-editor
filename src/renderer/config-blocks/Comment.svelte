@@ -51,7 +51,7 @@
   }
 
   function sendData(e) {
-    dispatch("output", { short: "c", script: `--[[${e}]]` });
+    dispatch("update-action", { short: "c", script: `--[[${e}]]` });
   }
 
   const validator = (e) => {
@@ -64,15 +64,16 @@
 >
   <MeltCombo
     title={"Comment"}
-    value={scriptValue}
+    bind:value={scriptValue}
     {validator}
     on:validator={(e) => {
       const data = e.detail;
       dispatch("validator", data);
     }}
-    on:change={(e) => {
+    on:input={(e) => {
       sendData(e.detail);
     }}
+    on:change={() => dispatch("sync")}
     postProcessor={GridScript.shortify}
     preProcessor={GridScript.humanize}
   />

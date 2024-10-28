@@ -95,7 +95,7 @@
         return;
       }
       if (!newLinesRemoved) {
-        dispatch("output", { script: value });
+        dispatch("update-action", { script: value });
       }
       newLinesRemoved = false;
     });

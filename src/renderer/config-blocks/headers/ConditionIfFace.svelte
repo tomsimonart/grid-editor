@@ -27,7 +27,7 @@
     if (parenthesis(e)) {
       const script = GridScript.shortify(e);
 
-      dispatch("output", {
+      dispatch("update-action", {
         short: `if`,
         script: `if ${script} then`,
       });
@@ -46,7 +46,7 @@
       class="bg-secondary my-auto mr-1 rounded flex items-center flex-grow h-full"
     >
       <LineEditor
-        on:change={(e) => {
+        on:input={(e) => {
           sendData(e.detail.script);
         }}
         action={config}

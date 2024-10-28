@@ -90,7 +90,7 @@
       optional.push(`self:epse(${p5})`);
     }
 
-    dispatch("output", {
+    dispatch("update-action", {
       short: `sen`,
       script:
         `self:epmo(${p1}) self:epv0(${p2})` +
@@ -120,36 +120,38 @@
 >
   <MeltCombo
     title={"Endless Mode"}
-    value={epmo}
+    bind:value={epmo}
     suggestions={suggestions[0]}
     validator={(e) => {
       return new Validator(e).NotEmpty().Result();
     }}
-    on:change={(e) => {
+    on:input={(e) => {
       epmo = e.detail;
     }}
     on:validator={(e) => {
       const data = e.detail;
       dispatch("validator", data);
     }}
+    on:change={() => dispatch("sync")}
     postProcessor={GridScript.shortify}
     preProcessor={GridScript.humanize}
   />
 
   <MeltCombo
     title={"Endless Velocity"}
-    value={epv0}
+    bind:value={epv0}
     suggestions={suggestions[1]}
     validator={(e) => {
       return new Validator(e).NotEmpty().Result();
     }}
-    on:change={(e) => {
+    on:input={(e) => {
       epv0 = e.detail;
     }}
     on:validator={(e) => {
       const data = e.detail;
       dispatch("validator", data);
     }}
+    on:change={() => dispatch("sync")}
     postProcessor={GridScript.shortify}
     preProcessor={GridScript.humanize}
   />
@@ -159,19 +161,20 @@
     <MeltCombo
       title={"Min"}
       disabled={minMaxEnabled}
-      value={epmi}
+      bind:value={epmi}
       validator={(e) => {
         return minMaxEnabled
           ? new Validator(e).NotEmpty().Result()
           : new Validator(e).Result();
       }}
-      on:change={(e) => {
+      on:input={(e) => {
         epmi = e.detail;
       }}
       on:validator={(e) => {
         const data = e.detail;
         dispatch("validator", data);
       }}
+      on:change={() => dispatch("sync")}
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />
@@ -179,19 +182,20 @@
     <MeltCombo
       title={"Max"}
       disabled={!minMaxEnabled}
-      value={epma}
+      bind:value={epma}
       validator={(e) => {
         return minMaxEnabled
           ? new Validator(e).NotEmpty().Result()
           : new Validator(e).Result();
       }}
-      on:change={(e) => {
+      on:input={(e) => {
         epma = e.detail;
       }}
       on:validator={(e) => {
         const data = e.detail;
         dispatch("validator", data);
       }}
+      on:change={() => dispatch("sync")}
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />
@@ -202,19 +206,20 @@
   <MeltCombo
     title={"Sensitivity"}
     disabled={!sensitivityEnabled}
-    value={epse}
+    bind:value={epse}
     validator={(e) => {
       return minMaxEnabled
         ? new Validator(e).NotEmpty().Result()
         : new Validator(e).Result();
     }}
-    on:change={(e) => {
+    on:input={(e) => {
       epse = e.detail;
     }}
     on:validator={(e) => {
       const data = e.detail;
       dispatch("validator", data);
     }}
+    on:change={() => dispatch("sync")}
     postProcessor={GridScript.shortify}
     preProcessor={GridScript.humanize}
   />

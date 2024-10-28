@@ -86,7 +86,7 @@
       array: array,
     }); // important to set the function name
 
-    dispatch("output", {
+    dispatch("update-action", {
       short: config.short,
       script: `${lookupTable.destination}=${script}`,
     });
@@ -133,17 +133,18 @@
     title={"Source"}
     {suggestions}
     placeholder={"Incoming value to match"}
-    value={lookupTable.source}
+    bind:value={lookupTable.source}
     validator={(e) => {
       return new Validator(e).NotEmpty().Result();
     }}
-    on:change={(e) => {
+    on:input={(e) => {
       lookupTable.source = e.detail;
     }}
     on:validator={(e) => {
       const data = e.detail;
       dispatch("validator", data);
     }}
+    on:change={() => dispatch("sync")}
     postProcessor={GridScript.shortify}
     preProcessor={GridScript.humanize}
   />
@@ -206,8 +207,8 @@
     title={"Destination"}
     placeholder={"Variable name to load the lookup result"}
     {suggestions}
-    value={lookupTable.destination}
-    on:change={(e) => {
+    bind:value={lookupTable.destination}
+    on:input={(e) => {
       lookupTable.destination = e.detail;
     }}
     validator={(e) => {
@@ -217,6 +218,7 @@
       const data = e.detail;
       dispatch("validator", data);
     }}
+    on:change={() => dispatch("sync")}
     postProcessor={GridScript.shortify}
     preProcessor={GridScript.humanize}
   />

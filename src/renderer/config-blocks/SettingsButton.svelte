@@ -69,7 +69,7 @@
       optional.push(`self:bmi(${bmo}) self:bma(${bma})`);
     }
 
-    dispatch("output", {
+    dispatch("update-action", {
       short: `sbc`,
       script:
         `self:bmo(${bmo})` +
@@ -115,9 +115,9 @@
 <encoder-settings class="flex flex-col w-full px-4 py-2 pointer-events-auto">
   <MeltCombo
     title={"Button Mode"}
-    value={bmo}
+    bind:value={bmo}
     suggestions={suggestions[0]}
-    on:change={(e) => {
+    on:input={(e) => {
       bmo = e.detail;
       sendData();
     }}
@@ -128,6 +128,7 @@
       const data = e.detail;
       dispatch("validator", data);
     }}
+    on:change={() => dispatch("sync")}
     postProcessor={GridScript.shortify}
     preProcessor={GridScript.humanize}
   />
@@ -137,13 +138,13 @@
     <MeltCombo
       title={"Min"}
       disabled={!minMaxEnabled}
-      value={bmi}
+      bind:value={bmi}
       validator={(e) => {
         return minMaxEnabled
           ? new Validator(e).NotEmpty().Result()
           : new Validator(e).Result();
       }}
-      on:change={(e) => {
+      on:input={(e) => {
         bmi = e.detail;
         sendData();
       }}
@@ -151,6 +152,7 @@
         const data = e.detail;
         dispatch("validator", data);
       }}
+      on:change={() => dispatch("sync")}
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />
@@ -158,13 +160,13 @@
     <MeltCombo
       title={"Max"}
       disabled={!minMaxEnabled}
-      value={bma}
+      bind:value={bma}
       validator={(e) => {
         return minMaxEnabled
           ? new Validator(e).NotEmpty().Result()
           : new Validator(e).Result();
       }}
-      on:change={(e) => {
+      on:input={(e) => {
         bma = e.detail;
         sendData();
       }}
@@ -172,6 +174,7 @@
         const data = e.detail;
         dispatch("validator", data);
       }}
+      on:change={() => dispatch("sync")}
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />

@@ -77,7 +77,7 @@
 
   function handleDisplayValueChange(e) {
     const { script } = e.detail;
-    dispatch("output", {
+    dispatch("update-action", {
       short: config.short,
       script: `for i=1,${script},1 do`,
     });
@@ -87,7 +87,7 @@
     data[i].value = e.detail;
     const shortData = data.map((e) => e.value);
     const segments = [shortData[0] + "=" + shortData[1], ...shortData.slice(2)];
-    dispatch("output", {
+    dispatch("update-action", {
       short: config.short,
       script: `for ${segments.join(",")} do`,
     });
@@ -130,7 +130,7 @@
               {#each data as obj, i}
                 <MeltCombo
                   title={obj.label}
-                  value={obj.value}
+                  bind:value={obj.value}
                   suggestions={obj.suggestions}
                   validator={obj.validator}
                   on:validator={(e) => {
@@ -138,6 +138,7 @@
                     dispatch("validator", data);
                   }}
                   on:change={(e) => handleInputFieldChange(e, i)}
+                  on:change={() => dispatch("sync")}
                   postProcessor={GridScript.shortify}
                   preProcessor={GridScript.humanize}
                 />

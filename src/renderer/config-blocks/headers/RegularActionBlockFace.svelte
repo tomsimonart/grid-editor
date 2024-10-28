@@ -17,7 +17,7 @@
   }
 
   function sendData(value: string) {
-    dispatch("output", {
+    dispatch("update-action", {
       short: config.short,
       script: config.script,
       name: value,
