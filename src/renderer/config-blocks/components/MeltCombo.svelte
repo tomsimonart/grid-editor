@@ -98,6 +98,7 @@
     {title}
   </label>
   <input
+    type="text"
     use:melt={$input}
     on:change={handleChange}
     class="w-full flex flex-row border mb-1 {isError
