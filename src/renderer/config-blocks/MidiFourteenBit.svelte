@@ -48,7 +48,7 @@
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
   import MeltCombo from "./components/MeltCombo.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { config_panel_blocks } from "../main/panels/configuration/Configuration";
+  import { user_input_event } from "../main/panels/configuration/Configuration";
   import { LocalDefinitions } from "../runtime/runtime.store";
 
   import { Validator } from "./_validators";
@@ -153,9 +153,9 @@
   let suggestions = [];
 
   function renderSuggestions() {
-    const index = $config_panel_blocks.findIndex((e) => e.id === config.id);
+    const index = $user_input_event.config.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $config_panel_blocks,
+      configs: $user_input_event.config,
       index: index,
     });
 
@@ -164,7 +164,7 @@
     suggestions[2] = [...localDefinitions];
   }
 
-  $: if ($config_panel_blocks) {
+  $: if ($user_input_event) {
     renderSuggestions();
   }
   const tabs = [

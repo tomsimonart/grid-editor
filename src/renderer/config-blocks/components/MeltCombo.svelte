@@ -53,16 +53,16 @@
       return;
     }
 
-    if (oldValue === undefined) {
-      oldValue = value;
-    }
-
-    value = option.value;
-    inputValue.set(value);
+    handleInputChange(option.value);
     handleChange();
   }
 
   function handleInputChange(input: string) {
+    infoValue =
+      suggestions.find((s) => String(s.value).trim() == String(input).trim())
+        ?.info || "";
+    isError = !validator($inputValue);
+
     if (oldValue === undefined) {
       oldValue = value;
     }
@@ -72,10 +72,7 @@
     }
 
     value = input;
-    infoValue =
-      suggestions.find((s) => String(s.value).trim() == String(input).trim())
-        ?.info || "";
-    isError = !validator($inputValue);
+
     dispatch("validator", { isError });
     dispatch("input", postProcessor(input));
   }

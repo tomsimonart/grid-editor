@@ -1,4 +1,5 @@
 <script lang="ts" context="module">
+  import { user_input_event } from "./../main/panels/configuration/Configuration.ts";
   import { midiCC } from "./_midi.js";
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
@@ -48,7 +49,6 @@
   import { createEventDispatcher, onDestroy } from "svelte";
   import MeltCombo from "./components/MeltCombo.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { config_panel_blocks } from "../main/panels/configuration/Configuration";
   import { Script } from "./_script_parsers.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
 
@@ -90,7 +90,6 @@
   }
 
   function sendData(e, index) {
-    scriptSegments[index] = e;
     const script = Script.toScript({
       short: config.short,
       array: scriptSegments,
@@ -137,7 +136,7 @@
 
   let suggestions = [];
 
-  $: if ($config_panel_blocks) {
+  $: if ($user_input_event) {
     renderSuggestions();
   }
 
@@ -165,9 +164,9 @@
       suggestions = _suggestions;
     }
 
-    const index = $config_panel_blocks.findIndex((e) => e.id === config.id);
+    const index = $user_input_event.config.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $config_panel_blocks,
+      configs: $user_input_event.config,
       index: index,
     });
     suggestions = suggestions.map((s) => [...localDefinitions, ...s]);

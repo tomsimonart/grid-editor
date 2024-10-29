@@ -35,7 +35,6 @@
     hideIcon: false,
     type: "single",
     toggleable: true,
-    syntaxPreprocessor: new SyntaxPreprocessor(""),
   };
 </script>
 

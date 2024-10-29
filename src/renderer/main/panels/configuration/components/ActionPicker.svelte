@@ -17,7 +17,7 @@
   import { Analytics } from "../../../../runtime/analytics.js";
 
   import { getAllComponents } from "../../../../lib/_configs";
-  import { config_panel_blocks } from "../Configuration";
+  import { user_input_event } from "../Configuration";
 
   import { lastOpenedActionblocksInsert } from "../Configuration";
   import { NumberToEventType } from "@intechstudio/grid-protocol";
@@ -68,7 +68,7 @@
 
   $: {
     try {
-      options = getAvailableOptions($config_panel_blocks.map((e) => e.action));
+      options = getAvailableOptions($user_input_event.map((e) => e.action));
     } catch (e) {
       handleClose();
     }

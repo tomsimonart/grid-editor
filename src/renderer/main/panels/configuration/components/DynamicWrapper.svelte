@@ -131,8 +131,6 @@
       return s;
     });
   }
-
-  $: console.log($action);
 </script>
 
 <svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />

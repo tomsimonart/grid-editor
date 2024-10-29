@@ -51,7 +51,7 @@ A -> B : AB-First step
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
   import MeltCombo from "./components/MeltCombo.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { config_panel_blocks } from "../main/panels/configuration/Configuration";
+  import { user_input_event } from "../main/panels/configuration/Configuration";
   import Toggle from "../main/user-interface/Toggle.svelte";
   import { get } from "svelte/store";
   import { ElementType } from "@intechstudio/grid-protocol";
@@ -141,14 +141,14 @@ A -> B : AB-First step
 
   let suggestions = [];
 
-  $: if ($config_panel_blocks) {
+  $: if ($user_input_event) {
     updateSuggestions();
   }
 
   function updateSuggestions() {
-    const index = $config_panel_blocks.findIndex((e) => e.id === config.id);
+    const index = $user_input_event.config.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $config_panel_blocks,
+      configs: $user_input_event.config,
       index: index,
     });
     suggestions = _suggestions.map((s, i) => {
