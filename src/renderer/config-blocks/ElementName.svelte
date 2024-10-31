@@ -11,7 +11,7 @@
     rendering: "standard",
     category: "code",
     displayName: "Element Name",
-    defaultLua: "self.sn='Custom Name'",
+    defaultLua: `self:gen("Custom Name")`,
     icon: `
     <span class="block w-full text-black text-center italic font-gt-pressura">N</span>
     `,
@@ -43,7 +43,7 @@
   let scriptValue = ""; // local script part
 
   $: if (config.script && !loaded) {
-    const matches = config.script.match(/'([^']*)'/);
+    const matches = config.script.match(/self:gen\("([^"]*)"\)/);
     scriptValue = matches[1];
     loaded = true;
   }
@@ -57,7 +57,7 @@
   });
 
   function sendData(e) {
-    dispatch("output", { short: "sn", script: `self:gen("${e}")` });
+    dispatch("output", { short: "sn", script: `self:gen('${e}')` });
   }
 
   const validator = (e) => {

@@ -7,9 +7,7 @@ export class ConfigPage {
     // Common Locators
     this.addActionBlockButton = page.getByText("Add action block...");
     this.selectAllCheckbox = page.locator(".w-fit > .border-white");
-    this.noActionAddActionButton = page.getByRole("button", {
-      name: "There are no actions",
-    });
+    this.noActionAddActionButton = page.getByRole("button", { name: "Add +" });
 
     this.firstActionBlock = page.locator("#cfg-0");
 
@@ -83,6 +81,10 @@ export class ConfigPage {
     await this.addActionBlockButton.click();
   }
 
+  async openActionsOnEmptyElement() {
+    await this.noActionAddActionButton.click();
+  }
+
   async addActionBlock(category, blockName) {
     await this.blocks[category][blockName]["block"].click();
   }
@@ -106,25 +108,15 @@ export class ConfigPage {
   }
 
   async openActionsInIf() {
-    await this.page
-      .getByRole("button", { name: "Actions here are triggered" })
-      .click();
+    await this.noActionAddActionButton.click();
   }
 
   async openActionsInElseIf() {
-    await this.page
-      .getByRole("button", {
-        name: "Actions here are triggered when the event runs, the expression above is true,",
-      })
-      .click();
+    await this.page.getByRole("button", { name: "Add +" }).nth(1).click();
   }
 
   async openActionsInElse() {
-    await this.page
-      .getByRole("button", {
-        name: "Actions here are triggered when the event runs, and no others conditions were",
-      })
-      .click();
+    await this.page.getByRole("button", { name: "Add +" }).nth(2).click();
   }
 
   async clickCategoryCheckboxFields(blockName) {

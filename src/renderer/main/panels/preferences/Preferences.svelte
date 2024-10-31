@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { configManager } from "./../configuration/Configuration.store.js";
-  import { logger } from "./../../../runtime/runtime.store.js";
+  import { config_panel_blocks } from "./../configuration/Configuration";
+  import { logger } from "./../../../runtime/runtime.store";
   import { get } from "svelte/store";
   import { instructions } from "../../../serialport/instructions";
   import { appSettings } from "../../../runtime/app-helper.store";
-  import { runtime } from "../../../runtime/runtime.store.js";
+  import { runtime } from "../../../runtime/runtime.store";
 
   import {
     BlockBody,
@@ -134,6 +134,49 @@
       >
       <MeltCheckbox
         bind:target={$appSettings.persistent.actionHelperText}
+        title={"Enabled"}
+      />
+    </Block>
+
+    <Block>
+      <BlockTitle>Colorful Toolbar</BlockTitle>
+      <BlockBody>Display the colors of the toolbar button by default</BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.colorfulToolbar}
+        title={"Enabled"}
+      />
+    </Block>
+
+    <Block>
+      <BlockTitle>Scale UI</BlockTitle>
+      <BlockBody
+        >Scales the font size and control elements dimensions by keeping their
+        ratio compared to each other.</BlockBody
+      >
+      <BlockRow>
+        <MeltSlider
+          bind:target={$appSettings.persistent.fontSize}
+          min={8}
+          max={36}
+          step={0.1}
+        />
+        <MoltenButton
+          title={"Reset"}
+          click={() => {
+            $appSettings.persistent.fontSize = 12;
+          }}
+        />
+      </BlockRow>
+    </Block>
+
+    <Block>
+      <BlockTitle>Show PCB</BlockTitle>
+      <BlockBody>
+        When selecting the system element of a module, it's underlaying PCB
+        shows.
+      </BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.showPCB}
         title={"Enabled"}
       />
     </Block>
@@ -311,14 +354,12 @@
           instructions
             .sendNVMEraseToGrid()
             .then((res) => {
-              runtime.erase();
-              configManager.refresh().then(() => {
-                logger.set({
-                  type: "success",
-                  mode: 0,
-                  classname: "nvmerase",
-                  message: `Erase complete!`,
-                });
+              //TODO
+              logger.set({
+                type: "success",
+                mode: 0,
+                classname: "nvmerase",
+                message: `Erase complete!`,
               });
             })
             .catch((e) => {
@@ -400,18 +441,6 @@
     </Block>
 
     <Block>
-      <BlockTitle>Show PCB</BlockTitle>
-      <BlockBody>
-        When selecting the system element of a module, it's underlaying PCB
-        shows.
-      </BlockBody>
-      <MeltCheckbox
-        bind:target={$appSettings.persistent.showPCB}
-        title={"Enabled"}
-      />
-    </Block>
-
-    <Block>
       <BlockTitle>Nightly Firmware Update</BlockTitle>
       <BlockBody>
         The Nightly Firmware version contains new, but potentially unstable
@@ -437,37 +466,6 @@
         />
       </Block>
     {/if}
-
-    <Block>
-      <BlockTitle>Colorful Toolbar</BlockTitle>
-      <BlockBody>Display the colors of the toolbar button by default</BlockBody>
-      <MeltCheckbox
-        bind:target={$appSettings.persistent.colorfulToolbar}
-        title={"Enabled"}
-      />
-    </Block>
-
-    <Block>
-      <BlockTitle>Scale UI</BlockTitle>
-      <BlockBody
-        >Scales the font size and control elements dimensions by keeping their
-        ratio compared to each other.</BlockBody
-      >
-      <BlockRow>
-        <MeltSlider
-          bind:target={$appSettings.persistent.fontSize}
-          min={8}
-          max={30}
-          step={0.1}
-        />
-        <MoltenButton
-          title={"Reset"}
-          click={() => {
-            $appSettings.persistent.fontSize = 12;
-          }}
-        />
-      </BlockRow>
-    </Block>
 
     <Block>
       <!-- Radio Select for profileCloudUrl -->
