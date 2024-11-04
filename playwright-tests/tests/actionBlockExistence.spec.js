@@ -67,6 +67,7 @@ test.describe("Block Existence", () => {
         test(`should find ${blockName} block`, async () => {
           const blockElement = configPage.blocks[category][blockName]["block"];
           await changeModuleIfNeeded(category);
+          await configPage.removeAllActions();
           await configPage.openActionBlockList();
           await expect(blockElement).toBeVisible({ timeout: 5000 });
         });

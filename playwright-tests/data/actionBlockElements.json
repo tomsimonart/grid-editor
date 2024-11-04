@@ -44,17 +44,17 @@
       "Add Key",
       "Delay Key",
       "Add Delay",
-      "Defaul Delay",
+      "Default Delay",
       "Clear All"
     ],
     "Mouse Button": ["Button", "State"],
     "Mouse Move": ["Axis", "Position"]
   },
   "element": {
-    "Button Mode": ["Mode", "Min", "Max"],
-    "Encoder Mode": ["Mode", "Velocity", "Min", "Max", "Sensitivity"],
-    "Potmeter Mode": ["Bit", "Min", "Max"],
-    "Endless Mode": ["Mode", "Velocity", "Min", "Max", "Sensitivity"]
+    "Button Mode": ["Mode","Enable Min/Max Value", "Min", "Max"],
+    "Encoder Mode": ["Mode", "Velocity","Enable Min/Max Value", "Min", "Max","Enable Sensitivity", "Sensitivity"],
+    "Potmeter Mode": ["Bit","Enable Min/Max Value", "Min", "Max"],
+    "Endless Mode": ["Mode", "Velocity","Enable Min/Max Value", "Min", "Max","Enable Sensitivity", "Sensitivity"]
   },
   "condition": {
     "If": ["input", "end"]
@@ -89,7 +89,7 @@
   "timer": {
     "Clock Source": ["Element Number", "Source"],
     "Start": ["Element Number", "Time"],
-    "Stop": ["Stop"]
+    "Stop": ["Element Number"]
   },
   "specialButton": {
     "Press/Release": ["press", "release", "end"],

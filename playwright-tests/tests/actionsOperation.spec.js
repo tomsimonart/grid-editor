@@ -219,7 +219,7 @@ test.describe("Character limit", () => {
     await configPage.openActionBlockList();
     await configPage.addActionBlock("midi", "MIDI 14");
     await configPage.openActionBlockList();
-    await configPage.addActionBlock("midi", "MIDI 14");
+    await configPage.addActionBlock("midi", "MIDI NRPN");
     await expect(await modulePage.characterLimitAddToast).toBeVisible();
   });
 
@@ -228,9 +228,7 @@ test.describe("Character limit", () => {
     await configPage.removeAllActions();
     await configPage.addCommentBlock(characterlimit);
     await modulePage.storeConfig();
-    await expect(await configPage.getTextFromComment()).toHaveValue(
-      "This Is A Comment"
-    );
+    await expect(await modulePage.characterLimitAddToast).toBeVisible();
   });
 
   test("in code", async () => {
