@@ -133,15 +133,6 @@
           <button
             on:click={(e) =>
               window.electron.openInBrowser(
-                configuration.DOCUMENTATION_FIRMWAREUPDATE_URL
-              )}
-            class="flex w-full text-blue-500 cursor-pointer"
-          >
-            Updating the firmware...
-          </button>
-          <button
-            on:click={(e) =>
-              window.electron.openInBrowser(
                 configuration.DOCUMENTATION_MAINTENANCE_URL
               )}
             class="flex w-full text-blue-500 cursor-pointer"
