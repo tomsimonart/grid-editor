@@ -1,8 +1,6 @@
 <script lang="ts">
-  import { ActionData } from "./../../../../runtime/runtime.ts";
   import { get } from "svelte/store";
-  import { user_input, runtime } from "./../../../../runtime/runtime.store";
-  import { GridAction } from "./../../../../runtime/runtime";
+  import { GridAction, ActionData } from "./../../../../runtime/runtime";
   import { SvgIcon } from "@intechstudio/grid-uikit";
   import { LocalDefinitions } from "./../../../../runtime/runtime.store";
   import {
@@ -13,11 +11,8 @@
   import { createEventDispatcher } from "svelte";
 
   import { clickOutside } from "../../../_actions/click-outside.action";
-
   import { Analytics } from "../../../../runtime/analytics.js";
-
   import { getAllComponents } from "../../../../lib/_configs";
-  import { config_panel_blocks } from "../Configuration";
 
   import { lastOpenedActionblocksInsert } from "../Configuration";
   import { NumberToEventType } from "@intechstudio/grid-protocol";
@@ -31,6 +26,7 @@
 
   export let index;
   export let referenceElement = undefined;
+  export let event: GridEvent;
 
   let offset = 0;
   const dispatch = createEventDispatcher();
@@ -68,7 +64,7 @@
 
   $: {
     try {
-      options = getAvailableOptions($config_panel_blocks.map((e) => e.action));
+      options = getAvailableOptions($event);
     } catch (e) {
       handleClose();
     }
@@ -80,17 +76,10 @@
   /////////////////       FUNCTION DEFINITIONS        //////////////////////////
   //////////////////////////////////////////////////////////////////////////////
 
-  function getAvailableOptions(configs) {
-    const ui = get(user_input);
-    const target = runtime.findEvent(
-      ui.dx,
-      ui.dy,
-      ui.pagenumber,
-      ui.elementnumber,
-      ui.eventtype
-    );
+  function getAvailableOptions(target: EventData) {
+    const configs = target.config;
 
-    if (typeof configs === "undefined" || typeof target === "undefined") {
+    if (typeof target === "undefined") {
       throw "Unexpected Error";
     }
 
@@ -275,8 +264,8 @@
   function replaceToLocalDefinition(script, segment, localDefinition) {
     if (script.includes(segment)) {
       const localDefinitions = LocalDefinitions.getFrom({
-        configs: $config_panel_blocks,
-        index: Math.min(index, $config_panel_blocks.length - 1),
+        configs: $event.config,
+        index: Math.min(index, $event.config.length - 1),
       });
       const defaultLocal = localDefinitions.find(
         (e) => e.value === localDefinition

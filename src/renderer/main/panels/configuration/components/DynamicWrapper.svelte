@@ -142,13 +142,11 @@
     class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!$action.checkSyntax()
       ? 'border-error'
       : 'border-transparent'} bri"
-    id={configIndexToId(index)}
+    id={$action.id}
     class:rounded-tr-xl={$action.information.rounding === "top"}
     class:rounded-br-xl={$action.information.rounding === "bottom"}
-    config-name={$action.information.name}
     config-type={$action.information.type}
-    config-id={index}
-    movable={$action.information.movable}
+    data-movable={$action.information.movable}
     class:brightness-125={data.selected}
     on:click|self={handleCarouselClicked}
   >

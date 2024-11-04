@@ -90,6 +90,7 @@ export function changeOrder(node, { configs }) {
     cursor.style.userSelect = "none";
     cursor.style.pointerEvents = "none";
     cursor.style.width = width + "px";
+    cursor.style.zIndex = "666";
 
     // put in app, so it wont overflow!
     document.getElementById("app").append(cursor);
@@ -117,7 +118,7 @@ export function changeOrder(node, { configs }) {
     // smooth out drag start with threshold, track only up-down movement
     if (
       Math.abs(e.clientY - pos.y) > threshold ||
-      Math.abs(e.clientX - pos.x) > threshold /*&& selectionLength < 1 */
+      Math.abs(e.clientX - pos.x) > threshold
     ) {
       drag += 1;
     }
@@ -125,10 +126,7 @@ export function changeOrder(node, { configs }) {
     // see if the target has movable attribute, so it can be moved...
     // emit dragstart only once
     if (drag == 2) {
-      if (
-        e.target.getAttribute("movable") == "false" ||
-        e.target.getAttribute("movable") == undefined
-      ) {
+      if (!e.target.dataset.movable) {
         moveDisabled = true;
 
         node.dispatchEvent(new CustomEvent("drag-end"));
@@ -146,7 +144,7 @@ export function changeOrder(node, { configs }) {
       const type = dragged.getAttribute("config-type");
 
       if (type === "composite_open") {
-        const index = configIdToIndex(id);
+        const index = _configs.findIndex(id);
         const drag_indexes = [index];
         let depth = 1;
         for (let i = index + 1; i < _configs.length && depth > 0; ++i) {
@@ -156,20 +154,18 @@ export function changeOrder(node, { configs }) {
             --depth;
           }
           drag_indexes.push(i);
-        }
-
-        for (const i of drag_indexes) {
-          const drag_item = document.getElementById(configIndexToId(i));
+          const drag_item = document.getElementById(_configs[i].id);
           // before starting cursor, set the "left behind" configs to half opacity
           drag_item.style.opacity = "0.2";
           // drag_block is a collection of config-ids, original gen unique key ids.
           drag_block.push(drag_item);
           _configIds.push(i);
         }
+
         createMultiDragCursor(drag_block, dragged.clientWidth);
       } else {
         // the id "cfg" refers to dynamic index position and attribute "config-id" refers to initial keyed id of config
-        _configIds = [Number(dragged.getAttribute("config-id"))]; // this is used as an array, as multidrag is supported
+        _configIds = [dragged.getAttribute("id")]; // this is used as an array, as multidrag is supported
         dragged.style.opacity = "0.2";
         createCursor(dragged, dragged.clientWidth);
       }
@@ -186,41 +182,6 @@ export function changeOrder(node, { configs }) {
       cursor.style.display = "block";
       cursor.style.left = shiftX + e.pageX - shiftX + "px";
       cursor.style.top = shiftY + e.pageY - shiftY + "px";
-
-      if (id) {
-        let drop_target = "";
-        // if its a modifier, the below helper shouldn't be used!
-
-        if (e.target.getAttribute("config-name") !== null) {
-          if (
-            isValidConfigId(id) &&
-            !e.target.getAttribute("config-name").endsWith("_If") &&
-            e.target.getAttribute("config-name") !== "Then"
-          ) {
-            if (clientHeight / 2 < e.offsetY) {
-              drop_target = configIdToIndex(id);
-            } else {
-              drop_target = configIdToIndex(id) - 1;
-            }
-          }
-        } else if (id == "config-bin") {
-          drop_target = "bin";
-        }
-
-        if (e.target.getAttribute("config-name") !== null) {
-          if (e.target.getAttribute("config-name").endsWith("_If")) {
-            drop_target = configIdToIndex(id) - 1;
-          }
-        }
-
-        if (drop_target !== "") {
-          node.dispatchEvent(
-            new CustomEvent("drop-target", {
-              detail: { drop_target },
-            })
-          );
-        }
-      }
     }
   }
 

@@ -1,4 +1,5 @@
 <script>
+  import { user_input_event } from "./../Configuration.ts";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { fade } from "svelte/transition";
   import ActionPicker from "./ActionPicker.svelte";
@@ -51,5 +52,10 @@
 </container>
 
 {#if showActionPicker}
-  <ActionPicker {index} {referenceElement} on:close={handleCloseActionPicker} />
+  <ActionPicker
+    event={$user_input_event}
+    {index}
+    {referenceElement}
+    on:close={handleCloseActionPicker}
+  />
 {/if}

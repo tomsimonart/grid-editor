@@ -1,4 +1,5 @@
 <script>
+  import { user_input_event } from "./../Configuration.ts";
   import ActionPicker from "./ActionPicker.svelte";
   import { createEventDispatcher } from "svelte";
 
@@ -43,5 +44,10 @@
 </action-placeholder>
 
 {#if showActionPicker}
-  <ActionPicker {index} {referenceElement} on:close={handleCloseActionPicker} />
+  <ActionPicker
+    event={$user_input_event}
+    {index}
+    {referenceElement}
+    on:close={handleCloseActionPicker}
+  />
 {/if}

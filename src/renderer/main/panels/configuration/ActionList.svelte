@@ -1,7 +1,4 @@
 <script lang="ts" context="module">
-  import { user_input } from "./../../../runtime/runtime.store";
-  import { GridAction } from "./../../../runtime/runtime";
-  import { appSettings } from "./../../../runtime/app-helper.store.js";
   export type ActionBlock = {
     action: GridAction;
     selected: boolean;
@@ -23,25 +20,16 @@
     DragEvent,
   } from "../../_actions/move.action.js";
   import { addActions, pasteActions } from "../../../runtime/operations";
+  import { user_input } from "./../../../runtime/runtime.store";
+  import { GridAction } from "./../../../runtime/runtime";
+  import { appSettings } from "./../../../runtime/app-helper.store";
 
   export let event: GridEvent;
-  let list: ActionBlock[] = [];
 
-  //$: handleEventChange(event);
-
-  function handleEventChange(event: GridEvent) {
-    list = event.config.map(
-      (e) =>
-        ({
-          action: e,
-          selected: false,
-        } as ActionBlock)
-    );
-  }
-
-  let draggedIndexes: number[] = [];
+  let dragged: number[] = [];
   let dropIndex = undefined;
   let autoScroll;
+  let configList: HTMLElement;
 
   function handleAddConfig(e: CustomEvent) {
     const { configs, index } = e.detail;
@@ -58,24 +46,23 @@
       return;
     }
 
-    const offset = Math.min(...draggedIndexes) > dropIndex ? 0 : -1;
+    const offset = Math.min(...dragged) > dropIndex ? 0 : -1;
 
     //Check for incorrect dropzones
-    const firstIndex = draggedIndexes.at(0);
-    const lastIndex = draggedIndexes.at(-1);
+    const firstIndex = dragged.at(0);
+    const lastIndex = dragged.at(-1);
     if (dropIndex >= firstIndex && dropIndex <= lastIndex + 1) {
       return;
     }
 
-    const blocks = list
-      .map((e) => e.action)
-      .filter((e, n) => draggedIndexes.includes(n));
+    const actions = event.config.filter((e) => dragged.includes(e.id));
 
     const trueDropIndex =
-      dropIndex - (offset === -1 ? blocks.length - 1 : 0) + offset;
+      dropIndex - (offset === -1 ? actions.length - 1 : 0) + offset;
+    console.log(trueDropIndex);
 
-    event.remove(...blocks);
-    event.insert(trueDropIndex, ...blocks);
+    event.remove(...actions);
+    event.insert(trueDropIndex, ...actions);
   }
 
   function handleDragStart(e) {
@@ -85,12 +72,12 @@
   function handleDragEnd(e) {
     config_drag.set(undefined);
     dropIndex = undefined;
-    draggedIndexes = [];
+    dragged = [];
     clearInterval(autoScroll);
   }
 
   function handleDragTargetChange(e) {
-    draggedIndexes = e.detail.id;
+    dragged = e.detail.id;
   }
 
   function handleDropTargetChange(e) {
@@ -100,7 +87,6 @@
 
   function handleDrag(e) {
     if (typeof $config_drag !== "undefined") {
-      const configList = document.getElementById("cfg-list");
       const mouseY = e.clientY - configList.getBoundingClientRect().top;
       const configListHeight = configList.offsetHeight;
       const treshold = 60;
@@ -121,66 +107,76 @@
   }
 </script>
 
-<ul
-  use:changeOrder={(this, { configs: list.map((e) => e.action) })}
-  on:drag-start={handleDragStart}
-  on:drag-target={handleDragTargetChange}
-  on:drop={handleDrop}
-  on:drag-end={handleDragEnd}
-  on:mousemove={handleDrag}
-  on:mouseleave={() => {
-    clearInterval(autoScroll);
-  }}
-  class="flex flex-col w-full h-auto overflow-y-auto justify-start"
->
-  {#if typeof $config_drag === "undefined"}
-    <AddActionLine
-      index={0}
-      on:paste={handlePaste}
-      on:new-config={handleAddConfig}
-    />
-  {:else}
-    <DropZone
-      index={0}
-      drag_target={draggedIndexes}
-      thresholdTop={10}
-      thresholdBottom={0}
-      on:drop-target-change={handleDropTargetChange}
-    />
-  {/if}
-  {#each list as block, index (block.action.id)}
-    <anim-block
-      animate:flip={{ duration: 300, easing: eases.backOut }}
-      in:fade|global={{ delay: 0 }}
-    >
-      <DynamicWrapper {index} data={block} />
-      {#if typeof $config_drag === "undefined"}
-        {#if typeof block.action.information.helperText !== "undefined" && ["composite_part", "composite_open"].includes(block.action.information.type) && list[index + 1]?.action.indentation === block.action.indentation && $appSettings.persistent.actionHelperText}
-          <div class="mr-6">
-            <AddAction
-              text={block.action.information.helperText}
+{#if $event}
+  <ul
+    bind:this={configList}
+    use:changeOrder={(this, { configs: $event.config })}
+    on:drag-start={handleDragStart}
+    on:drag-target={handleDragTargetChange}
+    on:drop={handleDrop}
+    on:drag-end={handleDragEnd}
+    on:mousemove={handleDrag}
+    on:mouseleave={() => {
+      clearInterval(autoScroll);
+    }}
+    class="flex flex-col w-full flex-grow overflow-y-scroll scroll justify-start"
+  >
+    {#if typeof $config_drag === "undefined"}
+      <AddActionLine
+        index={0}
+        on:paste={handlePaste}
+        on:new-config={handleAddConfig}
+      />
+    {:else}
+      <DropZone
+        index={0}
+        drag_target={dragged}
+        thresholdTop={10}
+        thresholdBottom={0}
+        on:drop-target-change={handleDropTargetChange}
+      />
+    {/if}
+    {#each $event.config as action, index (action.id)}
+      {@const showHelper =
+        typeof action.information.helperText !== "undefined" &&
+        ["composite_part", "composite_open"].includes(
+          action.information.type
+        ) &&
+        $event.config[index + 1]?.action.indentation === action.indentation &&
+        $appSettings.persistent.actionHelperText}
+      <anim-block
+        animate:flip={{ duration: 300, easing: eases.backOut }}
+        in:fade|global={{ delay: 0 }}
+      >
+        <DynamicWrapper {index} data={{ action: action, selected: false }} />
+        {#if typeof $config_drag === "undefined"}
+          {#if showHelper}
+            <div class="mr-6">
+              <AddAction
+                text={action.information.helperText}
+                index={index + 1}
+                on:paste={handlePaste}
+                on:new-config={handleAddConfig}
+              />
+            </div>
+          {:else}
+            <AddActionLine
               index={index + 1}
               on:paste={handlePaste}
               on:new-config={handleAddConfig}
             />
-          </div>
+          {/if}
         {:else}
-          <AddActionLine
+          <DropZone
             index={index + 1}
-            on:paste={handlePaste}
-            on:new-config={handleAddConfig}
+            thresholdTop={10}
+            thresholdBottom={10}
+            class={index + 1 == event.config.length ? "h-full" : ""}
+            drag_target={dragged}
+            on:drop-target-change={handleDropTargetChange}
           />
         {/if}
-      {:else}
-        <DropZone
-          index={index + 1}
-          thresholdTop={10}
-          thresholdBottom={10}
-          class={index + 1 == list.length ? "h-full" : ""}
-          drag_target={draggedIndexes}
-          on:drop-target-change={handleDropTargetChange}
-        />
-      {/if}
-    </anim-block>
-  {/each}
-</ul>
+      </anim-block>
+    {/each}
+  </ul>
+{/if}
