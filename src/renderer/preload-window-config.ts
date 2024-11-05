@@ -101,7 +101,6 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
       onFirmwareUpdate: async () => {},
       findBootloaderPath: async () => {},
     },
-    stopOfflineProfileCloud: async () => {},
     fetchUrlJSON: async () => {
       return [];
     },
