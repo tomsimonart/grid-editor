@@ -104,9 +104,9 @@
 </script>
 
 <div class="flex flex-col">
-  <div class="grid grid-cols-[1fr_auto] items-center">
+  <div class="grid grid-cols-[1fr_auto_auto] items-center">
     <!-- When any of the array elements is true -->
-    <div class="grid grid-cols-1 self-start">
+    <div class="flex flex-col">
       <span class="text-gray-500 text-sm truncate">Action: </span>
       <span
         class="text-white text-sm truncate"
@@ -239,26 +239,26 @@
           iconPath={"remove"}
           color={"#ff2323"}
         />
-        <button
-          class="w-fit h-fit mx-2"
-          use:shortcut={{
-            control: true,
-            code: "KeyA",
-            callback: handleSelectAllClicked,
-          }}
-          on:mouseenter={() =>
-            setToolbarHoverText(`Select All`, `(${modifier[0]} + A)`)}
-          on:mouseleave={handleToolbarButtonBlur}
-        >
-          <Options
-            selected={$config_panel_blocks.every((e) => e.selected)}
-            halfSelected={$config_panel_blocks.some((e) => e.selected)}
-            disabled={$config_panel_blocks.length === 0}
-            on:select={handleSelectAllClicked}
-          />
-        </button>
       </div>
     </div>
+    <button
+      class="w-fit h-fit mx-2"
+      use:shortcut={{
+        control: true,
+        code: "KeyA",
+        callback: handleSelectAllClicked,
+      }}
+      on:mouseenter={() =>
+        setToolbarHoverText(`Select All`, `(${modifier[0]} + A)`)}
+      on:mouseleave={handleToolbarButtonBlur}
+    >
+      <Options
+        selected={$config_panel_blocks.every((e) => e.selected)}
+        halfSelected={$config_panel_blocks.some((e) => e.selected)}
+        disabled={$config_panel_blocks.length === 0}
+        on:select={handleSelectAllClicked}
+      />
+    </button>
   </div>
   <div class="flex flex-row gap-2">
     <div class="text-gray-500 text-sm">Script length:</div>

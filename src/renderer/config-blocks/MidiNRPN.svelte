@@ -89,14 +89,18 @@
   let midiLSB = []; // local script part
   let midiMSB = [];
 
-  $: {
+  $: handleScriptChange(config.script);
+
+  $: sendData(scriptSegments);
+
+  function handleScriptChange(script) {
     // Extract all contents
     const matches = [];
     const regex = /gms\((.*?[^)])\)(?=\s|$)/g;
 
     let match;
 
-    while ((match = regex.exec(config.script)) !== null) {
+    while ((match = regex.exec(script)) !== null) {
       matches.push(match[1].trim()); // trim to remove any extra spaces
     }
 
@@ -126,8 +130,6 @@
     };
     scriptSegments = calculateNRPNCC(scriptSegments);
   }
-
-  $: sendData(scriptSegments);
 
   function sendData(data: ScriptSegments) {
     const { channel, addressMSB, addressLSB, value, hiRes } = data;
