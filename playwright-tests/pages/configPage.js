@@ -57,6 +57,7 @@ export class ConfigPage {
       this.blocks["loop"]["Repeater Loop"]["elements"]["times"];
     this.elementMinMaxButton = page.getByLabel("Enable Min");
     this.elementSensitivity = page.getByLabel("Enable Sensitivity");
+    this.blockSearch = page.getByRole("textbox");
 
     // Code Block Elements
     this.addBlocktoLastSandwichButton = page
@@ -125,6 +126,10 @@ export class ConfigPage {
     if (blockName === "Encoder Mode" || blockName === "Endless Mode") {
       await this.clickCategorySensitivity();
     }
+  }
+
+  async searchBlock(search) {
+    this.blockSearch.fill(search);
   }
 
   async clickCategoryMinMax() {
