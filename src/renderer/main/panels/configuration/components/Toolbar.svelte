@@ -106,7 +106,7 @@
 <div class="flex flex-col">
   <div class="grid grid-cols-[1fr_auto_auto] items-center">
     <!-- When any of the array elements is true -->
-    <div class="flex flex-col">
+    <div class="flex flex-col truncate">
       <span class="text-gray-500 text-sm truncate">Action: </span>
       <span
         class="text-white text-sm truncate"
