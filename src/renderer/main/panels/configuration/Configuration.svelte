@@ -311,10 +311,12 @@
         delay: 0,
       }}
     >
-      <configs class="w-full h-full flex flex-col px-8 pt-4 pb-2">
-        <ElementSelectionPanel />
-        <EventPanel class="flex flex-col w-full " />
-        <div class="-mb-2">
+      <configs
+        class="w-full h-full grid grid-rows-[auto_1fr_auto] px-8 pt-4 pb-2"
+      >
+        <div>
+          <ElementSelectionPanel />
+          <EventPanel />
           <Toolbar
             on:convert-to-code-block={handleConvertToCodeBlock}
             on:copy={handleCopy}
@@ -337,7 +339,7 @@
           on:drag-target={handleDragTargetChange}
           on:drop={handleDrop}
           on:drag-end={handleDragEnd}
-          class="flex flex-col h-full relative justify-between"
+          class="flex flex-col relative h-auto overflow-y-auto"
         >
           {#if $config_panel_blocks.length === 0 && $runtime.modules.length > 0}
             <div class="mt-2">
@@ -359,7 +361,7 @@
               on:mouseleave={() => {
                 clearInterval(autoScroll);
               }}
-              class="flex flex-col w-full h-auto overflow-y-auto justify-start"
+              class="flex flex-col w-full"
             >
               {#if typeof $config_drag === "undefined"}
                 <AddActionLine
@@ -416,8 +418,9 @@
             </config-list>
           {/if}
         </div>
+
         <div
-          class="w-full flex justify-between mb-3"
+          class="w-full flex flex-row"
           class:invisible={$runtime.modules.length === 0}
         >
           <AddActionButton

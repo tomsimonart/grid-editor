@@ -42,8 +42,10 @@
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 
-  $: {
-    const arr = config.script.split("self:").slice(1);
+  $: handleScriptChange($config.script);
+
+  function handleScriptChange(script) {
+    const arr = script.split("self:").slice(1);
 
     const extractParam = (index) => {
       const param = whatsInParenthesis.exec(arr[index]);
@@ -118,7 +120,7 @@
       return new Validator(e).NotEmpty().Result();
     }}
     on:input={(e) => {
-      pmo = e.detail;
+      //pmo = e.detail;
     }}
     on:validator={(e) => {
       const data = e.detail;
@@ -142,7 +144,7 @@
           : new Validator(e).Result();
       }}
       on:input={(e) => {
-        pmi = e.detail;
+        //pmi = e.detail;
       }}
       on:validator={(e) => {
         const data = e.detail;
@@ -162,7 +164,7 @@
         return new Validator(e).NotEmpty().Result();
       }}
       on:input={(e) => {
-        pma = e.detail;
+        //pma = e.detail;
       }}
       on:validator={(e) => {
         const data = e.detail;

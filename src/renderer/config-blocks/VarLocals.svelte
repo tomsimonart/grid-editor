@@ -63,7 +63,7 @@
   // config.script cannot be undefined
   $: {
     // this works differently from normal _utils...
-    scriptSegments = localsToConfig({ script: config.script });
+    scriptSegments = localsToConfig({ script: $config.script });
   }
 
   function saveChangesOnInput(e, i, k) {
@@ -245,7 +245,7 @@
           <div class="w-full h-full bg-secondary">
             {#key rerenderList}
               <LineEditor
-                on:output={(e) => {
+                on:input={(e) => {
                   saveChangesOnInput(e.detail.script, i, "value");
                 }}
                 action={config}

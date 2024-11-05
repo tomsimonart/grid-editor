@@ -146,8 +146,7 @@
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
-    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!$action.checkSyntax() ||
-    validationError
+    class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!$action.checkSyntax()
       ? 'border-error'
       : 'border-transparent'} bri"
     id={configIndexToId(index)}
@@ -198,15 +197,16 @@
           </div>
         {:else}
           <!-- Header of the Action block when untoggled -->
-
-          <svelte:component
-            this={header}
-            config={action}
-            {index}
-            on:toggle={handleToggle}
-            on:update-action={handleUpdateAction}
-            on:sync={handleSendActionToGrid}
-          />
+          <div class="h-10 w-full">
+            <svelte:component
+              this={header}
+              config={action}
+              {index}
+              on:toggle={handleToggle}
+              on:update-action={handleUpdateAction}
+              on:sync={handleSendActionToGrid}
+            />
+          </div>
         {/if}
       </div>
     </div>

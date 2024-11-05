@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { GridEvent } from "./../../runtime/runtime.ts";
   import { GridAction, GridEvent, GridElement } from "./../../runtime/runtime";
   import { appSettings } from "../../runtime/app-helper.store";
   import {
@@ -21,7 +22,8 @@
   let monaco_block;
 
   let editor;
-  let value_buffer = "";
+  let input_buffer = value;
+  let value_buffer = value;
   let newLinesRemoved = false;
 
   function handleDisabledChange(value) {
@@ -48,7 +50,7 @@
     const event = action.parent as GridEvent;
     const element = event.parent as GridElement;
     $monaco_elementtype = element.type;
-    value_buffer = value;
+    input_buffer = value;
 
     editor = monaco_editor.create(monaco_block, {
       value: value,
@@ -95,7 +97,14 @@
         return;
       }
       if (!newLinesRemoved) {
-        dispatch("update-action", { script: value });
+        const parent = action.parent as GridEvent;
+        const diff = value.length - input_buffer.length;
+        if (parent.getAvailableChars() - diff < 0) {
+          editor.setValue(input_buffer);
+        } else {
+          input_buffer = value;
+        }
+        dispatch("input", { script: value });
       }
       newLinesRemoved = false;
     });
@@ -104,9 +113,9 @@
     editor.onDidBlurEditorWidget(() => {
       const new_value = editor.getValue();
       if (value_buffer !== new_value) {
+        value_buffer = new_value;
         dispatch("change", { script: editor.getValue() });
       }
-      value_buffer = new_value;
     });
   });
 
@@ -146,7 +155,7 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
   id="monaco_container"
-  class="{$$props.class} grid grid-cols-1 w-full h-full items-center p-1"
+  class="grid grid-cols-1 w-full h-full items-center p-1"
 >
   <div
     id="line-editor"

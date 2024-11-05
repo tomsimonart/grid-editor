@@ -44,8 +44,10 @@
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 
-  $: {
-    const arr = config.script.split("self:").slice(1);
+  $: handleScriptChange($config.script);
+
+  function handleScriptChange(script) {
+    const arr = script.split("self:").slice(1);
 
     const extractParam = (index) => {
       const param = whatsInParenthesis.exec(arr[index]);
@@ -126,7 +128,7 @@
       return new Validator(e).NotEmpty().Result();
     }}
     on:input={(e) => {
-      epmo = e.detail;
+      //epmo = e.detail;
     }}
     on:validator={(e) => {
       const data = e.detail;
@@ -145,7 +147,7 @@
       return new Validator(e).NotEmpty().Result();
     }}
     on:input={(e) => {
-      epv0 = e.detail;
+      //epv0 = e.detail;
     }}
     on:validator={(e) => {
       const data = e.detail;
@@ -160,7 +162,7 @@
   <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
     <MeltCombo
       title={"Min"}
-      disabled={minMaxEnabled}
+      disabled={!minMaxEnabled}
       bind:value={epmi}
       validator={(e) => {
         return minMaxEnabled
@@ -168,7 +170,7 @@
           : new Validator(e).Result();
       }}
       on:input={(e) => {
-        epmi = e.detail;
+        //epmi = e.detail;
       }}
       on:validator={(e) => {
         const data = e.detail;
@@ -189,7 +191,7 @@
           : new Validator(e).Result();
       }}
       on:input={(e) => {
-        epma = e.detail;
+        //epma = e.detail;
       }}
       on:validator={(e) => {
         const data = e.detail;
@@ -213,7 +215,7 @@
         : new Validator(e).Result();
     }}
     on:input={(e) => {
-      epse = e.detail;
+      //epse = e.detail;
     }}
     on:validator={(e) => {
       const data = e.detail;

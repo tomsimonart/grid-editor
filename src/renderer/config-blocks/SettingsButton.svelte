@@ -118,7 +118,6 @@
     bind:value={bmo}
     suggestions={suggestions[0]}
     on:input={(e) => {
-      bmo = e.detail;
       sendData();
     }}
     validator={(e) => {
@@ -145,7 +144,6 @@
           : new Validator(e).Result();
       }}
       on:input={(e) => {
-        bmi = e.detail;
         sendData();
       }}
       on:validator={(e) => {
@@ -167,7 +165,6 @@
           : new Validator(e).Result();
       }}
       on:input={(e) => {
-        bma = e.detail;
         sendData();
       }}
       on:validator={(e) => {

@@ -12,16 +12,9 @@
 
   let scriptSegment = ""; // local script part
 
-  let loaded = false;
-
-  $: if (config.script && !loaded) {
-    scriptSegment = GridScript.humanize(config.script.slice(9));
-    loaded = true;
+  $: {
+    scriptSegment = GridScript.humanize($config.script.slice(9));
   }
-
-  onDestroy(() => {
-    loaded = false;
-  });
 
   function sendData(e) {
     if (parenthesis(e)) {
@@ -47,6 +40,7 @@
         on:input={(e) => {
           sendData(e.detail.script);
         }}
+        on:change={() => dispatch("sync")}
         action={config}
         value={scriptSegment}
       />

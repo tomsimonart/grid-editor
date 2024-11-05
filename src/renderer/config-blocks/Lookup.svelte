@@ -52,12 +52,10 @@
   let scriptSegments = [];
   let lookupTable = {};
 
-  $: {
-    lookupTable = createLookupTable(config.script);
-  }
+  $: handleScriptChange($config.script);
 
-  $: if (lookupTable.source || lookupTable.pairs.length) {
-    sendData();
+  function handleScriptChange(script) {
+    lookupTable = createLookupTable(script);
   }
 
   let suggestions = [];
@@ -78,6 +76,7 @@
       array.push(pair.output);
     });
 
+    console.log(lookupTable);
     array = [lookupTable.source, ...array];
 
     const script = Script.toScript({
@@ -115,15 +114,13 @@
 
   function addNewLine() {
     lookupTable.pairs = [...lookupTable.pairs, ["", ""]];
+    sendData();
   }
 
   function removeLine(i) {
     lookupTable.pairs.splice(i, 1);
     lookupTable.pairs = [...lookupTable.pairs];
   }
-
-  let suggestionElement1 = undefined;
-  let suggestionElement2 = undefined;
 </script>
 
 <config-lookup
@@ -138,7 +135,7 @@
       return new Validator(e).NotEmpty().Result();
     }}
     on:input={(e) => {
-      lookupTable.source = e.detail;
+      sendData();
     }}
     on:validator={(e) => {
       const data = e.detail;
@@ -209,7 +206,8 @@
     {suggestions}
     bind:value={lookupTable.destination}
     on:input={(e) => {
-      lookupTable.destination = e.detail;
+      //lookupTable.destination = e.detail;
+      sendData();
     }}
     validator={(e) => {
       return new Validator(e).NotEmpty().Result();

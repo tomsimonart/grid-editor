@@ -79,7 +79,12 @@
       class="bg-primary font-normal my-auto rounded flex items-center flex-grow h-full"
       on:click|stopPropagation
     >
-      <LineEditor action={config} value={name} on:change={handleNameChange} />
+      <LineEditor
+        action={config}
+        value={name}
+        on:input={handleNameChange}
+        on:change={() => dispatch("sync")}
+      />
     </div>
   {:else}
     <span

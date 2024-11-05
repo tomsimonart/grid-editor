@@ -43,14 +43,13 @@
 
   const dispatch = createEventDispatcher();
 
-  const whatsInParenthesis = /\(([^)]+)\)/;
+  const whatsInParenthesis = /gtp\(([^"]*)\)/;
   let scriptValue = "";
 
-  $: handleConfigChange(config.script);
+  $: handleScriptChange($config.script);
 
-  function handleConfigChange(config) {
-    let param1 = whatsInParenthesis.exec(config.script);
-
+  function handleScriptChange(script) {
+    let param1 = whatsInParenthesis.exec(script);
     if (param1 !== null) {
       if (param1.length > 0) {
         scriptValue = param1[1];

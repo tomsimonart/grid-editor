@@ -109,9 +109,10 @@
     >
       {#key displayValue}
         <LineEditor
-          on:change={handleDisplayValueChange}
+          on:input={handleDisplayValueChange}
           action={config}
           bind:value={displayValue}
+          on:change={() => dispatch("sync")}
         />
       {/key}
     </div>

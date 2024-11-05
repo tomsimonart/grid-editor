@@ -72,7 +72,7 @@
     }
 
     value = input;
-
+    inputValue.set(value);
     dispatch("validator", { isError });
     dispatch("input", postProcessor(input));
   }
