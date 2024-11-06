@@ -34,6 +34,7 @@ log.info(
 
 import { serial, restartSerialCheckInterval } from "./ipcmain_serialport";
 import { websocket } from "./ipcmain_websocket";
+import { developerWebsocket } from "./developer_websocket";
 import { store } from "./main-store";
 import { iconBuffer, iconSize } from "./icon";
 import { firmware, firmwareDownload, findBootloaderPath } from "./src/firmware";
@@ -241,6 +242,7 @@ function createWindow() {
 
   serial.mainWindow = mainWindow;
   websocket.mainWindow = mainWindow;
+  developerWebsocket.mainWindow = mainWindow;
   firmware.mainWindow = mainWindow;
   updater.mainWindow = mainWindow;
   updater.init(store.get("nightlyEditor"));

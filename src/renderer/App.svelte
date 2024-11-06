@@ -41,8 +41,10 @@
 
   import { instructions } from "./serialport/instructions";
   import VersionUpdateBar from "./main/VersionUpdateBar.svelte";
+  import "redefine-custom-elements";
 
   console.log("Hello from Svelte main.js");
+
 
   let shapeSelected;
   let colorSelected;
