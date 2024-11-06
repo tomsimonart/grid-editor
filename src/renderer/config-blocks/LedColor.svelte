@@ -49,10 +49,9 @@ A -> B : AB-First step
 */
 
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
-  import { AtomicInput } from "@intechstudio/grid-uikit";
+  import MeltCombo from "./components/MeltCombo.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { AtomicSuggestions } from "@intechstudio/grid-uikit";
-  import { config_panel_blocks } from "../main/panels/configuration/Configuration";
+  import { user_input_event } from "../main/panels/configuration/Configuration";
   import Toggle from "../main/user-interface/Toggle.svelte";
   import { get } from "svelte/store";
   import { ElementType } from "@intechstudio/grid-protocol";
@@ -62,11 +61,7 @@ A -> B : AB-First step
   import { LocalDefinitions, user_input } from "../runtime/runtime.store";
 
   export let config;
-  export let inputSet;
-  export let blockAddedOnClick;
   export let index;
-
-  let loaded = false;
 
   const dispatch = createEventDispatcher();
 
@@ -96,11 +91,14 @@ A -> B : AB-First step
   let beautify = 1;
 
   // config.script cannot be undefined
-  $: if (config.script && !loaded) {
+  $: {
+    console.log(config.script);
     const _segments = Script.toSegments({
       short: config.short,
       script: config.script,
     });
+
+    console.log(_segments);
 
     // handle legacy and new beautify command
     if (_segments.length == 6) {
@@ -110,17 +108,11 @@ A -> B : AB-First step
       scriptSegments = _segments;
       beautify = 1;
     }
-
-    loaded = true;
   }
 
   let sidebarWidth;
 
   $: updatePicker(sidebarWidth);
-
-  onDestroy(() => {
-    loaded = false;
-  });
 
   function changeBeautify() {
     beautyMode = beautify ? 0 : 1;
@@ -137,7 +129,7 @@ A -> B : AB-First step
       array: _temp_segments,
     });
 
-    dispatch("output", { short: config.short, script: script });
+    dispatch("update-action", { short: config.short, script: script });
   }
 
   const defaultLayerSuggestion = [
@@ -149,14 +141,14 @@ A -> B : AB-First step
 
   let suggestions = [];
 
-  $: if ($config_panel_blocks) {
+  $: if ($user_input_event) {
     updateSuggestions();
   }
 
   function updateSuggestions() {
-    const index = $config_panel_blocks.findIndex((e) => e.id === config.id);
+    const index = $user_input_event.config.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $config_panel_blocks,
+      configs: $user_input_event.config,
       index: index,
     });
     suggestions = _suggestions.map((s, i) => {
@@ -489,28 +481,26 @@ A -> B : AB-First step
 <config-led-color
   class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
 >
-  <div class="w-full flex">
+  <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
     {#each [scriptSegments[0], scriptSegments[1]] as script, i}
-      <div class={"w-1/2 atomicInput "}>
-        <div class="text-gray-500 text-sm pb-1">{parameterNames[i]}</div>
-        <AtomicInput
-          inputValue={GridScript.humanize(script)}
-          validator={validators[i]}
-          suggestions={suggestions[i]}
-          suggestionTarget={suggestionElement1}
-          on:validator={(e) => {
-            const data = e.detail;
-            dispatch("validator", data);
-          }}
-          on:change={(e) => {
-            sendData(GridScript.shortify(e.detail), i);
-          }}
-        />
-      </div>
+      <MeltCombo
+        title={parameterNames[i]}
+        bind:value={script}
+        validator={validators[i]}
+        suggestions={suggestions[i]}
+        on:validator={(e) => {
+          const data = e.detail;
+          dispatch("validator", data);
+        }}
+        on:input={(e) => {
+          sendData(e.detail, i);
+        }}
+        on:change={() => dispatch("sync")}
+        postProcessor={GridScript.shortify}
+        preProcessor={GridScript.humanize}
+      />
     {/each}
   </div>
-
-  <AtomicSuggestions bind:component={suggestionElement1} />
 
   <div class="inline-flex relative flex-row p-1 m-1 overflow-hidden">
     <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -537,31 +527,27 @@ A -> B : AB-First step
     />
   </div>
 
-  <div class="w-full flex">
+  <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
     {#each [scriptSegments[2], scriptSegments[3], scriptSegments[4]] as script, i}
-      <div class={"w-1/3 atomicInput "}>
-        <div class="text-gray-500 text-sm pb-1">
-          {parameterNames[i + 2]}
-        </div>
-        <AtomicInput
-          inputValue={GridScript.humanize(script)}
-          validator={validators[i + 2]}
-          suggestions={suggestions[i + 2]}
-          suggestionTarget={suggestionElement2}
-          on:validator={(e) => {
-            const data = e.detail;
-            dispatch("validator", data);
-          }}
-          on:change={(e) => {
-            sendData(GridScript.shortify(e.detail), i + 2);
-            updatePicker(e);
-          }}
-        />
-      </div>
+      <MeltCombo
+        title={parameterNames[i + 2]}
+        bind:value={script}
+        validator={validators[i + 2]}
+        suggestions={suggestions[i + 2]}
+        on:validator={(e) => {
+          const data = e.detail;
+          dispatch("validator", data);
+        }}
+        on:input={(e) => {
+          sendData(e.detail, i + 2);
+          updatePicker(e);
+        }}
+        on:change={() => dispatch("sync")}
+        postProcessor={GridScript.shortify}
+        preProcessor={GridScript.humanize}
+      />
     {/each}
   </div>
-
-  <AtomicSuggestions bind:component={suggestionElement2} />
 
   <div class="p-2 flex items-center text-sm text-gray-500">
     <Toggle bind:toggleValue={beautify} on:change={changeBeautify} />
@@ -602,13 +588,6 @@ A -> B : AB-First step
     }
   }
 
-  .atomicInput {
-    padding-right: 0.5rem;
-  }
-
-  .atomicInput:first-child {
-    padding-left: 0.5rem;
-  }
   .preview:hover {
     cursor: pointer;
   }

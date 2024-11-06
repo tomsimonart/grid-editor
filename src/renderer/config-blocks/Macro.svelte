@@ -75,7 +75,6 @@
   export let eventInfo;
   export let elementInfo;
 
-  let loaded = false;
   let macroInputField;
 
   let isChanges = false;
@@ -89,8 +88,8 @@
     lastKeyDivList = keyDivList;
   });
 
-  $: if (config.script && !loaded) {
-    scriptToKeyList({ script: config.script });
+  $: {
+    scriptToKeyList({ script: $config.script });
   }
 
   function change_layout() {
@@ -110,10 +109,6 @@
 
     scriptToKeyList({ script: config.script });
   }
-
-  onDestroy(() => {
-    loaded = false;
-  });
 
   function scriptToKeyList({ script }) {
     let array = [];
@@ -159,7 +154,6 @@
         keyBuffer = _keys;
         caretPos = keyBuffer.length;
         keyDivList = colorize(_keys);
-        loaded = true;
       }
     } catch (error) {
       console.warn("gsk can't be turned to config", script, error);
@@ -170,7 +164,7 @@
     let script = `gks(${defaultDelay}${
       parameters.length > 0 ? "," + parameters.join(",") : ""
     })`;
-    dispatch("output", { short: "gks", script: script });
+    dispatch("update-action", { short: "gks", script: script });
   }
 
   let keyDivList = "";
@@ -401,9 +395,7 @@
   }
 </script>
 
-<div
-  class="{$$props.class} flex w-full flex-col px-4 py-2 gap-2 pointer-events-auto"
->
+<div class="flex w-full flex-col px-4 py-2 gap-2 pointer-events-auto">
   <div class="flex flex-col">
     <div class="flex flex-row justify-between mb-2">
       <div class="text-gray-500 text-sm truncate">Macro Input Field</div>

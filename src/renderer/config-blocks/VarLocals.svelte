@@ -51,8 +51,6 @@
    * @locals []
    */
 
-  let loaded = false;
-
   let scriptSegments = [{ variable: "", value: "" }];
 
   let codeEditorContent = "";
@@ -63,16 +61,10 @@
   export let commitState = 1;
 
   // config.script cannot be undefined
-  $: if (config.script /* && !loaded*/) {
+  $: {
     // this works differently from normal _utils...
-    scriptSegments = localsToConfig({ script: config.script });
-
-    loaded = true;
+    scriptSegments = localsToConfig({ script: $config.script });
   }
-
-  onDestroy(() => {
-    loaded = false;
-  });
 
   function saveChangesOnInput(e, i, k) {
     scriptSegments[i][k] = e;
@@ -125,7 +117,7 @@
     if (parenthesis(outputCode)) {
       committedCode = outputCode;
       outputCode = GridScript.shortify(outputCode);
-      dispatch("output", { short: "l", script: outputCode });
+      dispatch("update-action", { short: "l", script: outputCode });
       commitState = 0;
     }
 
@@ -253,7 +245,7 @@
           <div class="w-full h-full bg-secondary">
             {#key rerenderList}
               <LineEditor
-                on:output={(e) => {
+                on:input={(e) => {
                   saveChangesOnInput(e.detail.script, i, "value");
                 }}
                 action={config}

@@ -19,6 +19,7 @@
   import {
     updateAction,
     replaceAction,
+    syncWithGrid,
   } from "./../../../../runtime/operations";
 
   const dispatch = createEventDispatcher();
@@ -62,9 +63,15 @@
     lastOpenedActionblocksInsert(newAction.short);
   }
 
-  function handleOutput(e) {
+  function handleUpdateAction(e) {
     const { short, script, name } = e.detail;
-    updateAction(data.action, new ActionData(short, script, name));
+    updateAction(data.action, new ActionData(short, script, name), false);
+    console.log("UPDATE", script);
+  }
+
+  function handleSendActionToGrid() {
+    syncWithGrid(data.action);
+    console.log("SYNC");
   }
 
   function handleValidator(e) {
@@ -131,7 +138,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <wrapper class="flex flex-grow outline-none" class:cursor-pointer={ctrlIsDown}>
-  {#each Array($action.indentation) as _}
+  {#each Array($action?.indentation ?? 0) as _}
     <div style="width: 15px" class="flex items-center mx-1">
       <div class="w-3 h-3 rounded-full bg-secondary" />
     </div>
@@ -174,34 +181,33 @@
         class:bg-opacity-30={toggled}
       >
         <!-- Content of block -->
-        {#key $action}
-          {#if (toggled && $action.information.toggleable) || typeof header === "undefined"}
-            <!-- Body of the Action block when toggled -->
-            <div class="bg-secondary bg-opacity-30 h-full w-full">
-              <svelte:component
-                this={component}
-                class="h-full w-full px-2"
-                {index}
-                config={action}
-                syntaxError={!$action.checkSyntax()}
-                on:replace={handleReplace}
-                on:validator={handleValidator}
-                on:output={handleOutput}
-                on:toggle={handleToggle}
-              />
-            </div>
-          {:else}
-            <!-- Header of the Action block when untoggled -->
-
+        {#if (toggled && $action.information.toggleable) || typeof header === "undefined"}
+          <!-- Body of the Action block when toggled -->
+          <div class="bg-secondary bg-opacity-30 h-full w-full">
+            <svelte:component
+              this={component}
+              {index}
+              config={action}
+              on:replace={handleReplace}
+              on:validator={handleValidator}
+              on:update-action={handleUpdateAction}
+              on:sync={handleSendActionToGrid}
+              on:toggle={handleToggle}
+            />
+          </div>
+        {:else}
+          <!-- Header of the Action block when untoggled -->
+          <div class="h-10 w-full">
             <svelte:component
               this={header}
               config={action}
               {index}
               on:toggle={handleToggle}
-              on:output={handleOutput}
+              on:update-action={handleUpdateAction}
+              on:sync={handleSendActionToGrid}
             />
-          {/if}
-        {/key}
+          </div>
+        {/if}
       </div>
     </div>
   </carousel>
@@ -209,7 +215,7 @@
   <div class="z-20 flex items-center mx-2">
     <Options
       bind:selected={data.selected}
-      disabled={!data.action.information.selectable}
+      disabled={!$action.information.selectable}
       on:select={handleSelectionChange}
     />
   </div>

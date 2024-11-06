@@ -1,4 +1,8 @@
 <script lang="ts">
+  import { config_panel_blocks, user_input_event } from "./../Configuration";
+  import { grid } from "@intechstudio/grid-protocol";
+  import { derived, writable } from "svelte/store";
+  import { runtime, user_input } from "./../../../../runtime/runtime.store";
   import {
     isClearElementEnabled,
     isCopyElementEnabled,
@@ -18,7 +22,6 @@
   import { shortcut } from "./../../../_actions/shortcut.action";
   import MoltenToolbarButton from "../../../user-interface/MoltenToolbarButton.svelte";
   import Options from "./Options.svelte";
-  import { config_panel_blocks } from "../Configuration";
 
   const dispatch = createEventDispatcher();
 
@@ -100,164 +103,169 @@
   }
 </script>
 
-<app-action-multi-select
-  class="grid grid-cols-[1fr_auto_auto] items-center -mb-2"
->
-  <!-- When any of the array elements is true -->
-  <div class="grid grid-cols-1 self-start">
-    <span class="text-gray-500 text-sm truncate">Action: </span>
-    <span
-      class="text-white text-sm truncate"
-      class:invisible={typeof selectedAction === "undefined"}
-      >{selectedAction?.at(0)}</span
-    >
-    <span
-      class="text-white text-sm truncate"
-      class:invisible={typeof selectedAction === "undefined"}
-      >{selectedAction?.at(1)}</span
-    >
-  </div>
-  <div class="flex flex-col">
-    <div class="flex flex-wrap justify-end">
-      <MoltenToolbarButton
-        on:click={handleCopyAll}
-        on:mouseenter={() =>
-          setToolbarHoverText("Copy Element", `(${modifier[0]} + C)`)}
-        on:mouseleave={handleToolbarButtonBlur}
-        shortcut={{ control: true, code: "KeyC" }}
-        iconPath={"copy_all"}
-        disabled={$isCopyElementEnabled === false}
-        color={"#03cb00"}
-      />
-
-      <MoltenToolbarButton
-        on:click={handleOverwriteAll}
-        on:mouseenter={() =>
-          setToolbarHoverText(`Overwrite Element`, `(${modifier[0]} + V)`)}
-        on:mouseleave={handleToolbarButtonBlur}
-        shortcut={{ control: true, code: "KeyV" }}
-        iconPath={"paste_all"}
-        disabled={!isOverwriteElementEnabled($element, $appClipboard)}
-        color={"#006cb7"}
-      />
-
-      <MoltenToolbarButton
-        on:click={handleDiscard}
-        on:mouseenter={() =>
-          setToolbarHoverText(
-            `Discard Element Changes`,
-            `(${modifier[0]} + Shift + D)`
-          )}
-        on:mouseleave={handleToolbarButtonBlur}
-        shortcut={{
-          control: true,
-          shift: true,
-          code: "KeyD",
-        }}
-        iconPath={"clear_from_device_01"}
-        disabled={!isDiscardElementEnabled($element)}
-        color={"#ff2323"}
-      />
-
-      <MoltenToolbarButton
-        on:click={handleClearElement}
-        on:mouseenter={() =>
-          setToolbarHoverText(`Clear Element`, `(Shift + Delete)`)}
-        on:mouseleave={handleToolbarButtonBlur}
-        shortcut={{
-          shift: true,
-          code: "Delete",
-        }}
-        iconPath={"clear_element"}
-        disabled={!isClearElementEnabled($element)}
-        color={"#A020F0"}
-      />
+<div class="flex flex-col">
+  <div class="grid grid-cols-[1fr_auto_auto] items-center">
+    <!-- When any of the array elements is true -->
+    <div class="flex flex-col truncate">
+      <span class="text-gray-500 text-sm truncate">Action: </span>
+      <span
+        class="text-white text-sm truncate"
+        class:invisible={typeof selectedAction === "undefined"}
+        >{selectedAction?.at(0)}</span
+      >
+      <span
+        class="text-white text-sm truncate"
+        class:invisible={typeof selectedAction === "undefined"}
+        >{selectedAction?.at(1)}</span
+      >
     </div>
-    <div class="flex flex-wrap justify-end">
-      <MoltenToolbarButton
-        on:click={handleCopyClicked}
-        on:mouseenter={() =>
-          setToolbarHoverText(`Copy Action(s)`, `(${modifier[0]} + C)`)}
-        on:mouseleave={handleToolbarButtonBlur}
-        shortcut={{ control: true, code: "KeyC" }}
-        disabled={$isCopyActionsEnabled === false}
-        iconPath={"copy"}
-        color={"#03cb00"}
-      />
+    <div class="flex flex-col">
+      <div class="flex flex-wrap justify-end">
+        <MoltenToolbarButton
+          on:click={handleCopyAll}
+          on:mouseenter={() =>
+            setToolbarHoverText("Copy Element", `(${modifier[0]} + C)`)}
+          on:mouseleave={handleToolbarButtonBlur}
+          shortcut={{ control: true, code: "KeyC" }}
+          iconPath={"copy_all"}
+          disabled={$isCopyElementEnabled === false}
+          color={"#03cb00"}
+        />
 
-      <MoltenToolbarButton
-        on:click={handlePasteClicked}
-        on:mouseenter={() =>
-          setToolbarHoverText(`Paste Action(s)`, `(${modifier[0]} + V)`)}
-        on:mouseleave={handleToolbarButtonBlur}
-        shortcut={{ control: true, code: "KeyV" }}
-        disabled={$isPasteActionsEnabled === false}
-        iconPath={"paste"}
-        color={"#006cb7"}
-      />
+        <MoltenToolbarButton
+          on:click={handleOverwriteAll}
+          on:mouseenter={() =>
+            setToolbarHoverText(`Overwrite Element`, `(${modifier[0]} + V)`)}
+          on:mouseleave={handleToolbarButtonBlur}
+          shortcut={{ control: true, code: "KeyV" }}
+          iconPath={"paste_all"}
+          disabled={!isOverwriteElementEnabled($element, $appClipboard)}
+          color={"#006cb7"}
+        />
 
-      <MoltenToolbarButton
-        on:click={handleCutClicked}
-        on:mouseenter={() =>
-          setToolbarHoverText(`Cut Action(s)`, `(${modifier[0]} + X)`)}
-        on:mouseleave={handleToolbarButtonBlur}
-        shortcut={{ control: true, code: "KeyX" }}
-        disabled={$isCutActionsEnabled === false}
-        iconPath={"cut"}
-        color={"#ff6100"}
-      />
+        <MoltenToolbarButton
+          on:click={handleDiscard}
+          on:mouseenter={() =>
+            setToolbarHoverText(
+              `Discard Element Changes`,
+              `(${modifier[0]} + Shift + D)`
+            )}
+          on:mouseleave={handleToolbarButtonBlur}
+          shortcut={{
+            control: true,
+            shift: true,
+            code: "KeyD",
+          }}
+          iconPath={"clear_from_device_01"}
+          disabled={!isDiscardElementEnabled($element)}
+          color={"#ff2323"}
+        />
 
-      <MoltenToolbarButton
-        on:click={handleConvertToCodeBlockClicked}
-        on:mouseenter={() =>
-          setToolbarHoverText(
-            `Merge Action(s) into Code`,
-            `(${modifier[0]} + Shift + M)`
-          )}
-        on:mouseleave={handleToolbarButtonBlur}
-        shortcut={{
-          control: true,
-          shift: true,
-          code: "KeyM",
-        }}
-        disabled={$isMergeActionsEnabled === false}
-        iconPath={"merge_as_code"}
-        color={"#ffcc33"}
-      />
+        <MoltenToolbarButton
+          on:click={handleClearElement}
+          on:mouseenter={() =>
+            setToolbarHoverText(`Clear Element`, `(Shift + Delete)`)}
+          on:mouseleave={handleToolbarButtonBlur}
+          shortcut={{
+            shift: true,
+            code: "Delete",
+          }}
+          iconPath={"clear_element"}
+          disabled={!isClearElementEnabled($element)}
+          color={"#A020F0"}
+        />
+      </div>
+      <div class="flex flex-wrap justify-end">
+        <MoltenToolbarButton
+          on:click={handleCopyClicked}
+          on:mouseenter={() =>
+            setToolbarHoverText(`Copy Action(s)`, `(${modifier[0]} + C)`)}
+          on:mouseleave={handleToolbarButtonBlur}
+          shortcut={{ control: true, code: "KeyC" }}
+          disabled={$isCopyActionsEnabled === false}
+          iconPath={"copy"}
+          color={"#03cb00"}
+        />
 
-      <MoltenToolbarButton
-        on:click={handleRemoveClicked}
-        on:mouseenter={() =>
-          setToolbarHoverText(`Remove Action(s)`, `(Delete)`)}
-        on:mouseleave={handleToolbarButtonBlur}
-        shortcut={{
-          code: "Delete",
-        }}
-        disabled={$isRemoveActionsEnabled === false}
-        iconPath={"remove"}
-        color={"#ff2323"}
+        <MoltenToolbarButton
+          on:click={handlePasteClicked}
+          on:mouseenter={() =>
+            setToolbarHoverText(`Paste Action(s)`, `(${modifier[0]} + V)`)}
+          on:mouseleave={handleToolbarButtonBlur}
+          shortcut={{ control: true, code: "KeyV" }}
+          disabled={$isPasteActionsEnabled === false}
+          iconPath={"paste"}
+          color={"#006cb7"}
+        />
+
+        <MoltenToolbarButton
+          on:click={handleCutClicked}
+          on:mouseenter={() =>
+            setToolbarHoverText(`Cut Action(s)`, `(${modifier[0]} + X)`)}
+          on:mouseleave={handleToolbarButtonBlur}
+          shortcut={{ control: true, code: "KeyX" }}
+          disabled={$isCutActionsEnabled === false}
+          iconPath={"cut"}
+          color={"#ff6100"}
+        />
+
+        <MoltenToolbarButton
+          on:click={handleConvertToCodeBlockClicked}
+          on:mouseenter={() =>
+            setToolbarHoverText(
+              `Merge Action(s) into Code`,
+              `(${modifier[0]} + Shift + M)`
+            )}
+          on:mouseleave={handleToolbarButtonBlur}
+          shortcut={{
+            control: true,
+            shift: true,
+            code: "KeyM",
+          }}
+          disabled={$isMergeActionsEnabled === false}
+          iconPath={"merge_as_code"}
+          color={"#ffcc33"}
+        />
+
+        <MoltenToolbarButton
+          on:click={handleRemoveClicked}
+          on:mouseenter={() =>
+            setToolbarHoverText(`Remove Action(s)`, `(Delete)`)}
+          on:mouseleave={handleToolbarButtonBlur}
+          shortcut={{
+            code: "Delete",
+          }}
+          disabled={$isRemoveActionsEnabled === false}
+          iconPath={"remove"}
+          color={"#ff2323"}
+        />
+      </div>
+    </div>
+    <button
+      class="w-fit h-fit mx-2"
+      use:shortcut={{
+        control: true,
+        code: "KeyA",
+        callback: handleSelectAllClicked,
+      }}
+      on:mouseenter={() =>
+        setToolbarHoverText(`Select All`, `(${modifier[0]} + A)`)}
+      on:mouseleave={handleToolbarButtonBlur}
+    >
+      <Options
+        selected={$config_panel_blocks.every((e) => e.selected)}
+        halfSelected={$config_panel_blocks.some((e) => e.selected)}
+        disabled={$config_panel_blocks.length === 0}
+        on:select={handleSelectAllClicked}
       />
+    </button>
+  </div>
+  <div class="flex flex-row gap-2">
+    <div class="text-gray-500 text-sm">Script length:</div>
+    <div class="text-white text-sm mr-10">
+      <span data-testid="charCount">
+        {$event?.toLua().length ?? 0}/{grid.getProperty("CONFIG_LENGTH") - 1}
+      </span>
     </div>
   </div>
-  <button
-    class="w-fit h-fit mx-2"
-    use:shortcut={{
-      control: true,
-      code: "KeyA",
-      callback: handleSelectAllClicked,
-    }}
-    on:mouseenter={() =>
-      setToolbarHoverText(`Select All`, `(${modifier[0]} + A)`)}
-    on:mouseleave={handleToolbarButtonBlur}
-  >
-    <Options
-      selected={$config_panel_blocks.every((e) => e.selected)}
-      halfSelected={$config_panel_blocks.some((e) => e.selected)}
-      disabled={$config_panel_blocks.length === 0}
-      on:select={handleSelectAllClicked}
-    />
-  </button>
-</app-action-multi-select>
-
-<style>
-</style>
+</div>

@@ -57,6 +57,7 @@ export class ConfigPage {
       this.blocks["loop"]["Repeater Loop"]["elements"]["times"];
     this.elementMinMaxButton = page.getByLabel("Enable Min");
     this.elementSensitivity = page.getByLabel("Enable Sensitivity");
+    this.blockSearch = page.getByRole("textbox");
 
     // Code Block Elements
     this.addBlocktoLastSandwichButton = page
@@ -70,6 +71,7 @@ export class ConfigPage {
     this.codeBlockCharacterLimitMessage = page.getByText(
       "Config limit reached."
     );
+    this.characterCount = page.getByTestId("charCount");
   }
 
   async openAndAddActionBlock(category, blockName) {
@@ -124,6 +126,10 @@ export class ConfigPage {
     if (blockName === "Encoder Mode" || blockName === "Endless Mode") {
       await this.clickCategorySensitivity();
     }
+  }
+
+  async searchBlock(search) {
+    this.blockSearch.fill(search);
   }
 
   async clickCategoryMinMax() {
@@ -232,5 +238,11 @@ export class ConfigPage {
 
   async openFirstActionBlock() {
     await this.firstActionBlock.click();
+  }
+
+  async getCharacterCount() {
+    const text = await this.characterCount.innerText();
+    const match = text.match(/^(\d+)/);
+    return match[1];
   }
 }

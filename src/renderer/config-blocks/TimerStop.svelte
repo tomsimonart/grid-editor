@@ -33,10 +33,9 @@
 
 <script>
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
-  import { AtomicInput } from "@intechstudio/grid-uikit";
+  import MeltCombo from "./components/MeltCombo.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { AtomicSuggestions } from "@intechstudio/grid-uikit";
-  import { config_panel_blocks } from "../main/panels/configuration/Configuration";
+  import { user_input_event } from "../main/panels/configuration/Configuration";
   import { LocalDefinitions } from "../runtime/runtime.store";
   import { Validator } from "./_validators";
 
@@ -44,14 +43,13 @@
 
   const dispatch = createEventDispatcher();
 
-  const whatsInParenthesis = /\(([^)]+)\)/;
+  const whatsInParenthesis = /gtp\(([^"]*)\)/;
   let scriptValue = "";
 
-  $: handleConfigChange(config.script);
+  $: handleScriptChange($config.script);
 
-  function handleConfigChange(config) {
-    let param1 = whatsInParenthesis.exec(config.script);
-
+  function handleScriptChange(script) {
+    let param1 = whatsInParenthesis.exec(script);
     if (param1 !== null) {
       if (param1.length > 0) {
         scriptValue = param1[1];
@@ -64,17 +62,17 @@
   }
 
   function sendData(e) {
-    dispatch("output", { short: "gtp", script: `gtp(${e})` });
+    dispatch("update-action", { short: "gtp", script: `gtp(${e})` });
   }
 
   let suggestions = [];
 
   const _suggestions = [[]];
 
-  $: if ($config_panel_blocks) {
-    const index = $config_panel_blocks.findIndex((e) => e.id === config.id);
+  $: if ($user_input_event) {
+    const index = $user_input_event.config.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $config_panel_blocks,
+      configs: $user_input_event.config,
       index: index,
     });
     suggestions = _suggestions.map((s, i) => {
@@ -86,27 +84,23 @@
   let suggestionElement = undefined;
 </script>
 
-<timer-stop
-  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
->
-  <div class="w-full px-2">
-    <div class="text-gray-500 text-sm pb-1">Element Number</div>
-    <AtomicInput
-      inputValue={GridScript.humanize(scriptValue)}
-      suggestions={suggestions[0]}
-      suggestionTarget={suggestionElement}
-      on:change={(e) => {
-        scriptValue = GridScript.shortify(e.detail);
-      }}
-      validator={(e) => {
-        return new Validator(e).NotEmpty().Result();
-      }}
-      on:validator={(e) => {
-        const data = e.detail;
-        dispatch("validator", data);
-      }}
-    />
-  </div>
-
-  <AtomicSuggestions bind:component={suggestionElement} />
+<timer-stop class="flex flex-col w-full p-2 pointer-events-auto">
+  <MeltCombo
+    title={"Element Number"}
+    bind:value={scriptValue}
+    suggestions={suggestions[0]}
+    on:validator={(e) => {
+      const data = e.detail;
+      dispatch("validator", data);
+    }}
+    on:input={(e) => {
+      scriptValue = e.detail;
+    }}
+    on:change={() => dispatch("sync")}
+    validator={(e) => {
+      return new Validator(e).NotEmpty().Result();
+    }}
+    postProcessor={GridScript.shortify}
+    preProcessor={GridScript.humanize}
+  />
 </timer-stop>

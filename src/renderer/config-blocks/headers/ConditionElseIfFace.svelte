@@ -1,62 +1,52 @@
 <script>
-  import { createEventDispatcher, onDestroy } from "svelte";
+  import { createEventDispatcher } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { parenthesis } from "../_validators";
-
-  const dispatch = createEventDispatcher();
 
   export let config;
   export let index;
 
   import LineEditor from "../../main/user-interface/LineEditor.svelte";
 
-  import { windowSize } from "../../runtime/window-size";
-
-  let sidebarWidth;
-
-  $: if (windowSize.rightSidebarWidth) {
-    sidebarWidth = windowSize.rightSidebarWidth;
-  }
-
-  let loaded = false;
+  const dispatch = createEventDispatcher();
 
   let scriptSegment = ""; // local script part
 
-  $: if (config.script && !loaded) {
-    scriptSegment = GridScript.humanize(config.script.slice(7, -5));
-    loaded = true;
+  $: {
+    scriptSegment = GridScript.humanize($config.script.slice(7, -5));
+    "asd".slice;
   }
-
-  onDestroy(() => {
-    loaded = false;
-  });
 
   function sendData(e) {
     if (parenthesis(e)) {
       const script = GridScript.shortify(e);
-      dispatch("output", { short: "ei", script: `elseif ${script} then` });
+
+      dispatch("update-action", {
+        short: "ei",
+        script: `elseif ${script} then`,
+      });
     }
   }
 </script>
 
-<else-if-block
-  class="w-full h-full flex text-white py-1 pointer-events-auto"
+<div
+  class="px-2 w-full h-full flex text-white py-1 pointer-events-none"
   style="background-color:{config.information.color}"
 >
-  <div class="flex flex-row items-center w-full gap-3">
-    <span class="text-white min-w-fit">Else if</span>
+  <div class="flex flex-row items-center w-full">
+    <span class="mr-4">Else if</span>
 
     <div
-      class="bg-secondary p-1 my-auto mr-1 rounded flex items-center flex-grow h-full"
+      class="bg-secondary my-auto mr-1 rounded flex items-center flex-grow h-full"
     >
       <LineEditor
-        on:change={(e) => {
+        on:input={(e) => {
           sendData(e.detail.script);
         }}
+        on:change={() => dispatch("sync")}
         action={config}
-        {sidebarWidth}
         value={scriptSegment}
       />
     </div>
   </div>
-</else-if-block>
+</div>

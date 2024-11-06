@@ -46,7 +46,7 @@
     class:hover-bg={isButtonHovered}
     in:fade={{ delay: 200 }}
   >
-    <span class="text-start">{text}</span>
+    <span class="text-start line-clamp-3">{text}</span>
     <div class="flex flex-row gap-2">
       <button
         class="flex rounded px-3 py-1 bg-commit items-center"

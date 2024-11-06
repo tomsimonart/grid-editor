@@ -1,10 +1,7 @@
 export const blocks = (page) => ({
   Function: {
     Function: {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Function" })
-        .nth(3),
+      block: page.getByText("Function").nth(1),
       elements: {
         Function: page.locator("#cfg-0"),
         input: page.locator(".view-line"),
@@ -12,13 +9,9 @@ export const blocks = (page) => ({
       },
     },
   },
-
   variables: {
     Lookup: {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Lookup" })
-        .nth(2),
+      block: page.getByText("Lookup"),
       elements: {
         source: page.getByPlaceholder("Incoming value to match"),
         input: page.getByPlaceholder("input").first(),
@@ -28,10 +21,7 @@ export const blocks = (page) => ({
       },
     },
     Global: {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Global" })
-        .nth(2),
+      block: page.getByText("Global"),
       elements: {
         Commit: page.getByRole("button", { name: "Commit" }),
         var: page.getByPlaceholder("variable name"),
@@ -40,10 +30,7 @@ export const blocks = (page) => ({
       },
     },
     Locals: {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Locals" })
-        .nth(2),
+      block: page.getByText("Locals"),
       elements: {
         Commit: page.getByRole("button", { name: "Commit" }),
         var: page.getByPlaceholder("variable name"),
@@ -52,10 +39,7 @@ export const blocks = (page) => ({
       },
     },
     Self: {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Self" })
-        .nth(2),
+      block: page.getByText("Self"),
       elements: {
         Commit: page.getByRole("button", { name: "Commit" }),
         var: page.getByPlaceholder("variable name"),
@@ -66,227 +50,182 @@ export const blocks = (page) => ({
   },
   led: {
     "Start Animation": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Start Animation" })
-        .nth(2),
+      block: page.getByText("Start Animation"),
       elements: {
-        ledNumber: page.getByRole("textbox").first(),
-        Layer: page.getByRole("textbox").nth(1),
-        Phase: page.getByRole("textbox").nth(2),
-        Rate: page.getByRole("textbox").nth(3),
-        Shape: page.getByRole("textbox").nth(4),
+        ledNumber: page.getByLabel("LED Number"),
+        Layer: page.getByLabel("Layer"),
+        Phase: page.getByLabel("Phase"),
+        Rate: page.getByLabel("Rate"),
+        Shape: page.getByLabel("Shape"),
       },
     },
     "Stop Animation": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Stop Animation" })
-        .nth(2),
+      block: page.getByText("Stop Animation"),
       elements: {
-        ledNumber: page.getByRole("textbox").first(),
-        Layer: page.getByRole("textbox").nth(1),
+        ledNumber: page.getByLabel("LED Number"),
+        Layer: page.getByLabel("Layer"),
       },
     },
     Color: {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Color" })
-        .nth(2),
+      block: page.getByText("Color"),
       elements: {
-        ledNumber: page.getByRole("textbox").first(),
-        Layer: page.getByRole("textbox").nth(1),
-        Red: page.getByRole("textbox").nth(2),
-        Green: page.getByRole("textbox").nth(3),
-        Blue: page.getByRole("textbox").nth(4),
+        ledNumber: page.getByLabel("LED Number"),
+        Layer: page.getByLabel("Layer"),
+        Red: page.getByLabel("Red"),
+        Green: page.getByLabel("Green"),
+        Blue: page.getByLabel("Blue"),
         Canva: page.locator("#myCanvas"),
         Random: page.locator(".w-1\\/5"),
         Beauty: page.locator("#cfg-0").getByRole("checkbox"),
       },
     },
     Intensity: {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Intensity" })
-        .nth(2),
+      block: page.getByText("Intensity"),
       elements: {
-        "LED Number": page.getByRole("textbox").first(),
-        Layer: page.getByRole("textbox").nth(1),
-        Intensity: page.getByRole("textbox").nth(2),
+        "LED Number": page.getByLabel("LED Number"),
+        Layer: page.getByLabel("Layer"),
+        Intensity: page.getByLabel("Intensity"),
       },
     },
   },
   midi: {
     MIDI: {
-      block: page.locator("div:nth-child(6) > div").first(),
+      block: page.getByText("MIDI", { exact: true }),
       elements: {
-        Channel: page.getByRole("textbox").first(),
-        Command: page.getByRole("textbox").nth(1),
-        Parameter1: page.getByRole("textbox").nth(2),
-        Parameter2: page.getByRole("textbox").nth(3),
+        Channel: page.getByLabel("Channel"),
+        Command: page.getByLabel("Command"),
+        Parameter1: page.getByLabel("Parameter 1"),
+        Parameter2: page.getByLabel("Parameter 2"),
       },
     },
     "MIDI 14": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "MIDI 14" })
-        .nth(2),
+      block: page.getByText("MIDI 14"),
       elements: {
-        Channel: page.getByRole("textbox").first(),
-        CC: page.getByRole("textbox").nth(1),
-        "Controller Value": page.getByRole("textbox").nth(2),
+        Channel: page.getByLabel("Channel"),
+        CC: page.getByLabel("CC Number"),
+        "Controller Value": page.getByLabel("Controller Value"),
       },
     },
     "MIDI SysEX": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "MIDI SysEX" })
-        .nth(2),
+      block: page.getByText("MIDI SysEX"),
       elements: {
         Commit: page.getByRole("button", { name: "Commit" }),
         message: page.getByText("0xF0, 0x41, 0x10, val, 0xF7", { exact: true }),
       },
     },
     "MIDI NRPN": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "MIDI NRPN" })
-        .nth(2),
+      block: page.getByText("MIDI NRPN"),
       elements: {
-        Channel: page.getByRole("textbox").first(),
-        MSB: page.getByRole("textbox").nth(1),
-        LSB: page.getByRole("textbox").nth(2),
-        "NRPN CC": page.getByRole("textbox").nth(3),
-        Value: page.getByRole("textbox").nth(4),
+        Channel: page.getByLabel("Channel"),
+        MSB: page.getByLabel("MSB"),
+        LSB: page.getByLabel("LSB"),
+        "NRPN CC": page.getByLabel("NRPN CC"),
+        Value: page.getByLabel("Value"),
         "14bit Resolution": page.getByLabel("14bit Resolution"),
       },
     },
   },
   hid: {
     "GamePad Axis": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "GamePad Axis" })
-        .nth(2),
+      block: page.getByText("GamePad Axis"),
       elements: {
-        Axis: page.getByRole("textbox").first(),
-        Position: page.getByRole("textbox").nth(1),
+        Axis: page.getByLabel("Axis"),
+        Position: page.getByLabel("Position"),
       },
     },
     "GamePad Button": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "GamePad Button" })
-        .nth(2),
+      block: page.getByText("GamePad Button"),
       elements: {
-        Button: page.getByRole("textbox").first(),
-        State: page.getByRole("textbox").nth(1),
+        Button: page.getByRole("combobox", { name: "Button" }),
+        State: page.getByLabel("State"),
       },
     },
     Keyboard: {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Keyboard" })
-        .nth(2),
+      block: page.getByText("Keyboard"),
       elements: {
         Macro: page.locator(".focus\\:border-select-desaturate-20"),
         "Add Key": page.getByRole("combobox").nth(3),
         "Delay Key": page.getByRole("spinbutton").first(),
         "Add Delay": page.getByRole("button", { name: "Add Delay" }),
-        "Defaul Delay": page.getByRole("spinbutton").nth(1),
+        "Default Delay": page.getByRole("spinbutton").nth(1),
         "Clear All": page.getByRole("button", { name: "Clear All" }),
       },
     },
     "Mouse Button": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Mouse Button" })
-        .nth(2),
+      block: page.getByText("Mouse Button"),
       elements: {
-        Button: page.getByRole("textbox").first(),
-        State: page.getByRole("textbox").nth(1),
+        Button: page.getByRole("combobox", { name: "Button" }),
+        State: page.getByLabel("State"),
       },
     },
     "Mouse Move": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Mouse Move" })
-        .nth(2),
+      block: page.getByText("Mouse Move"),
       elements: {
-        Axis: page.getByRole("textbox").first(),
-        Position: page.getByRole("textbox").nth(1),
+        Axis: page.getByLabel("Axis"),
+        Position: page.getByLabel("Position"),
       },
     },
   },
   element: {
     "Button Mode": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Button Mode" })
-        .nth(2),
+      block: page.getByText("Button Mode"),
       elements: {
-        Mode: page.getByRole("textbox").first(),
-        Min: page.getByRole("textbox").nth(1),
-        Max: page.getByRole("textbox").nth(2),
+        Mode: page.getByLabel("Mode"),
+        "Enable Min/Max Value": page.getByLabel("Enable Min/Max Value"),
+        Min: page.getByLabel("Min", { exact: true }),
+        Max: page.getByLabel("Max", { exact: true }),
       },
     },
     "Encoder Mode": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Encoder Mode" })
-        .nth(2),
+      block: page.getByText("Encoder Mode"),
       elements: {
-        Mode: page.getByRole("textbox").first(),
-        Velocity: page.getByRole("textbox").nth(1),
-        Min: page.getByRole("textbox").nth(2),
-        Max: page.getByRole("textbox").nth(3),
-        Sensitivity: page.getByRole("textbox").nth(4),
+        Mode: page.getByLabel("Mode"),
+        Velocity: page.getByLabel("Velocity"),
+        "Enable Min/Max Value": page.getByLabel("Enable Min/Max Value"),
+        Min: page.getByLabel("Min", { exact: true }),
+        Max: page.getByLabel("Max", { exact: true }),
+        "Enable Sensitivity": page.getByLabel("Enable Sensitivity"),
+        Sensitivity: page.getByLabel("Sensitivity", { exact: true }),
       },
     },
     "Potmeter Mode": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Potmeter Mode" })
-        .nth(2),
+      block: page.getByText("Potmeter Mode"),
       elements: {
-        Bit: page.getByRole("textbox").first(),
-        Min: page.getByRole("textbox").nth(1),
-        Max: page.getByRole("textbox").nth(2),
+        Bit: page.getByLabel("Bit"),
+        "Enable Min/Max Value": page.getByLabel("Enable Min/Max Value"),
+        Min: page.getByLabel("Min", { exact: true }),
+        Max: page.getByLabel("Max", { exact: true }),
       },
     },
     "Endless Mode": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Endless Mode" })
-        .nth(2),
+      block: page.getByText("Endless Mode"),
       elements: {
-        Mode: page.getByRole("textbox").first(),
-        Velocity: page.getByRole("textbox").nth(1),
-        Min: page.getByRole("textbox").nth(2),
-        Max: page.getByRole("textbox").nth(3),
-        Sensitivity: page.getByRole("textbox").nth(4),
+        Mode: page.getByLabel("Mode"),
+        Velocity: page.getByLabel("Velocity"),
+        "Enable Min/Max Value": page.getByLabel("Enable Min/Max Value"),
+        Min: page.getByLabel("Min", { exact: true }),
+        Max: page.getByLabel("Max", { exact: true }),
+        "Enable Sensitivity": page.getByLabel("Enable Sensitivity"),
+        Sensitivity: page.getByLabel("Sensitivity", { exact: true }),
       },
     },
   },
   condition: {
     If: {
-      block: page.locator("#action-menu div").filter({ hasText: "If" }).nth(2),
+      block: page.getByText("If"),
       elements: {
         input: page.locator(".view-line"),
         end: page.locator("#cfg-1"),
       },
     },
     Else: {
-      block: page.locator("div:nth-child(12) > div").first(),
+      block: page.getByText("Else", { exact: true }).first(),
       elements: {
         else: page.locator("#cfg-1"),
       },
     },
     "Else if": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Else if" })
-        .nth(2),
+      block: page.getByText("Else If"),
       elements: {
         input: page.locator("#cfg-1 #monaco_container"),
       },
@@ -294,27 +233,21 @@ export const blocks = (page) => ({
   },
   loop: {
     "Repeater Loop": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Repeater Loop" })
-        .nth(2),
+      block: page.getByText("Repeater Loop"),
       elements: {
         input: page.locator("div").filter({ hasText: /^10$/ }).nth(3),
         times: page.locator("#cfg-0").getByRole("checkbox"),
         end: page.locator("#cfg-1"),
-        Variable: page.getByRole("textbox").nth(1),
-        Initial: page.getByRole("textbox").nth(2),
-        End: page.getByRole("textbox").nth(3),
-        Increment: page.getByRole("textbox").nth(4),
+        Variable: page.getByLabel("Variable"),
+        Initial: page.getByLabel("Initial"),
+        End: page.getByLabel("End"),
+        Increment: page.getByLabel("Increment"),
       },
     },
   },
   specialButton: {
     "Press/Release": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Press/Release" })
-        .nth(2),
+      block: page.getByText("Press/Release"),
       elements: {
         press: page.locator("#cfg-0"),
         release: page.locator("#cfg-1"),
@@ -322,10 +255,7 @@ export const blocks = (page) => ({
       },
     },
     "Button Step": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Button Step" })
-        .nth(2),
+      block: page.getByText("Button Step"),
       elements: {
         "Button Off": page.locator("#cfg-0"),
         "Step One": page.locator("#cfg-1"),
@@ -334,10 +264,7 @@ export const blocks = (page) => ({
   },
   specialEncoder: {
     "Left/Right Rotate": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Left/Right Rotate" })
-        .nth(2),
+      block: page.getByText("Left/Right Rotate"),
       elements: {
         left: page.locator("#cfg-0"),
         right: page.locator("#cfg-1"),
@@ -345,10 +272,7 @@ export const blocks = (page) => ({
       },
     },
     "Push & Rotate L R": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Push & Rotate L R" })
-        .nth(2),
+      block: page.getByText("Push & Rotate L R"),
       elements: {
         "push left": page.locator("#cfg-0"),
         "push right": page.locator("#cfg-1"),
@@ -358,10 +282,7 @@ export const blocks = (page) => ({
       },
     },
     "Push & Rotate": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Push & Rotate" })
-        .nth(2),
+      block: page.getByText("Push & Rotate", { exact: true }),
       elements: {
         "push rotate": page.locator("#cfg-0"),
         "just rotate": page.locator("#cfg-1"),
@@ -371,62 +292,44 @@ export const blocks = (page) => ({
   },
   code: {
     "Code Block": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Code Block" })
-        .nth(2),
+      block: page.getByText("Code Block"),
       elements: {
         input: page.locator("pre"),
         "Edit Code": page.getByRole("button", { name: "Edit Code" }),
       },
     },
     "Comment Block": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Comment Block" })
-        .nth(2),
+      block: page.getByText("Comment Block"),
       elements: {
-        input: page.getByRole("textbox"),
+        input: page.getByLabel("Comment"),
       },
     },
     "Element Name": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Element Name" })
-        .nth(2),
+      block: page.getByText("N Element Name"),
       elements: {
-        input: page.getByRole("textbox"),
+        input: page.getByLabel("Element Name"),
       },
     },
   },
   timer: {
     "Clock Source": {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Clock Source" })
-        .nth(2),
+      block: page.getByText("Clock Source"),
       elements: {
-        "Element Number": page.getByRole("textbox").first(),
-        Source: page.getByRole("textbox").nth(1),
+        "Element Number": page.getByLabel("Element Number"),
+        Source: page.getByLabel("Source"),
       },
     },
     Start: {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Start" })
-        .nth(2),
+      block: page.getByText("Start", { exact: true }),
       elements: {
-        "Element Number": page.getByRole("textbox").first(),
-        Time: page.getByRole("textbox").nth(1),
+        "Element Number": page.getByLabel("Element Number"),
+        Time: page.getByLabel("Time", { exact: true }),
       },
     },
     Stop: {
-      block: page
-        .locator("#action-menu div")
-        .filter({ hasText: "Stop" })
-        .nth(2),
+      block: page.getByText("Stop", { exact: true }),
       elements: {
-        Stop: page.getByRole("textbox").first(),
+        "Element Number": page.getByLabel("Element Number"),
       },
     },
   },

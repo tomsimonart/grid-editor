@@ -33,13 +33,12 @@
 
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
-  import { AtomicInput } from "@intechstudio/grid-uikit";
+  import MeltCombo from "./components/MeltCombo.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
 
   import { Script } from "./_script_parsers.js";
 
-  import { AtomicSuggestions } from "@intechstudio/grid-uikit";
-  import { config_panel_blocks } from "../main/panels/configuration/Configuration";
+  import { user_input_event } from "../main/panels/configuration/Configuration";
   import { LocalDefinitions } from "../runtime/runtime.store";
   import { Validator } from "./_validators";
 
@@ -59,15 +58,11 @@
 
   let scriptSegments = [];
 
-  let loaded = false;
-
-  $: if (config.script && !loaded) {
+  $: {
     scriptSegments = Script.toSegments({
       short: config.short,
       script: config.script,
     });
-
-    loaded = true;
   }
 
   function sendData(e, index) {
@@ -77,7 +72,7 @@
       short: config.short,
       array: scriptSegments,
     });
-    dispatch("output", { short: config.short, script: script });
+    dispatch("update-action", { short: config.short, script: script });
   }
 
   let _suggestions = [
@@ -90,10 +85,10 @@
 
   let suggestions;
 
-  $: if ($config_panel_blocks) {
-    const index = $config_panel_blocks.findIndex((e) => e.id === config.id);
+  $: if ($user_input_event) {
+    const index = $user_input_event.config.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $config_panel_blocks,
+      configs: $user_input_event.config,
       index: index,
     });
     suggestions = _suggestions.map((s, i) => {
@@ -101,49 +96,29 @@
       return [...s, ...localDefinitions];
     });
   }
-
-  onDestroy(() => {
-    loaded = false;
-  });
-
-  let suggestionElement = undefined;
 </script>
 
 <timer-start
   class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
 >
-  <div class="w-full flex">
+  <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
     {#each scriptSegments as script, i}
-      <div class={"w-1/" + scriptSegments.length + " atomicInput"}>
-        <div class="text-gray-500 text-sm pb-1 truncate">
-          {parameterNames[i]}
-        </div>
-        <AtomicInput
-          inputValue={GridScript.humanize(script)}
-          suggestions={suggestions[i]}
-          validator={validators[i]}
-          suggestionTarget={suggestionElement}
-          on:validator={(e) => {
-            const data = e.detail;
-            dispatch("validator", data);
-          }}
-          on:change={(e) => {
-            sendData(GridScript.shortify(e.detail), i);
-          }}
-        />
-      </div>
+      <MeltCombo
+        title={parameterNames[i]}
+        bind:value={script}
+        suggestions={suggestions[i]}
+        validator={validators[i]}
+        on:validator={(e) => {
+          const data = e.detail;
+          dispatch("validator", data);
+        }}
+        on:input={(e) => {
+          sendData(e.detail, i);
+        }}
+        on:change={() => dispatch("sync")}
+        postProcessor={GridScript.shortify}
+        preProcessor={GridScript.humanize}
+      />
     {/each}
   </div>
-
-  <AtomicSuggestions bind:component={suggestionElement} />
 </timer-start>
-
-<style>
-  .atomicInput {
-    padding-right: 0.5rem;
-  }
-
-  .atomicInput:first-child {
-    padding-left: 0.5rem;
-  }
-</style>

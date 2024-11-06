@@ -311,10 +311,12 @@
         delay: 0,
       }}
     >
-      <configs class="w-full h-full flex flex-col px-8 pt-4 pb-2 gap-2">
-        <ElementSelectionPanel />
-        <EventPanel class="flex flex-col w-full " />
-        <div class="-mb-2">
+      <configs
+        class="w-full h-full grid grid-rows-[auto_1fr_auto] px-8 pt-4 pb-2"
+      >
+        <div>
+          <ElementSelectionPanel />
+          <EventPanel />
           <Toolbar
             on:convert-to-code-block={handleConvertToCodeBlock}
             on:copy={handleCopy}
@@ -330,14 +332,23 @@
         </div>
 
         <!-- svelte-ignore a11y-no-static-element-interactions -->
-        <div
+        <config-list
+          id="cfg-list"
+          style="height:{scrollHeight}"
+          on:height={(e) => {
+            scrollHeight = e.detail;
+          }}
+          on:mousemove={handleDrag}
+          on:mouseleave={() => {
+            clearInterval(autoScroll);
+          }}
           use:changeOrder={(this,
           { configs: $config_panel_blocks.map((e) => e.action) })}
           on:drag-start={handleDragStart}
           on:drag-target={handleDragTargetChange}
           on:drop={handleDrop}
           on:drag-end={handleDragEnd}
-          class="flex flex-col h-full relative justify-between"
+          class="flex flex-col w-full overflow-y-auto"
         >
           {#if $config_panel_blocks.length === 0 && $runtime.modules.length > 0}
             <div class="mt-2">
@@ -348,76 +359,62 @@
                 on:new-config={handleAddConfig}
               />
             </div>
+          {:else if typeof $config_drag === "undefined"}
+            <AddActionLine
+              index={0}
+              on:paste={handlePaste}
+              on:new-config={handleAddConfig}
+            />
           {:else}
-            <config-list
-              id="cfg-list"
-              style="height:{scrollHeight}"
-              on:height={(e) => {
-                scrollHeight = e.detail;
-              }}
-              on:mousemove={handleDrag}
-              on:mouseleave={() => {
-                clearInterval(autoScroll);
-              }}
-              class="flex flex-col w-full h-auto overflow-y-auto justify-start"
+            <DropZone
+              index={0}
+              drag_target={draggedIndexes}
+              thresholdTop={10}
+              thresholdBottom={0}
+              on:drop-target-change={handleDropTargetChange}
+            />
+          {/if}
+          {#each $config_panel_blocks as block, index (block.action.id)}
+            <anim-block
+              animate:flip={{ duration: 300, easing: eases.backOut }}
+              in:fade|global={{ delay: 0 }}
             >
+              <DynamicWrapper {index} data={block} />
               {#if typeof $config_drag === "undefined"}
-                <AddActionLine
-                  index={0}
-                  on:paste={handlePaste}
-                  on:new-config={handleAddConfig}
-                />
+                {#if typeof block.action.information.helperText !== "undefined" && ["composite_part", "composite_open"].includes(block.action.information.type) && $config_panel_blocks[index + 1]?.action.indentation === block.action.indentation && $appSettings.persistent.actionHelperText}
+                  <div class="mr-6">
+                    <AddAction
+                      text={block.action.information.helperText}
+                      index={index + 1}
+                      on:paste={handlePaste}
+                      on:new-config={handleAddConfig}
+                    />
+                  </div>
+                {:else}
+                  <AddActionLine
+                    index={index + 1}
+                    on:paste={handlePaste}
+                    on:new-config={handleAddConfig}
+                  />
+                {/if}
               {:else}
                 <DropZone
-                  index={0}
-                  drag_target={draggedIndexes}
+                  index={index + 1}
                   thresholdTop={10}
-                  thresholdBottom={0}
+                  thresholdBottom={10}
+                  class={index + 1 == $config_panel_blocks.length
+                    ? "h-full"
+                    : ""}
+                  drag_target={draggedIndexes}
                   on:drop-target-change={handleDropTargetChange}
                 />
               {/if}
-              {#each $config_panel_blocks as block, index (block.action.id)}
-                <anim-block
-                  animate:flip={{ duration: 300, easing: eases.backOut }}
-                  in:fade|global={{ delay: 0 }}
-                >
-                  <DynamicWrapper {index} data={block} />
-                  {#if typeof $config_drag === "undefined"}
-                    {#if typeof block.action.information.helperText !== "undefined" && ["composite_part", "composite_open"].includes(block.action.information.type) && $config_panel_blocks[index + 1]?.action.indentation === block.action.indentation && $appSettings.persistent.actionHelperText}
-                      <div class="mr-6">
-                        <AddAction
-                          text={block.action.information.helperText}
-                          index={index + 1}
-                          on:paste={handlePaste}
-                          on:new-config={handleAddConfig}
-                        />
-                      </div>
-                    {:else}
-                      <AddActionLine
-                        index={index + 1}
-                        on:paste={handlePaste}
-                        on:new-config={handleAddConfig}
-                      />
-                    {/if}
-                  {:else}
-                    <DropZone
-                      index={index + 1}
-                      thresholdTop={10}
-                      thresholdBottom={10}
-                      class={index + 1 == $config_panel_blocks.length
-                        ? "h-full"
-                        : ""}
-                      drag_target={draggedIndexes}
-                      on:drop-target-change={handleDropTargetChange}
-                    />
-                  {/if}
-                </anim-block>
-              {/each}
-            </config-list>
-          {/if}
-        </div>
+            </anim-block>
+          {/each}
+        </config-list>
+
         <div
-          class="w-full flex justify-between mb-3"
+          class="w-full flex flex-row"
           class:invisible={$runtime.modules.length === 0}
         >
           <AddActionButton

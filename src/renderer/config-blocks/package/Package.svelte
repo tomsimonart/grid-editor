@@ -26,7 +26,10 @@
     actionElement.addEventListener(
       "updateCode",
       (e) => {
-        dispatch("output", { short: config.short, script: e.detail.script });
+        dispatch("update-action", {
+          short: config.short,
+          script: e.detail.script,
+        });
       },
       false
     );

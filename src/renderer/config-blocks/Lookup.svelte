@@ -36,10 +36,9 @@
 
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
-  import { AtomicInput } from "@intechstudio/grid-uikit";
+  import MeltCombo from "./components/MeltCombo.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { AtomicSuggestions } from "@intechstudio/grid-uikit";
-  import { config_panel_blocks } from "../main/panels/configuration/Configuration";
+  import { user_input_event } from "../main/panels/configuration/Configuration";
   import { LocalDefinitions } from "../runtime/runtime.store";
 
   import { Validator } from "./_validators";
@@ -50,27 +49,20 @@
 
   const dispatch = createEventDispatcher();
 
-  let loaded = false;
-
   let scriptSegments = [];
   let lookupTable = {};
 
-  // Using onDestroy() and loaded flag may help ever changing reactivity
+  $: handleScriptChange($config.script);
 
-  $: if (config.script && !loaded) {
-    lookupTable = createLookupTable(config.script);
-    loaded = true;
-  }
-
-  $: if (lookupTable.source || lookupTable.pairs.length) {
-    sendData();
+  function handleScriptChange(script) {
+    lookupTable = createLookupTable(script);
   }
 
   let suggestions = [];
-  $: if ($config_panel_blocks) {
-    const index = $config_panel_blocks.findIndex((e) => e.id === config.id);
+  $: if ($user_input_event) {
+    const index = $user_input_event.config.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $config_panel_blocks,
+      configs: $user_input_event.config,
       index: index,
     });
     suggestions = localDefinitions;
@@ -84,6 +76,7 @@
       array.push(pair.output);
     });
 
+    console.log(lookupTable);
     array = [lookupTable.source, ...array];
 
     const script = Script.toScript({
@@ -92,7 +85,7 @@
       array: array,
     }); // important to set the function name
 
-    dispatch("output", {
+    dispatch("update-action", {
       short: config.short,
       script: `${lookupTable.destination}=${script}`,
     });
@@ -121,41 +114,37 @@
 
   function addNewLine() {
     lookupTable.pairs = [...lookupTable.pairs, ["", ""]];
+    sendData();
   }
 
   function removeLine(i) {
     lookupTable.pairs.splice(i, 1);
     lookupTable.pairs = [...lookupTable.pairs];
   }
-
-  let suggestionElement1 = undefined;
-  let suggestionElement2 = undefined;
 </script>
 
 <config-lookup
   class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
 >
-  <div class="flex flex-col p-2">
-    <div class="text-gray-500 text-sm pb-1">Source</div>
-    <AtomicInput
-      {suggestions}
-      placeholder={"Incoming value to match"}
-      inputValue={GridScript.humanize(lookupTable.source)}
-      suggestionTarget={suggestionElement1}
-      validator={(e) => {
-        return new Validator(e).NotEmpty().Result();
-      }}
-      on:change={(e) => {
-        lookupTable.source = GridScript.shortify(e.detail);
-      }}
-      on:validator={(e) => {
-        const data = e.detail;
-        dispatch("validator", data);
-      }}
-    />
-  </div>
-
-  <AtomicSuggestions bind:component={suggestionElement1} />
+  <MeltCombo
+    title={"Source"}
+    {suggestions}
+    placeholder={"Incoming value to match"}
+    bind:value={lookupTable.source}
+    validator={(e) => {
+      return new Validator(e).NotEmpty().Result();
+    }}
+    on:input={(e) => {
+      sendData();
+    }}
+    on:validator={(e) => {
+      const data = e.detail;
+      dispatch("validator", data);
+    }}
+    on:change={() => dispatch("sync")}
+    postProcessor={GridScript.shortify}
+    preProcessor={GridScript.humanize}
+  />
 
   <div class="w-full p-2 flex flex-col">
     <div class="flex text-gray-500 text-sm">
@@ -211,27 +200,26 @@
     {/each}
   </div>
 
-  <div class="flex flex-col p-2">
-    <div class="text-gray-500 text-sm pb-1">Destination</div>
-    <AtomicInput
-      placeholder={"Variable name to load the lookup result"}
-      {suggestions}
-      inputValue={GridScript.humanize(lookupTable.destination)}
-      suggestionTarget={suggestionElement2}
-      on:change={(e) => {
-        lookupTable.destination = GridScript.shortify(e.detail);
-      }}
-      validator={(e) => {
-        return new Validator(e).NotEmpty().Result();
-      }}
-      on:validator={(e) => {
-        const data = e.detail;
-        dispatch("validator", data);
-      }}
-    />
-  </div>
-
-  <AtomicSuggestions bind:component={suggestionElement2} />
+  <MeltCombo
+    title={"Destination"}
+    placeholder={"Variable name to load the lookup result"}
+    {suggestions}
+    bind:value={lookupTable.destination}
+    on:input={(e) => {
+      //lookupTable.destination = e.detail;
+      sendData();
+    }}
+    validator={(e) => {
+      return new Validator(e).NotEmpty().Result();
+    }}
+    on:validator={(e) => {
+      const data = e.detail;
+      dispatch("validator", data);
+    }}
+    on:change={() => dispatch("sync")}
+    postProcessor={GridScript.shortify}
+    preProcessor={GridScript.humanize}
+  />
 
   <div class="w-full flex group p-2">
     <!-- svelte-ignore a11y-click-events-have-key-events -->
