@@ -34,7 +34,7 @@
   style="background-color:{config.information.color}"
 >
   <div class="flex flex-row items-center w-full">
-    <span class="mr-4">Else If</span>
+    <span class="mr-4">Else if</span>
 
     <div
       class="bg-secondary my-auto mr-1 rounded flex items-center flex-grow h-full"
