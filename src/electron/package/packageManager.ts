@@ -83,6 +83,12 @@ process.parentPort.on("message", async (e) => {
       case "load-package":
         await loadPackage(data.id, data.payload);
         break;
+      case "restart-package":
+        if (currentlyLoadedPackages[data.id]) {
+          await unloadPackage(data.id);
+          await loadPackage(data.id, data.payload);
+        }
+        break;
       case "unload-package":
         await unloadPackage(data.id);
         break;
@@ -194,6 +200,10 @@ async function loadPackage(packageName: string, persistedData: any) {
 
     const packageDirectory: string =
       localPackages.get(packageName) ?? path.join(packageFolder, packageName);
+
+    let name = require.resolve(packageDirectory);
+    delete require.cache[name];
+
     const _package = require(packageDirectory);
     await _package.loadPackage(
       {

@@ -198,7 +198,6 @@ if (!gotTheLock) {
         packageFolder = localPackages[packageName];
       }
       const fullPath = path.join(packageFolder, filePath);
-      console.log(`FINAL FILE PATH: ${fullPath}`);
       return net.fetch(`file://${fullPath}`);
     });
   });
@@ -445,11 +444,16 @@ function handleDeveloperWebsocketMessage(data: any) {
       developerPackages[data.id] &&
       path.resolve(developerPackages[data.id]) === path.resolve(data.rootPath)
     ) {
-      //TODO: Handle other type of code changes
       if (data.event === "components-build-complete") {
         packageEditorPort?.postMessage({
           type: "reload-package-components",
           id: data.id,
+        });
+      } else if (data.event === "package-build-complete") {
+        packageManagerProcess?.postMessage({
+          type: "restart-package",
+          id: data.id,
+          payload: store.get("packagesDataStorage")[data.id],
         });
       }
     } else {
