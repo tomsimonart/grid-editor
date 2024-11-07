@@ -121,5 +121,9 @@ const windowLoaded = new Promise((resolve) => {
 
 ipcRenderer.on("package-manager-port", async (event) => {
   await windowLoaded;
-  window.postMessage("package-manager-port", "*", event.ports);
+  setTimeout(() => {
+    window.postMessage("package-manager-port", "*", event.ports);
+  }, 2000);
 });
+
+export {};

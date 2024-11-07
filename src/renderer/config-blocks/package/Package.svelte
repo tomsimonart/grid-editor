@@ -6,6 +6,7 @@
 
 <script>
   import { onMount, createEventDispatcher } from "svelte";
+  import { appSettings } from "../../runtime/app-helper.store";
 
   export let config;
 
@@ -22,7 +23,9 @@
     }
   }
 
-  onMount(() => {
+  $: actionElement && addListeners();
+
+  function addListeners() {
     actionElement.addEventListener(
       "updateCode",
       (e) => {
@@ -37,14 +40,16 @@
       },
       false
     );
-  });
+  }
 </script>
 
 <package class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto">
   {#if config?.information?.actionComponent}
-    <svelte:element
-      this={config.information.actionComponent}
-      bind:this={actionElement}
-    />
+    {#key $appSettings.packageComponentKeys[config.information.packageId]}
+      <svelte:element
+        this={config.information.actionComponent}
+        bind:this={actionElement}
+      />
+    {/key}
   {/if}
 </package>

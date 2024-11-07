@@ -437,6 +437,11 @@
     </div>
   {/if}
   {#if profileCloudWebComponentName}
-    <svelte:element this={profileCloudWebComponentName} class="w-full h-full" />
+    {#key profileCloudWebComponentName == "profile-cloud-dev" ? $appSettings.packageComponentKeys["profile-cloud"] : true}
+      <svelte:element
+        this={profileCloudWebComponentName}
+        class="w-full h-full"
+      />
+    {/key}
   {/if}
 </div>

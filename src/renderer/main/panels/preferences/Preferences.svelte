@@ -496,10 +496,10 @@
       <!-- Checkbox for packageDeveloper -->
 
       <BlockTitle>Package Developer Mode</BlockTitle>
-      <BlockBody
-        >Automatically restart the package manager process when files are
-        changed inside the package folder</BlockBody
-      >
+      <BlockBody>
+        Starts a developer websocket in Editor allowing hot reload functionality
+        for packages.
+      </BlockBody>
       <MeltCheckbox
         bind:target={$appSettings.persistent.packageDeveloper}
         title={"Enabled"}
