@@ -14,20 +14,13 @@
   import { fade } from "svelte/transition";
   import { flip } from "svelte/animate";
   import * as eases from "svelte/easing";
-  import {
-    changeOrder,
-    config_drag,
-    DragEvent,
-  } from "../../_actions/move.action.js";
   import { addActions, pasteActions } from "../../../runtime/operations";
-  import { user_input } from "./../../../runtime/runtime.store";
   import { GridAction } from "./../../../runtime/runtime";
   import { appSettings } from "./../../../runtime/app-helper.store";
+  import { draggedActions } from "./../../_actions/move.action";
 
   export let event: GridEvent;
 
-  let dragged: number[] = [];
-  let dropIndex = undefined;
   let autoScroll;
   let configList: HTMLElement;
 
@@ -41,50 +34,7 @@
     pasteActions(event, index);
   }
 
-  function handleDrop(e) {
-    if (typeof dropIndex === "undefined") {
-      return;
-    }
-
-    const offset = Math.min(...dragged) > dropIndex ? 0 : -1;
-
-    //Check for incorrect dropzones
-    const firstIndex = dragged.at(0);
-    const lastIndex = dragged.at(-1);
-    if (dropIndex >= firstIndex && dropIndex <= lastIndex + 1) {
-      return;
-    }
-
-    const actions = event.config.filter((e) => dragged.includes(e.id));
-
-    const trueDropIndex =
-      dropIndex - (offset === -1 ? actions.length - 1 : 0) + offset;
-    console.log(trueDropIndex);
-
-    event.remove(...actions);
-    event.insert(trueDropIndex, ...actions);
-  }
-
-  function handleDragStart(e) {
-    config_drag.set(new DragEvent());
-  }
-
-  function handleDragEnd(e) {
-    config_drag.set(undefined);
-    dropIndex = undefined;
-    dragged = [];
-    clearInterval(autoScroll);
-  }
-
-  function handleDragTargetChange(e) {
-    dragged = e.detail.id;
-  }
-
-  function handleDropTargetChange(e) {
-    const { index } = e.detail;
-    dropIndex = index;
-  }
-
+  /*
   function handleDrag(e) {
     if (typeof $config_drag !== "undefined") {
       const mouseY = e.clientY - configList.getBoundingClientRect().top;
@@ -105,36 +55,25 @@
       }
     }
   }
+    */
 </script>
 
 {#if $event}
   <ul
     bind:this={configList}
-    use:changeOrder={(this, { configs: $event.config })}
-    on:drag-start={handleDragStart}
-    on:drag-target={handleDragTargetChange}
-    on:drop={handleDrop}
-    on:drag-end={handleDragEnd}
-    on:mousemove={handleDrag}
     on:mouseleave={() => {
       clearInterval(autoScroll);
     }}
     class="flex flex-col w-full flex-grow overflow-y-scroll scroll justify-start"
   >
-    {#if typeof $config_drag === "undefined"}
+    {#if $draggedActions.length === 0}
       <AddActionLine
         index={0}
         on:paste={handlePaste}
         on:new-config={handleAddConfig}
       />
     {:else}
-      <DropZone
-        index={0}
-        drag_target={dragged}
-        thresholdTop={10}
-        thresholdBottom={0}
-        on:drop-target-change={handleDropTargetChange}
-      />
+      <DropZone index={0} {event} />
     {/if}
     {#each $event.config as action, index (action.id)}
       {@const showHelper =
@@ -142,14 +81,14 @@
         ["composite_part", "composite_open"].includes(
           action.information.type
         ) &&
-        $event.config[index + 1]?.action.indentation === action.indentation &&
+        $event.config[index + 1]?.indentation === action.indentation &&
         $appSettings.persistent.actionHelperText}
       <anim-block
         animate:flip={{ duration: 300, easing: eases.backOut }}
         in:fade|global={{ delay: 0 }}
       >
         <DynamicWrapper {index} data={{ action: action, selected: false }} />
-        {#if typeof $config_drag === "undefined"}
+        {#if $draggedActions.length === 0}
           {#if showHelper}
             <div class="mr-6">
               <AddAction
@@ -167,14 +106,7 @@
             />
           {/if}
         {:else}
-          <DropZone
-            index={index + 1}
-            thresholdTop={10}
-            thresholdBottom={10}
-            class={index + 1 == event.config.length ? "h-full" : ""}
-            drag_target={dragged}
-            on:drop-target-change={handleDropTargetChange}
-          />
+          <DropZone index={index + 1} {event} />
         {/if}
       </anim-block>
     {/each}

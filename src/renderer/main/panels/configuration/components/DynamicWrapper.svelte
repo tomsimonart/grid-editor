@@ -14,7 +14,7 @@
     lastOpenedActionblocksInsert,
     lastOpenedActionblocksRemove,
   } from "../Configuration";
-  import { configIndexToId } from "../../../_actions/move.action";
+  import { draggable } from "../../../_actions/move.action";
   import { getComponentInformation } from "../../../../lib/_configs";
   import {
     updateAction,
@@ -142,12 +142,11 @@
     class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!$action.checkSyntax()
       ? 'border-error'
       : 'border-transparent'} bri"
-    id={$action.id}
     class:rounded-tr-xl={$action.information.rounding === "top"}
     class:rounded-br-xl={$action.information.rounding === "bottom"}
-    config-type={$action.information.type}
-    data-movable={$action.information.movable}
     class:brightness-125={data.selected}
+    use:draggable={(this,
+    { action: action, movable: $action.information.movable })}
     on:click|self={handleCarouselClicked}
   >
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->

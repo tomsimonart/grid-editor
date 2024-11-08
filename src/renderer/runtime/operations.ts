@@ -142,8 +142,6 @@ export async function overwriteElement(target: GridElement) {
     return;
   }
 
-  console.log(clipboard.payload);
-
   target
     .overwrite(clipboard.payload as ElementData)
     .then((result) => {
@@ -471,4 +469,33 @@ export async function loadPreset(
         mandatory: false,
       });
     });
+}
+
+export function dropActions(
+  target: GridEvent,
+  index: number,
+  actions: GridAction[]
+) {
+  let targetActions = actions.filter((e) => e.parent === target);
+  let targetIndexes = targetActions.map((action) =>
+    target.config.findIndex((e) => e.id === action.id)
+  );
+  const targetMinIndex = Math.min(...targetIndexes);
+  const targetMaxIndex = Math.max(...targetIndexes);
+
+  if (index >= targetMinIndex && index <= targetMaxIndex + 1) {
+    return; // Invalid drop zone, return the original list
+  }
+
+  for (const action of actions) {
+    const parent = action.parent as GridEvent;
+    parent.remove(action);
+  }
+
+  if (targetActions.length > 0) {
+    const movingDown = index > targetMaxIndex;
+    index = movingDown ? index - targetIndexes.length : index;
+  }
+
+  target.insert(index, ...actions);
 }
