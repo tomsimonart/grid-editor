@@ -32,17 +32,3 @@
       "Actions here are triggered when the event runs, and no others conditions were met.",
   };
 </script>
-
-<script>
-  import { onMount, createEventDispatcher } from "svelte";
-
-  const dispatch = createEventDispatcher();
-
-  function sendData() {
-    dispatch("output", { short: "el", script: "else" });
-  }
-</script>
-
-<else-block class="{$$props.class} text-white pointer-events-auto">
-  {information.displayName}
-</else-block>

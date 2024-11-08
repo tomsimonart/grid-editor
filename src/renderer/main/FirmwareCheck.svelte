@@ -256,7 +256,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
       mandatory: false,
     });
 
-    const url = configuration.DOCUMENTATION_FIRMWAREUPDATE_URL;
+    const url = configuration.DOCUMENTATION_TROUBLESHOOTING_URL;
     window.electron.openInBrowser(url);
   }
 </script>

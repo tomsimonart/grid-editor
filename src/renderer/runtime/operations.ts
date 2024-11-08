@@ -227,13 +227,21 @@ export async function clearElement(target: GridElement) {
     });
 }
 
-//GridAction handlers
+export async function syncWithGrid(target: GridAction) {
+  target.sendToGrid();
+}
 
-export async function updateAction(target: GridAction, data: ActionData) {
+export async function updateAction(
+  target: GridAction,
+  data: ActionData,
+  syncWithGrid: boolean
+) {
   target
     .updateData(data)
     .then((result) => {
-      target.sendToGrid();
+      if (syncWithGrid) {
+        target.sendToGrid();
+      }
     })
     .catch(handleError)
     .finally(() => {

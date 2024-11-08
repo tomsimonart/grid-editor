@@ -1,6 +1,10 @@
 <script lang="ts">
-  import { get } from "svelte/store";
-  import { GridAction, ActionData } from "./../../../../runtime/runtime";
+  import {
+    GridAction,
+    ActionData,
+    GridEvent,
+    EventData,
+  } from "./../../../../runtime/runtime";
   import { SvgIcon } from "@intechstudio/grid-uikit";
   import { LocalDefinitions } from "./../../../../runtime/runtime.store";
   import {
@@ -9,14 +13,11 @@
   } from "./../../../../runtime/clipboard.store";
   import Popover from "svelte-easy-popover";
   import { createEventDispatcher } from "svelte";
-
   import { clickOutside } from "../../../_actions/click-outside.action";
   import { Analytics } from "../../../../runtime/analytics.js";
   import { getAllComponents } from "../../../../lib/_configs";
-
   import { lastOpenedActionblocksInsert } from "../Configuration";
   import { NumberToEventType } from "@intechstudio/grid-protocol";
-
   import { onMount, onDestroy } from "svelte";
   import { MoltenPushButton, MoltenInput } from "@intechstudio/grid-uikit";
 

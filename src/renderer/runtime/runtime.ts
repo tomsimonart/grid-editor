@@ -261,7 +261,6 @@ export class ActionData extends NodeData {
     const event = this.parent as GridEvent;
     for (let i = 0; i < event.config.length; ++i) {
       let action = event.config[i];
-
       if (action.id === this.id) {
         if (
           ["composite_part", "composite_close"].includes(
@@ -347,18 +346,12 @@ export class GridAction extends RuntimeNode<ActionData> {
   }
 
   public async updateData(data: ActionData): Promise<UpdateActionResult> {
-    const old = {
-      short: this.data.short,
-      script: this.data.script,
-      name: this.data.name,
-    };
     const parent = this.parent as GridEvent;
-
-    this.script = data.script;
-    this.short = data.short;
-    this.name = data.name;
-
-    if (parent.checkLength()) {
+    const diff = data.toLua().length - this.data.toLua().length;
+    if (parent.getAvailableChars() - diff >= 0) {
+      this.script = data.script;
+      this.short = data.short;
+      this.name = data.name;
       return Promise.resolve({
         value: true,
         text: "OK",
@@ -366,9 +359,6 @@ export class GridAction extends RuntimeNode<ActionData> {
         info: (this.parent as GridEvent)?.getInfo(),
       });
     } else {
-      this.script = old.script;
-      this.short = old.short;
-      this.name = old.name;
       this.notify(); //TODO: Refactor this out
       this.notifyParent(); //TODO: Refactor this out
       return Promise.reject({
@@ -451,6 +441,10 @@ export class EventData extends NodeData {
       .replace(/(\r\n|\n|\r)/gm, "")} ?>`;
   }
 
+  public getAvailableChars(): number {
+    return grid.getProperty("CONFIG_LENGTH") - this.toLua().length - 1;
+  }
+
   public isStored() {
     if (!this.isLoaded()) {
       return true;
@@ -465,13 +459,6 @@ export class EventData extends NodeData {
       }
     }
     return true;
-  }
-
-  public checkLength() {
-    if (!this.isLoaded()) {
-      return true;
-    }
-    return this.toLua().length < grid.getProperty("CONFIG_LENGTH");
   }
 
   public isLoaded() {
@@ -589,12 +576,13 @@ export class GridEvent extends RuntimeNode<EventData> {
       });
     }
 
-    try {
-      this.config = [
-        ...this.config.slice(0, index),
-        ...actions,
-        ...this.config.slice(index),
-      ];
+    if (
+      this.getAvailableChars() -
+        actions.map((e) => e.toLua()).join("").length >=
+      0
+    ) {
+      this.config.splice(index, 0, ...actions);
+      this.config = this.config; //TODO: Is there a better solution? Needed for reactivity
       actions.forEach((e) => ((e as any).parent = this));
       return Promise.resolve({
         value: true,
@@ -602,7 +590,7 @@ export class GridEvent extends RuntimeNode<EventData> {
         type: GridOperationType.INSERT_ACTIONS,
         info: this.getInfo(),
       });
-    } catch (e) {
+    } else {
       return Promise.reject({
         value: false,
         text: Runtime.ErrorText.LENGTH_ERROR,
@@ -675,14 +663,6 @@ export class GridEvent extends RuntimeNode<EventData> {
   }
 
   public async sendToGrid(): Promise<SendToGridResult> {
-    if (!this.checkLength()) {
-      return Promise.reject({
-        value: false,
-        text: "Length Error",
-        type: GridOperationType.SEND_EVENT_TO_GRID,
-      });
-    }
-
     if (!this.isLoaded()) {
       return Promise.resolve({
         value: true,
@@ -723,16 +703,16 @@ export class GridEvent extends RuntimeNode<EventData> {
     return this.data.checkSyntax();
   }
 
-  public checkLength() {
-    return this.data.checkLength();
-  }
-
   public isLoaded() {
     return this.data.isLoaded();
   }
 
   public toLua() {
     return this.data.toLua();
+  }
+
+  public getAvailableChars() {
+    return this.data.getAvailableChars();
   }
 
   public hasChanges() {
@@ -902,10 +882,6 @@ export class GridEvent extends RuntimeNode<EventData> {
   private set config(value: Array<GridAction>) {
     const temp = this.config;
     this.setField("config", value);
-    if (!this.checkLength()) {
-      this.setField("config", temp);
-      throw "Config limit reached! Event value was reset.";
-    }
   }
 
   private set type(value: number) {

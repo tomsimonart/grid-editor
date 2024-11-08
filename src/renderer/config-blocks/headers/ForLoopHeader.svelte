@@ -5,7 +5,7 @@
   import Toggle from "../../main/user-interface/Toggle.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "../_validators";
-  import { AtomicInput } from "@intechstudio/grid-uikit";
+  import MeltCombo from "../components/MeltCombo.svelte";
   import SendFeedback from "../../main/user-interface/SendFeedback.svelte";
 
   export let index;
@@ -77,17 +77,17 @@
 
   function handleDisplayValueChange(e) {
     const { script } = e.detail;
-    dispatch("output", {
+    dispatch("update-action", {
       short: config.short,
       script: `for i=1,${script},1 do`,
     });
   }
 
   function handleInputFieldChange(e, i) {
-    data[i].value = GridScript.shortify(e.detail);
-    const shortData = data.map((e) => GridScript.shortify(e.value));
+    data[i].value = e.detail;
+    const shortData = data.map((e) => e.value);
     const segments = [shortData[0] + "=" + shortData[1], ...shortData.slice(2)];
-    dispatch("output", {
+    dispatch("update-action", {
       short: config.short,
       script: `for ${segments.join(",")} do`,
     });
@@ -109,9 +109,10 @@
     >
       {#key displayValue}
         <LineEditor
-          on:change={handleDisplayValueChange}
+          on:input={handleDisplayValueChange}
           action={config}
           bind:value={displayValue}
+          on:change={() => dispatch("sync")}
         />
       {/key}
     </div>
@@ -126,16 +127,11 @@
       <div class="flex flex-row items-center">
         <div class="flex flex-col">
           <div class="flex flex-row items-center gap-2">
-            <div class="grid grid-cols-4 gap-x-2 gap-y-1">
-              {#each data as obj}
-                <div class="text-white text-sm h-full truncate">
-                  {obj.label}
-                </div>
-              {/each}
+            <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
               {#each data as obj, i}
-                <AtomicInput
-                  class="flex h-7"
-                  inputValue={GridScript.humanize(obj.value)}
+                <MeltCombo
+                  title={obj.label}
+                  bind:value={obj.value}
                   suggestions={obj.suggestions}
                   validator={obj.validator}
                   on:validator={(e) => {
@@ -143,6 +139,9 @@
                     dispatch("validator", data);
                   }}
                   on:change={(e) => handleInputFieldChange(e, i)}
+                  on:change={() => dispatch("sync")}
+                  postProcessor={GridScript.shortify}
+                  preProcessor={GridScript.humanize}
                 />
               {/each}
             </div>

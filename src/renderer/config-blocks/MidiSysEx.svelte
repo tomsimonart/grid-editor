@@ -54,8 +54,6 @@
   export let config;
   export let index;
 
-  let loaded = false;
-
   const whatsInParenthesis = /\(([^)]+)\)/;
 
   let commitState = 0;
@@ -74,11 +72,6 @@
         textarea.innerText = textdata[1];
       }
     }
-
-    loaded = true;
-  });
-  onDestroy(() => {
-    loaded = false;
   });
 
   function sendData(e) {
@@ -86,7 +79,7 @@
 
     config.script = "gmss(" + textarea.innerText.toString() + ")";
 
-    dispatch("output", { short: config.short, script: config.script });
+    dispatch("update-action", { short: config.short, script: config.script });
   }
 
   const tabs = [

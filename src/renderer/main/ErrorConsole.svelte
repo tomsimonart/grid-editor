@@ -132,13 +132,19 @@
           if (element.type === "error") {
             solutions.push(element);
           } else if (element.type === "notification") {
-            if (typeof element.delay !== "undefined") {
-              let delay = parseInt(element.delay);
-              setTimeout(() => {
+            if (
+              typeof element.version === "undefined" ||
+              element.version ===
+                window.ctxProcess.configuration()?.EDITOR_VERSION
+            ) {
+              if (typeof element.delay !== "undefined") {
+                let delay = parseInt(element.delay);
+                setTimeout(() => {
+                  notifications = [...notifications, element];
+                }, delay);
+              } else {
                 notifications = [...notifications, element];
-              }, delay);
-            } else {
-              notifications = [...notifications, element];
+              }
             }
           }
         });

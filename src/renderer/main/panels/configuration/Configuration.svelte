@@ -200,10 +200,12 @@
         delay: 0,
       }}
     >
-      <configs class="w-full h-full flex flex-col px-8 pt-4 pb-2 gap-2">
-        <ElementSelectionPanel />
-        <EventPanel class="flex flex-col w-full " />
-        <div class="-mb-2">
+      <configs
+        class="w-full h-full grid grid-rows-[auto_1fr_auto] px-8 pt-4 pb-2"
+      >
+        <div>
+          <ElementSelectionPanel />
+          <EventPanel />
           <Toolbar
             on:convert-to-code-block={handleConvertToCodeBlock}
             on:copy={handleCopy}
@@ -221,7 +223,7 @@
         <ActionList event={$user_input_event} />
 
         <div
-          class="w-full flex justify-between mb-3"
+          class="w-full flex flex-row"
           class:invisible={$runtime.modules.length === 0}
         >
           <AddActionButton

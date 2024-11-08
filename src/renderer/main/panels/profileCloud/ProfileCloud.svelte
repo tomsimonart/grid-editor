@@ -25,15 +25,14 @@
   import { modal } from "../../modals/modal.store";
   import UserLogin from "../../modals/UserLogin.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
+  import "@intechstudio/profile-cloud-webcomponent";
 
   const configuration = window.ctxProcess.configuration();
   const buildVariables = window.ctxProcess.buildVariables();
 
-  let iframe_element;
+  $: profileCloudIsMounted && sendAuthEventToProfileCloud($authStore);
 
-  $: profileCloudIsMounted && sendAuthEventToIframe($authStore);
-
-  $: sendConfigLinkToIframe($configLinkStore);
+  $: sendConfigLinkToProfileCloud($configLinkStore);
 
   $: handleRuntimeChange($runtime);
 
@@ -49,15 +48,10 @@
   }
 
   function sendCompatibleTypes(types) {
-    if (iframe_element == undefined) return;
-
-    iframe_element.contentWindow.postMessage(
-      {
-        messageType: "compatibleTypes",
-        compatibleTypes: types,
-      },
-      "*"
-    );
+    sendMessageToProfileCloud({
+      messageType: "compatibleTypes",
+      compatibleTypes: types,
+    });
   }
 
   $: handleUserInputChange($user_input);
@@ -98,62 +92,40 @@
     }
   }
 
-  function sendConfigLinkToIframe(storeValue) {
-    if (iframe_element == undefined) return;
-    iframe_element.contentWindow.postMessage(
-      {
-        messageType: "configLink",
-        configLinkId: storeValue.id,
-      },
-      "*"
-    );
+  function sendConfigLinkToProfileCloud(storeValue) {
+    sendMessageToProfileCloud({
+      messageType: "configLink",
+      configLinkId: storeValue.id,
+    });
   }
 
   function sendSelectedComponentInfos(
     selectedModuleType,
     selectedControlElementType
   ) {
-    if (iframe_element == undefined) return;
-
-    iframe_element.contentWindow.postMessage(
-      {
-        messageType: "selectedComponentTypes",
-        selectedComponentTypes: [
-          selectedModuleType,
-          selectedControlElementType,
-        ],
-      },
-      "*"
-    );
+    sendMessageToProfileCloud({
+      messageType: "selectedComponentTypes",
+      selectedComponentTypes: [selectedModuleType, selectedControlElementType],
+    });
   }
 
-  function sendAuthEventToIframe(authEvent) {
-    if (!iframe_element || !authEvent) return;
+  function sendAuthEventToProfileCloud(authEvent) {
+    if (!authEvent) return;
 
     // the authStore should contain an event!
     if (!authEvent.event) return;
 
-    console.log("authevent!", authEvent);
-
-    iframe_element.contentWindow.postMessage(
-      {
-        messageType: "userAuthentication",
-        authEvent: authEvent,
-      },
-      "*"
-    );
+    sendMessageToProfileCloud({
+      messageType: "userAuthentication",
+      authEvent: authEvent,
+    });
   }
 
   function sendLocalConfigs(configs) {
-    if (iframe_element == undefined) return;
-
-    iframe_element.contentWindow.postMessage(
-      {
-        messageType: "localConfigs",
-        configs,
-      },
-      "*"
-    );
+    sendMessageToProfileCloud({
+      messageType: "localConfigs",
+      configs,
+    });
   }
 
   async function handleLoginToProfileCloud(event) {
@@ -358,20 +330,50 @@
 
   let listenerRegistered = false;
   let profileCloudUrl = "";
-  let offlineProfileCloudUrl = undefined;
+  let offlineMode = false;
+  let profileCloudWebComponentName = undefined;
 
   $: if (
     listenerRegistered === true &&
-    profileCloudUrl !==
-      (offlineProfileCloudUrl ?? $appSettings.persistent.profileCloudUrl)
+    (profileCloudUrl !== $appSettings.persistent.profileCloudUrl || offlineMode)
   ) {
-    // listenerRegistered variable makes sure that the iframe loading is after registering the listener.
-    // otherwise handleProfileCloudMounted is missed and offline fallback is displayed
-    profileCloudUrl =
-      offlineProfileCloudUrl ?? $appSettings.persistent.profileCloudUrl;
+    // listenerRegistered variable makes sure that the webcomponent loading is after registering the listener.
+    // otherwise handleProfileCloudMounted might be missed and offline fallback is displayed
+    console.log("INSIDE EVENT HANDLER");
+    if (profileCloudUrl !== $appSettings.persistent.profileCloudUrl) {
+      offlineMode = false;
+      profileCloudUrl = $appSettings.persistent.profileCloudUrl;
+      profileCloudIsMounted = false;
+      profileCloudWebComponentName = undefined;
+    }
 
-    console.log("Profile Cloud url", profileCloudUrl);
-    profileCloudIsMounted = false;
+    let fixedUrl = profileCloudUrl;
+    if (!fixedUrl.endsWith(".js")) {
+      if (fixedUrl.endsWith("/")) {
+        fixedUrl = `${fixedUrl}wc/components.js`;
+      } else {
+        fixedUrl = `${fixedUrl}/wc/components.js`;
+      }
+    }
+    if (offlineMode) {
+      profileCloudWebComponentName = "profile-cloud-offline";
+    } else {
+      import(fixedUrl)
+        .then(() => {
+          if (profileCloudUrl === configuration.PROFILE_CLOUD_URL_DEV) {
+            profileCloudWebComponentName = "profile-cloud-nightly";
+          } else if (profileCloudUrl === configuration.PROFILE_CLOUD_URL_PROD) {
+            profileCloudWebComponentName = "profile-cloud-prod";
+          } else if (profileCloudUrl.includes("profile-cloud-dev--pr")) {
+            profileCloudWebComponentName = "profile-cloud-pr";
+          } else {
+            profileCloudWebComponentName = "profile-cloud-dev";
+          }
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    }
   }
 
   onMount(async () => {
@@ -380,14 +382,12 @@
     console.log("profile cloud is mounted status", profileCloudIsMounted);
     console.log("Profile Cloud url", $appSettings.persistent.profileCloudUrl);
     window.addEventListener("message", initChannelCommunication);
-    profileCloudUrl = $appSettings.persistent.profileCloudUrl;
     listenerRegistered = true;
   });
 
   onDestroy(() => {
     console.log("De-initialize Profile Cloud");
     window.removeEventListener("message", initChannelCommunication);
-    window.electron.stopOfflineProfileCloud();
     if (get(moduleOverlay) === "configuration-load-overlay") {
       moduleOverlay.close();
     }
@@ -395,43 +395,18 @@
     window.electron.configs.stopConfigsWatch();
   });
 
-  async function loadOfflineProfileCloud() {
-    try {
-      const serverAddress = await window.electron.startOfflineProfileCloud();
-      const url = `http://${serverAddress.address}:${serverAddress.port}`;
-      offlineProfileCloudUrl = url;
-      profileCloudUrl = url;
-    } catch (e) {
-      error = {
-        type: "no-offline",
-        title: "Offline Profile Cloud is not available",
-        text: "Offline version of Profile Cloud could not be located. Internet connection is needed to load the Online version.",
-      };
-    }
-  }
-
   let error = {
     type: "default",
     title: "Sorry, can't load Profile Cloud",
     text: "You need internet access to load it. You can load the offline version as well.",
   };
 
-  function updateFontSize(fontSize) {
-    if (iframe_element == undefined) return;
+  function sendMessageToProfileCloud(message) {
+    let messageTarget = window;
 
-    iframe_element.contentWindow.postMessage(
-      {
-        messageType: "updateFontSize",
-        fontSize: `${fontSize}px`,
-      },
-      "*"
-    );
-  }
+    if (!messageTarget?.postMessage) return;
 
-  $: {
-    if (profileCloudIsMounted) {
-      updateFontSize($appSettings.persistent.fontSize);
-    }
+    messageTarget.postMessage(message, "*");
   }
 
   function handleMouseOut(e) {
@@ -443,8 +418,8 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <div class="flex flex-col bg-primary w-full h-full relative">
-  <div class="flex items-center justify-center h-full absolute">
-    {#if !profileCloudIsMounted}
+  {#if !profileCloudIsMounted}
+    <div class="flex items-center justify-center h-full absolute">
       <div class="p-4">
         <h1 class="text-white text-xl">{error.title}</h1>
         <div class="text-white text-opacity-80 mb-2">
@@ -452,22 +427,16 @@
         </div>
         {#if error.type === "default"}
           <MoltenPushButton
-            click={loadOfflineProfileCloud}
+            click={() => {
+              offlineMode = true;
+            }}
             text="Load Offline"
           />
         {/if}
       </div>
-    {/if}
-  </div>
-
-  <!-- svelte-ignore a11y-no-static-element-interactions -->
-  <iframe
-    bind:this={iframe_element}
-    on:mouseout={handleMouseOut}
-    class="w-full h-full {profileCloudIsMounted ? '' : ' hidden'}"
-    title="Test"
-    allow="clipboard-read; clipboard-write;}"
-    src={profileCloudUrl}
-    style=""
-  />
+    </div>
+  {/if}
+  {#if profileCloudWebComponentName}
+    <svelte:element this={profileCloudWebComponentName} class="w-full h-full" />
+  {/if}
 </div>

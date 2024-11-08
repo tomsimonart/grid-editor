@@ -56,8 +56,6 @@ import {
   desktopAutomationPackageStart,
   desktopAutomationPackageStop,
 } from "./addon/desktopAutomation";
-import polka from "polka";
-import sirv from "sirv";
 import { SerialPort } from "serialport";
 
 log.info("App starting...");
@@ -71,7 +69,6 @@ let mainWindow;
 
 let tray = null;
 
-let offlineProfileCloudServer: any = undefined;
 let packageManagerProcess: Electron.UtilityProcess | undefined = undefined;
 
 protocol.registerSchemesAsPrivileged([
@@ -648,25 +645,6 @@ ipcMain.handle("getLatestVideo", async (event, arg) => {
 // launch browser and open url
 ipcMain.handle("openInBrowser", async (event, arg) => {
   return await shell.openExternal(arg.url);
-});
-
-ipcMain.handle("startOfflineProfileCloud", async (event, arg) => {
-  return await new Promise((resolve, reject) => {
-    const assets = sirv(path.join(__dirname, "../../profile-cloud"));
-    const app = polka().use(assets);
-    app.listen(0, "127.0.0.1", (err) => {
-      if (err) return reject(err);
-      offlineProfileCloudServer = app;
-      return resolve(app.server.address());
-    });
-  });
-});
-
-ipcMain.handle("stopOfflineProfileCloud", async (event, arg) => {
-  if (offlineProfileCloudServer) {
-    offlineProfileCloudServer.server.close();
-    offlineProfileCloudServer = undefined;
-  }
 });
 
 // persistent storage for the app

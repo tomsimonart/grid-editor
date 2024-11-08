@@ -49,7 +49,7 @@
 
 <script lang="ts">
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
-  import { AtomicInput } from "@intechstudio/grid-uikit";
+  import MeltCombo from "./components/MeltCombo.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Script } from "./_script_parsers.js";
   import {
@@ -59,18 +59,13 @@
   } from "../runtime/runtime.store";
 
   import { Validator } from "./_validators";
-  import { AtomicSuggestions } from "@intechstudio/grid-uikit";
   import { get } from "svelte/store";
   import { ElementType } from "@intechstudio/grid-protocol";
   import { GridEvent } from "./../runtime/runtime";
 
   export let config;
-  export let humanScript;
-  export let inputSet;
-  export let blockAddedOnClick;
   export let index;
 
-  let loaded = false;
   let event = config.parent as GridEvent;
 
   const dispatch = createEventDispatcher();
@@ -92,17 +87,12 @@
   let scriptSegments = [];
 
   // config.script cannot be undefined
-  $: if (config.script && !loaded) {
+  $: {
     scriptSegments = Script.toSegments({
       short: config.short,
       script: config.script,
     });
-    loaded = true;
   }
-
-  onDestroy(() => {
-    loaded = false;
-  });
 
   function sendData(e, index) {
     scriptSegments[index] = e;
@@ -111,7 +101,7 @@
       short: config.short,
       array: scriptSegments,
     });
-    dispatch("output", { short: config.short, script: script });
+    dispatch("update-action", { short: config.short, script: script });
   }
 
   const defaultLayerSuggestion = [
@@ -190,39 +180,24 @@
 <config-led-phase
   class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
 >
-  <div class="w-full flex">
+  <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
     {#each scriptSegments as script, i}
-      <div class={"w-1/" + scriptSegments.length + " atomicInput"}>
-        <div class="text-gray-500 text-sm pb-1 truncate">
-          {parameterNames[i]}
-        </div>
-        <AtomicInput
-          inputValue={GridScript.humanize(script)}
-          suggestions={suggestions[i]}
-          validator={validators[i]}
-          suggestionTarget={suggestionElement}
-          on:validator={(e) => {
-            const data = e.detail;
-            dispatch("validator", data);
-          }}
-          on:change={(e) => {
-            let newValue = e.detail;
-            sendData(GridScript.shortify(newValue), i);
-          }}
-        />
-      </div>
+      <MeltCombo
+        title={parameterNames[i]}
+        bind:value={script}
+        suggestions={suggestions[i]}
+        validator={validators[i]}
+        on:validator={(e) => {
+          const data = e.detail;
+          dispatch("validator", data);
+        }}
+        on:input={(e) => {
+          sendData(e.detail, i);
+        }}
+        on:change={() => dispatch("sync")}
+        postProcessor={GridScript.shortify}
+        preProcessor={GridScript.humanize}
+      />
     {/each}
   </div>
-
-  <AtomicSuggestions bind:component={suggestionElement} />
 </config-led-phase>
-
-<style>
-  .atomicInput {
-    padding-right: 0.5rem;
-  }
-
-  .atomicInput:first-child {
-    padding-left: 0.5rem;
-  }
-</style>

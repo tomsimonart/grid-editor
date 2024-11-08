@@ -7,9 +7,7 @@ export class ConfigPage {
     // Common Locators
     this.addActionBlockButton = page.getByText("Add action block...");
     this.selectAllCheckbox = page.locator(".w-fit > .border-white");
-    this.noActionAddActionButton = page.getByRole("button", {
-      name: "There are no actions",
-    });
+    this.noActionAddActionButton = page.getByRole("button", { name: "Add +" });
 
     this.firstActionBlock = page.locator("#cfg-0");
 
@@ -59,6 +57,7 @@ export class ConfigPage {
       this.blocks["loop"]["Repeater Loop"]["elements"]["times"];
     this.elementMinMaxButton = page.getByLabel("Enable Min");
     this.elementSensitivity = page.getByLabel("Enable Sensitivity");
+    this.blockSearch = page.getByRole("textbox");
 
     // Code Block Elements
     this.addBlocktoLastSandwichButton = page
@@ -72,6 +71,7 @@ export class ConfigPage {
     this.codeBlockCharacterLimitMessage = page.getByText(
       "Config limit reached."
     );
+    this.characterCount = page.getByTestId("charCount");
   }
 
   async openAndAddActionBlock(category, blockName) {
@@ -110,25 +110,15 @@ export class ConfigPage {
   }
 
   async openActionsInIf() {
-    await this.page
-      .getByRole("button", { name: "Actions here are triggered" })
-      .click();
+    await this.noActionAddActionButton.click();
   }
 
   async openActionsInElseIf() {
-    await this.page
-      .getByRole("button", {
-        name: "Actions here are triggered when the event runs, the expression above is true,",
-      })
-      .click();
+    await this.page.getByRole("button", { name: "Add +" }).nth(1).click();
   }
 
   async openActionsInElse() {
-    await this.page
-      .getByRole("button", {
-        name: "Actions here are triggered when the event runs, and no others conditions were",
-      })
-      .click();
+    await this.page.getByRole("button", { name: "Add +" }).nth(2).click();
   }
 
   async clickCategoryCheckboxFields(blockName) {
@@ -136,6 +126,10 @@ export class ConfigPage {
     if (blockName === "Encoder Mode" || blockName === "Endless Mode") {
       await this.clickCategorySensitivity();
     }
+  }
+
+  async searchBlock(search) {
+    this.blockSearch.fill(search);
   }
 
   async clickCategoryMinMax() {
@@ -244,5 +238,11 @@ export class ConfigPage {
 
   async openFirstActionBlock() {
     await this.firstActionBlock.click();
+  }
+
+  async getCharacterCount() {
+    const text = await this.characterCount.innerText();
+    const match = text.match(/^(\d+)/);
+    return match[1];
   }
 }

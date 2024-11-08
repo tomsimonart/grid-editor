@@ -45,9 +45,9 @@
 
 <script lang="ts">
   import { createEventDispatcher, onDestroy } from "svelte";
-  import { AtomicInput } from "@intechstudio/grid-uikit";
+  import MeltCombo from "./components/MeltCombo.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { AtomicSuggestions } from "@intechstudio/grid-uikit";
+  import { midiCC } from "./_midi.js";
   import { Script } from "./_script_parsers.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
   import { GridEvent } from "./../runtime/runtime";
@@ -61,7 +61,6 @@
   import TabButton from "../main/user-interface/TabButton.svelte";
   import { MusicalNotes } from "../main/panels/MidiMonitor/MidiMonitor.store";
 
-  let loaded = false;
   let event = config.parent as GridEvent;
 
   const dispatch = createEventDispatcher();
@@ -85,26 +84,19 @@
   let scriptSegments = [];
 
   // config.script cannot be undefined
-  $: if (config.script && !loaded) {
+  $: {
     scriptSegments = Script.toSegments({
       short: config.short,
       script: config.script,
     });
-    loaded = true;
   }
 
-  onDestroy(() => {
-    loaded = false;
-  });
-
   function sendData(e, index) {
-    scriptSegments[index] = e;
     const script = Script.toScript({
-      human: config.human,
       short: config.short,
       array: scriptSegments,
     }); // important to set the function name
-    dispatch("output", { short: config.short, script: script });
+    dispatch("update-action", { short: config.short, script: script });
   }
 
   const channels = (length) => {
@@ -127,520 +119,10 @@
     ],
     // param 1
     {
-      control_change_messages: [
-        {
-          value: 0,
-          info: "0 - Bank Select",
-        },
-        {
-          value: 1,
-          info: "1 - Modulation Wheel or Lever",
-        },
-        {
-          value: 2,
-          info: "2 - Breath Controller",
-        },
-        {
-          value: 3,
-          info: "3 - Undefined",
-        },
-        {
-          value: 4,
-          info: "4 - Foot Controller",
-        },
-        {
-          value: 5,
-          info: "5 - Portamento Time",
-        },
-        {
-          value: 6,
-          info: "6 - Data Entry MSB",
-        },
-        {
-          value: 7,
-          info: "7 - Channel Volume (formerly Main Volume)",
-        },
-        {
-          value: 8,
-          info: "8 - Balance",
-        },
-        {
-          value: 9,
-          info: "9 - Undefined",
-        },
-        {
-          value: 10,
-          info: "10 - Pan",
-        },
-        {
-          value: 11,
-          info: "11 - Expression Controller",
-        },
-        {
-          value: 12,
-          info: "12 - Effect Control 1",
-        },
-        {
-          value: 13,
-          info: "13 - Effect Control 2",
-        },
-        {
-          value: 14,
-          info: "14 - Undefined",
-        },
-        {
-          value: 15,
-          info: "15 - Undefined",
-        },
-        {
-          value: 16,
-          info: "16 - General Purpose Controller 1",
-        },
-        {
-          value: 17,
-          info: "17 - General Purpose Controller 2",
-        },
-        {
-          value: 18,
-          info: "18 - General Purpose Controller 3",
-        },
-        {
-          value: 19,
-          info: "19 - General Purpose Controller 4",
-        },
-        {
-          value: 20,
-          info: "20 - Undefined",
-        },
-        {
-          value: 21,
-          info: "21 - Undefined",
-        },
-        {
-          value: 22,
-          info: "22 - Undefined",
-        },
-        {
-          value: 23,
-          info: "23 - Undefined",
-        },
-        {
-          value: 24,
-          info: "24 - Undefined",
-        },
-        {
-          value: 25,
-          info: "25 - Undefined",
-        },
-        {
-          value: 26,
-          info: "26 - Undefined",
-        },
-        {
-          value: 27,
-          info: "27 - Undefined",
-        },
-        {
-          value: 28,
-          info: "28 - Undefined",
-        },
-        {
-          value: 29,
-          info: "29 - Undefined",
-        },
-        {
-          value: 30,
-          info: "30 - Undefined",
-        },
-        {
-          value: 31,
-          info: "31 - Undefined",
-        },
-        {
-          value: 32,
-          info: "32 - LSB for Control 0 (Bank Select)",
-        },
-        {
-          value: 33,
-          info: "33 - LSB for Control 1 (Modulation Wheel or Lever)",
-        },
-        {
-          value: 34,
-          info: "34 - LSB for Control 2 (Breath Controller)",
-        },
-        {
-          value: 35,
-          info: "35 - LSB for Control 3 (Undefined)",
-        },
-        {
-          value: 36,
-          info: "36 - LSB for Control 4 (Foot Controller)",
-        },
-        {
-          value: 37,
-          info: "37 - LSB for Control 5 (Portamento Time)",
-        },
-        {
-          value: 38,
-          info: "38 - LSB for Control 6 (Data Entry)",
-        },
-        {
-          value: 39,
-          info: "39 - LSB for Control 7 (Channel Volume, formerly Main Volume)",
-        },
-        {
-          value: 40,
-          info: "40 - LSB for Control 8 (Balance)",
-        },
-        {
-          value: 41,
-          info: "41 - LSB for Control 9 (Undefined)",
-        },
-        {
-          value: 42,
-          info: "42 - LSB for Control 10 (Pan)",
-        },
-        {
-          value: 43,
-          info: "43 - LSB for Control 11 (Expression Controller)",
-        },
-        {
-          value: 44,
-          info: "44 - LSB for Control 12 (Effect control 1)",
-        },
-        {
-          value: 45,
-          info: "45 - LSB for Control 13 (Effect control 2)",
-        },
-        {
-          value: 46,
-          info: "46 - LSB for Control 14 (Undefined)",
-        },
-        {
-          value: 47,
-          info: "47 - LSB for Control 15 (Undefined)",
-        },
-        {
-          value: 48,
-          info: "48 - LSB for Control 16 (General Purpose Controller 1)",
-        },
-        {
-          value: 49,
-          info: "49 - LSB for Control 17 (General Purpose Controller 2)",
-        },
-        {
-          value: 50,
-          info: "50 - LSB for Control 18 (General Purpose Controller 3)",
-        },
-        {
-          value: 51,
-          info: "51 - LSB for Control 19 (General Purpose Controller 4)",
-        },
-        {
-          value: 52,
-          info: "52 - LSB for Control 20 (Undefined)",
-        },
-        {
-          value: 53,
-          info: "53 - LSB for Control 21 (Undefined)",
-        },
-        {
-          value: 54,
-          info: "54 - LSB for Control 22 (Undefined)",
-        },
-        {
-          value: 55,
-          info: "55 - LSB for Control 23 (Undefined)",
-        },
-        {
-          value: 56,
-          info: "56 - LSB for Control 24 (Undefined)",
-        },
-        {
-          value: 57,
-          info: "57 - LSB for Control 25 (Undefined)",
-        },
-        {
-          value: 58,
-          info: "58 - LSB for Control 26 (Undefined)",
-        },
-        {
-          value: 59,
-          info: "59 - LSB for Control 27 (Undefined)",
-        },
-        {
-          value: 60,
-          info: "60 - LSB for Control 28 (Undefined)",
-        },
-        {
-          value: 61,
-          info: "61 - LSB for Control 29 (Undefined)",
-        },
-        {
-          value: 62,
-          info: "62 - LSB for Control 30 (Undefined)",
-        },
-        {
-          value: 63,
-          info: "63 - LSB for Control 31 (Undefined)",
-        },
-        {
-          value: 64,
-          info: "64 - Damper Pedal on/off (Sustain)",
-        },
-        {
-          value: 65,
-          info: "65 - Portamento On/Off",
-        },
-        {
-          value: 66,
-          info: "66 - Sostenuto On/Off",
-        },
-        {
-          value: 67,
-          info: "67 - Soft Pedal On/Off",
-        },
-        {
-          value: 68,
-          info: "68 - Legato Footswitch",
-        },
-        {
-          value: 69,
-          info: "69 - Hold 2",
-        },
-        {
-          value: 70,
-          info: "70 - Sound Controller 1 (default: Sound Variation)",
-        },
-        {
-          value: 71,
-          info: "71 - Sound Controller 2 (default: Timbre/Harmonic Intens.)",
-        },
-        {
-          value: 72,
-          info: "72 - Sound Controller 3 (default: Release Time)",
-        },
-        {
-          value: 73,
-          info: "73 - Sound Controller 4 (default: Attack Time)",
-        },
-        {
-          value: 74,
-          info: "74 - Sound Controller 5 (default: Brightness)",
-        },
-        {
-          value: 75,
-          info: "75 - Sound Controller 6 (default: Decay Time - see MMA RP-021)",
-        },
-        {
-          value: 76,
-          info: "76 - Sound Controller 7 (default: Vibrato Rate - see MMA RP-021)",
-        },
-        {
-          value: 77,
-          info: "77 - Sound Controller 8 (default: Vibrato Depth - see MMA RP-021)",
-        },
-        {
-          value: 78,
-          info: "78 - Sound Controller 9 (default: Vibrato Delay - see MMA RP-021)",
-        },
-        {
-          value: 79,
-          info: "79 - Sound Controller 10 (default undefined - see MMA RP-021)",
-        },
-        {
-          value: 80,
-          info: "80 - General Purpose Controller 5",
-        },
-        {
-          value: 81,
-          info: "81 - General Purpose Controller 6",
-        },
-        {
-          value: 82,
-          info: "82 - General Purpose Controller 7",
-        },
-        {
-          value: 83,
-          info: "83 - General Purpose Controller 8",
-        },
-        {
-          value: 84,
-          info: "84 - Portamento Control",
-        },
-        {
-          value: 85,
-          info: "85 - Undefined",
-        },
-        {
-          value: 86,
-          info: "86 - Undefined",
-        },
-        {
-          value: 87,
-          info: "87 - Undefined",
-        },
-        {
-          value: 88,
-          info: "88 - High Resolution Velocity Prefix",
-        },
-        {
-          value: 89,
-          info: "89 - Undefined",
-        },
-        {
-          value: 90,
-          info: "90 - Undefined",
-        },
-        {
-          value: 91,
-          info: "91 - Effects 1 Depth \n(default: Reverb Send Level - see MMA RP-023) \n(formerly External Effects Depth)",
-        },
-        {
-          value: 92,
-          info: "92 - Effects 2 Depth (formerly Tremolo Depth)",
-        },
-        {
-          value: 93,
-          info: "93 - Effects 3 Depth \n(default: Chorus Send Level - see MMA RP-023) \n(formerly Chorus Depth)",
-        },
-        {
-          value: 94,
-          info: "94 - Effects 4 Depth (formerly Celeste [Detune] Depth)",
-        },
-        {
-          value: 95,
-          info: "95 - Effects 5 Depth (formerly Phaser Depth)",
-        },
-        {
-          value: 96,
-          info: "96 - Data Increment (Data Entry +1) (see MMA RP-018)",
-        },
-        {
-          value: 97,
-          info: "97 - Data Decrement (Data Entry -1) (see MMA RP-018)",
-        },
-        {
-          value: 98,
-          info: "98 - Non-Registered Parameter Number (NRPN) - LSB",
-        },
-        {
-          value: 99,
-          info: "99 - Non-Registered Parameter Number (NRPN) - MSB",
-        },
-        {
-          value: 100,
-          info: "100 - Registered Parameter Number (RPN) - LSB*",
-        },
-        {
-          value: 101,
-          info: "101 - Registered Parameter Number (RPN) - MSB*",
-        },
-        {
-          value: 102,
-          info: "102 - Undefined",
-        },
-        {
-          value: 103,
-          info: "103 - Undefined",
-        },
-        {
-          value: 104,
-          info: "104 - Undefined",
-        },
-        {
-          value: 105,
-          info: "105 - Undefined",
-        },
-        {
-          value: 106,
-          info: "106 - Undefined",
-        },
-        {
-          value: 107,
-          info: "107 - Undefined",
-        },
-        {
-          value: 108,
-          info: "108 - Undefined",
-        },
-        {
-          value: 109,
-          info: "109 - Undefined",
-        },
-        {
-          value: 110,
-          info: "110 - Undefined",
-        },
-        {
-          value: 111,
-          info: "111 - Undefined",
-        },
-        {
-          value: 112,
-          info: "112 - Undefined",
-        },
-        {
-          value: 113,
-          info: "113 - Undefined",
-        },
-        {
-          value: 114,
-          info: "114 - Undefined",
-        },
-        {
-          value: 115,
-          info: "115 - Undefined",
-        },
-        {
-          value: 116,
-          info: "116 - Undefined",
-        },
-        {
-          value: 117,
-          info: "117 - Undefined",
-        },
-        {
-          value: 118,
-          info: "118 - Undefined",
-        },
-        {
-          value: 119,
-          info: "119 - Undefined",
-        },
-        {
-          value: 120,
-          info: "120 - [Channel Mode Message] All Sound Off",
-        },
-        {
-          value: 121,
-          info: "121 - [Channel Mode Message] Reset All Controllers \n(See MMA RP-015)",
-        },
-        {
-          value: 122,
-          info: "122 - [Channel Mode Message] Local Control On/Off",
-        },
-        {
-          value: 123,
-          info: "123 - [Channel Mode Message] All Notes Off",
-        },
-        {
-          value: 124,
-          info: "124 - [Channel Mode Message] Omni Mode Off (+ all notes off)",
-        },
-        {
-          value: 125,
-          info: "125 - [Channel Mode Message] Omni Mode On (+ all notes off)",
-        },
-        {
-          value: 126,
-          info: "126 - [Channel Mode Message] Mono Mode On (+ poly off, + all notes off)",
-        },
-        {
-          value: 127,
-          info: "127 - [Channel Mode Message] Poly Mode On (+ mono off, +all notes off)",
-        },
-      ],
+      control_change_messages: Object.entries(midiCC).map(([value, info]) => ({
+        value: Number(value),
+        info,
+      })),
       note_on_event: [...Array(128).keys()].map((e) => {
         return { value: String(e), info: MusicalNotes.FromInt(e) };
       }),
@@ -723,40 +205,26 @@
     </div>
   {/if}
 
-  <div class="w-full grid grid-cols-{scriptSegments.length}">
+  <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
     {#each scriptSegments as script, i}
-      <div class="flex flex-col atomicInput gap-1">
-        <div class="text-gray-500 text-sm truncate">
-          {parameterNames[i]}
-        </div>
-        <AtomicInput
-          inputValue={GridScript.humanize(script)}
-          suggestions={suggestions[i]}
-          validator={validators[i]}
-          suggestionTarget={suggestionElement}
-          on:validator={(e) => {
-            const data = e.detail;
-            dispatch("validator", data);
-          }}
-          on:change={(e) => {
-            sendData(GridScript.shortify(e.detail), i);
-          }}
-        />
-      </div>
+      <MeltCombo
+        title={parameterNames[i]}
+        bind:value={script}
+        suggestions={suggestions[i]}
+        validator={validators[i]}
+        on:validator={(e) => {
+          const data = e.detail;
+          dispatch("validator", data);
+        }}
+        on:input={(e) => {
+          sendData(e.detail, i);
+        }}
+        on:change={() => dispatch("sync")}
+        postProcessor={GridScript.shortify}
+        preProcessor={GridScript.humanize}
+      />
     {/each}
   </div>
 
-  <AtomicSuggestions bind:component={suggestionElement} />
-
   <SendFeedback feedback_context="Midi" class="mt-2 text-sm text-gray-500" />
 </action-midi>
-
-<style>
-  .atomicInput {
-    padding-right: 0.5rem;
-  }
-
-  .atomicInput:first-child {
-    padding-left: 0.5rem;
-  }
-</style>

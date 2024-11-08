@@ -1,5 +1,5 @@
 <script>
-  import { createEventDispatcher, onDestroy } from "svelte";
+  import { createEventDispatcher } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { parenthesis } from "../_validators";
 
@@ -12,22 +12,15 @@
 
   let scriptSegment = ""; // local script part
 
-  let loaded = false;
-
-  $: if (config.script && !loaded) {
-    scriptSegment = GridScript.humanize(config.script.slice(3, -5));
-    loaded = true;
+  $: {
+    scriptSegment = GridScript.humanize($config.script.slice(3, -5));
   }
-
-  onDestroy(() => {
-    loaded = false;
-  });
 
   function sendData(e) {
     if (parenthesis(e)) {
       const script = GridScript.shortify(e);
 
-      dispatch("output", {
+      dispatch("update-action", {
         short: `if`,
         script: `if ${script} then`,
       });
@@ -35,7 +28,7 @@
   }
 </script>
 
-<if-block
+<div
   class="px-2 w-full h-full rounded-tr-xl flex text-white py-1 pointer-events-none"
   style="background-color:{config.information.color}"
 >
@@ -46,13 +39,14 @@
       class="bg-secondary my-auto mr-1 rounded flex items-center flex-grow h-full"
     >
       <LineEditor
-        on:change={(e) => {
+        on:input={(e) => {
           sendData(e.detail.script);
         }}
+        on:change={() => dispatch("sync")}
         action={config}
         value={scriptSegment}
       />
     </div>
     <span class="mx-3">Then</span>
   </div>
-</if-block>
+</div>
