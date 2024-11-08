@@ -6,7 +6,7 @@
   import EventPanel from "./EventPanel.svelte";
   import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
   import { logger, runtime, user_input } from "../../../runtime/runtime.store";
-  import { config_panel_blocks, user_input_event } from "./Configuration";
+  import { selected_actions, user_input_event } from "./Configuration";
   import Toolbar from "./components/Toolbar.svelte";
   import ExportConfigs from "./components/ExportConfigs.svelte";
   import AddActionButton from "./components/AddActionButton.svelte";
@@ -65,9 +65,7 @@
       ui.elementnumber,
       ui.eventtype
     );
-    const blocks = get(config_panel_blocks);
-    const selected = blocks.filter((e) => e.selected).map((e) => e.action);
-    mergeActionsToCode(target, ...selected);
+    mergeActionsToCode(target, ...get(selected_actions));
   }
 
   function handleRemove() {
@@ -79,9 +77,7 @@
       ui.elementnumber,
       ui.eventtype
     );
-    const blocks = get(config_panel_blocks);
-    const selected = blocks.filter((e) => e.selected).map((e) => e.action);
-    removeActions(target, ...selected);
+    removeActions(target, ...get(selected_actions));
   }
 
   function handleCut() {
@@ -93,9 +89,7 @@
       ui.elementnumber,
       ui.eventtype
     );
-    const blocks = get(config_panel_blocks);
-    const selected = blocks.filter((e) => e.selected).map((e) => e.action);
-    cutActions(target, ...selected);
+    cutActions(target, ...get(selected_actions));
   }
 
   function handleAddConfig(e: CustomEvent) {
@@ -134,9 +128,7 @@
   }
 
   function handleCopy() {
-    const blocks = get(config_panel_blocks);
-    const selected = blocks.filter((e) => e.selected).map((e) => e.action);
-    copyActions(...selected);
+    copyActions(...get(selected_actions));
   }
 
   function handlePaste(e: CustomEvent) {
@@ -177,15 +169,14 @@
   }
 
   function handleSelectAll() {
-    config_panel_blocks.update((s) => {
-      if (s.every((e) => e.selected)) {
-        s.forEach((e) => (e.selected = false));
-        return s;
-      }
+    const selected = get(selected_actions);
+    const uie = get(user_input_event);
 
-      s.forEach((e) => (e.selected = true));
-      return s;
-    });
+    if (uie.config.every((e) => selected.includes(e))) {
+      selected_actions.set([]);
+    } else {
+      selected_actions.set(uie.config);
+    }
   }
 </script>
 
@@ -222,17 +213,19 @@
 
         <ActionList event={$user_input_event} />
 
-        <div
-          class="w-full flex flex-row"
-          class:invisible={$runtime.modules.length === 0}
-        >
-          <AddActionButton
-            index={$config_panel_blocks.length}
-            on:paste={handlePaste}
-            on:new-config={handleAddConfig}
-          />
-          <ExportConfigs />
-        </div>
+        {#if $user_input_event}
+          <div
+            class="w-full flex flex-row"
+            class:invisible={$runtime.modules.length === 0}
+          >
+            <AddActionButton
+              index={$user_input_event?.config.length ?? 0}
+              on:paste={handlePaste}
+              on:new-config={handleAddConfig}
+            />
+            <ExportConfigs />
+          </div>
+        {/if}
       </configs>
     </container>
   {/key}

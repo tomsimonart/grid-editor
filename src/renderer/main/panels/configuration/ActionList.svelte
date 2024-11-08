@@ -1,11 +1,5 @@
-<script lang="ts" context="module">
-  export type ActionBlock = {
-    action: GridAction;
-    selected: boolean;
-  };
-</script>
-
 <script lang="ts">
+  import { selected_actions, user_input_event } from "./Configuration";
   import AddAction from "./components/AddAction.svelte";
   import DynamicWrapper from "./components/DynamicWrapper.svelte";
   import DropZone from "./components/DropZone.svelte";
@@ -18,6 +12,7 @@
   import { GridAction } from "./../../../runtime/runtime";
   import { appSettings } from "./../../../runtime/app-helper.store";
   import { draggedActions } from "./../../_actions/move.action";
+  import Option from "./components/Options.svelte";
 
   export let event: GridEvent;
 
@@ -56,6 +51,30 @@
     }
   }
     */
+
+  function handleSelectionChange(action: GridAction, value: boolean) {
+    const parent = action.parent as GridEvent;
+    const stack: GridAction[] = [];
+    selected_actions.update((s) => {
+      let n = parent.config.findIndex((e) => e.id === action.id);
+      do {
+        const current = parent.config[n];
+        if (current.information.type === "composite_open") {
+          stack.push(current);
+        } else if (current.information.type === "composite_close") {
+          stack.pop();
+        }
+
+        if (value) {
+          s.push(current);
+        } else {
+          s = s.filter((item) => item !== current);
+        }
+        ++n;
+      } while (stack.length > 0);
+      return s;
+    });
+  }
 </script>
 
 {#if $event}
@@ -66,7 +85,16 @@
     }}
     class="flex flex-col w-full flex-grow overflow-y-scroll scroll justify-start"
   >
-    {#if $draggedActions.length === 0}
+    {#if $event.config.length === 0}
+      <div class="mt-2">
+        <AddAction
+          index={0}
+          text={"There are no actions configured on this event."}
+          on:paste={handlePaste}
+          on:new-config={handleAddConfig}
+        />
+      </div>
+    {:else if $draggedActions.length === 0}
       <AddActionLine
         index={0}
         on:paste={handlePaste}
@@ -87,7 +115,26 @@
         animate:flip={{ duration: 300, easing: eases.backOut }}
         in:fade|global={{ delay: 0 }}
       >
-        <DynamicWrapper {index} data={{ action: action, selected: false }} />
+        <div class="flex flex-row gap-2">
+          <DynamicWrapper
+            {index}
+            {action}
+            selected={typeof $selected_actions.find(
+              (e) => e.id === action.id
+            ) !== "undefined"}
+            on:select={(e) => handleSelectionChange(action, e.detail.value)}
+          />
+          <div class="flex items-center">
+            <Option
+              selected={typeof $selected_actions.find(
+                (e) => e.id === action.id
+              ) !== "undefined"}
+              disabled={!action.information.selectable}
+              on:select={(e) => handleSelectionChange(action, e.detail.value)}
+            />
+          </div>
+        </div>
+
         {#if $draggedActions.length === 0}
           {#if showHelper}
             <div class="mr-6">

@@ -1,8 +1,6 @@
 <script lang="ts">
-  import { config_panel_blocks, user_input_event } from "./../Configuration";
+  import { user_input_event, selected_actions } from "./../Configuration";
   import { grid } from "@intechstudio/grid-protocol";
-  import { derived, writable } from "svelte/store";
-  import { runtime, user_input } from "./../../../../runtime/runtime.store";
   import {
     isClearElementEnabled,
     isCopyElementEnabled,
@@ -253,9 +251,13 @@
       on:mouseleave={handleToolbarButtonBlur}
     >
       <Options
-        selected={$config_panel_blocks.every((e) => e.selected)}
-        halfSelected={$config_panel_blocks.some((e) => e.selected)}
-        disabled={$config_panel_blocks.length === 0}
+        selected={$user_input_event?.config.every((e) =>
+          $selected_actions.includes(e)
+        )}
+        halfSelected={$user_input_event?.config.some((e) =>
+          $selected_actions.includes(e)
+        )}
+        disabled={$user_input_event?.config.length === 0}
         on:select={handleSelectAllClicked}
       />
     </button>

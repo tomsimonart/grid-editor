@@ -1,12 +1,8 @@
 <script lang="ts">
-  import { config_panel_blocks } from "./../Configuration";
-  import Options from "./Options.svelte";
-  import { ActionBlock } from "./../Configuration";
   import {
     GridAction,
     ActionData,
     GridEvent,
-    GridElement,
   } from "./../../../../runtime/runtime";
   import { createEventDispatcher, onMount, type SvelteComponent } from "svelte";
   import {
@@ -25,9 +21,9 @@
   const dispatch = createEventDispatcher();
 
   export let index = undefined;
-  export let data: ActionBlock;
+  export let action: GridAction;
+  export let selected = false;
 
-  let action: GridAction = data.action;
   let header: typeof SvelteComponent;
   let component: typeof SvelteComponent;
   let validationError = false;
@@ -65,13 +61,11 @@
 
   function handleUpdateAction(e) {
     const { short, script, name } = e.detail;
-    updateAction(data.action, new ActionData(short, script, name), false);
-    console.log("UPDATE", script);
+    updateAction(action, new ActionData(short, script, name), false);
   }
 
   function handleSendActionToGrid() {
-    syncWithGrid(data.action);
-    console.log("SYNC");
+    syncWithGrid(action);
   }
 
   function handleValidator(e) {
@@ -95,7 +89,8 @@
 
   function handleCarouselClicked(e) {
     if (e.ctrlKey) {
-      dispatch("select");
+      selected = !selected;
+      dispatch("select", { value: selected });
     } else {
       handleToggle(e);
     }
@@ -111,25 +106,6 @@
     if (e.key === "Control") {
       ctrlIsDown = false;
     }
-  }
-
-  function handleSelectionChange() {
-    config_panel_blocks.update((s) => {
-      const stack: ActionBlock[] = [];
-      let n = s.findIndex((e) => e.action.id === data.action.id);
-      const value = data.selected;
-      do {
-        const current = s[n];
-        if (current.action.information.type === "composite_open") {
-          stack.push(current);
-        } else if (current.action.information.type === "composite_close") {
-          stack.pop();
-        }
-        current.selected = value;
-        ++n;
-      } while (stack.length > 0);
-      return s;
-    });
   }
 </script>
 
@@ -152,7 +128,6 @@
       : 'border-transparent'} bri"
     class:rounded-tr-xl={$action.information.rounding === "top"}
     class:rounded-br-xl={$action.information.rounding === "bottom"}
-    class:brightness-125={data.selected}
     use:draggable={(this,
     { action: action, movable: $action.information.movable })}
     on:click|self={handleCarouselClicked}
@@ -209,14 +184,6 @@
       </div>
     </div>
   </carousel>
-
-  <div class="z-20 flex items-center mx-2">
-    <Options
-      bind:selected={data.selected}
-      disabled={!$action.information.selectable}
-      on:select={handleSelectionChange}
-    />
-  </div>
 </wrapper>
 
 <style global>

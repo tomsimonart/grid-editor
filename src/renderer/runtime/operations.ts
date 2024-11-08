@@ -17,7 +17,7 @@ import {
   GridPresetData,
 } from "./runtime";
 import { get, derived } from "svelte/store";
-import { config_panel_blocks } from "../main/panels/configuration/Configuration";
+import { selected_actions } from "../main/panels/configuration/Configuration";
 
 function handleError(e: GridOperationResult) {
   //TODO: Better error handling
@@ -51,12 +51,9 @@ function handleError(e: GridOperationResult) {
 
 //Clipboard handlers
 export const isCopyElementEnabled = derived(
-  config_panel_blocks,
-  ($config_panel_blocks) => {
-    return (
-      !$config_panel_blocks.some((e) => e.selected) &&
-      runtime.modules.length > 0
-    );
+  [selected_actions],
+  ([$selected_actions]) => {
+    return $selected_actions.length === 0 && runtime.modules.length > 0;
   }
 );
 
@@ -89,9 +86,9 @@ export async function copyElement(element: GridElement) {
 }
 
 export const isCopyActionsEnabled = derived(
-  config_panel_blocks,
-  ($config_panel_blocks) => {
-    return $config_panel_blocks.some((e) => e.selected);
+  selected_actions,
+  ($selected_actions) => {
+    return $selected_actions.length > 0;
   }
 );
 
@@ -263,9 +260,9 @@ export async function updateAction(
 //GridEvent handlers
 
 export const isMergeActionsEnabled = derived(
-  config_panel_blocks,
-  ($config_panel_blocks) => {
-    return $config_panel_blocks.some((e) => e.selected);
+  selected_actions,
+  ($selected_actions) => {
+    return $selected_actions.length > 0;
   }
 );
 
@@ -303,9 +300,9 @@ export async function pasteActions(target: GridEvent, index?: number) {
 }
 
 export const isRemoveActionsEnabled = derived(
-  config_panel_blocks,
-  ($config_panel_blocks) => {
-    return $config_panel_blocks.some((e) => e.selected);
+  selected_actions,
+  ($selected_actions) => {
+    return $selected_actions.length > 0;
   }
 );
 
@@ -329,9 +326,9 @@ export async function removeActions(
 }
 
 export const isCutActionsEnabled = derived(
-  config_panel_blocks,
-  ($config_panel_blocks) => {
-    return $config_panel_blocks.some((e) => e.selected);
+  selected_actions,
+  ($selected_actions) => {
+    return $selected_actions.length > 0;
   }
 );
 

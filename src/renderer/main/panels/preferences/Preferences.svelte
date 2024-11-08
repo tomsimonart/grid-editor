@@ -1,12 +1,10 @@
 <script lang="ts">
   import MultiEventView from "./../configuration/MultiEventView.svelte";
-  import { modal } from "./../../modals/modal.store.ts";
-  import { config_panel_blocks } from "./../configuration/Configuration";
+  import { modal } from "./../../modals/modal.store";
   import { logger } from "./../../../runtime/runtime.store";
   import { get } from "svelte/store";
   import { instructions } from "../../../serialport/instructions";
   import { appSettings } from "../../../runtime/app-helper.store";
-  import { runtime } from "../../../runtime/runtime.store";
 
   import {
     BlockBody,
@@ -88,7 +86,11 @@
 <div
   class="bg-primary flex flex-col h-full w-full text-white px-4 py-4 overflow-y-auto"
 >
-  <MeltSelect bind:target={activePreferenceMenu} options={menuItems} />
+  <MeltSelect
+    bind:target={activePreferenceMenu}
+    options={menuItems}
+    disabled={false}
+  />
 
   {#if activePreferenceMenu == PreferenceMenu.GENERAL}
     <Block>
