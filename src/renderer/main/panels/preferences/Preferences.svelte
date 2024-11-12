@@ -113,9 +113,9 @@
       <BlockRow>
         <MeltSlider
           bind:target={$appSettings.persistent.size}
-          min={0.5}
-          max={2.6}
-          step={0.1}
+          min={$appSettings.persistent.minSize}
+          max={$appSettings.persistent.maxSize}
+          step={$appSettings.persistent.stepSize}
         />
         <MoltenButton
           title={"Reset"}
