@@ -22,7 +22,6 @@ enum PackageStatus {
   Enabled = "Enabled",
 }
 
-let developerModeEnabled = false;
 let packageFolder: string = "";
 let editorVersion: string = "";
 
@@ -30,6 +29,7 @@ const recommendedGithubPackageList: Map<string, GithubPackage> = new Map(
   Object.entries(configuration.RECOMMENDED_PACKAGES)
 );
 let customGithubPackageList: Map<string, GithubPackage> = new Map();
+let localPackages: Map<string, string> = new Map();
 
 process.parentPort.on("message", async (e) => {
   try {
@@ -37,7 +37,6 @@ process.parentPort.on("message", async (e) => {
     switch (e.data.type) {
       case "init": {
         editorVersion = e.data.version;
-        developerModeEnabled = e.data.packageDeveloper ?? false;
         packageFolder = e.data.packageFolder;
         if (!fs.existsSync(packageFolder)) {
           fs.mkdirSync(packageFolder, { recursive: true });
@@ -46,6 +45,7 @@ process.parentPort.on("message", async (e) => {
         customGithubPackageList = new Map(
           Object.entries(e.data.githubPackages)
         );
+        localPackages = new Map(Object.entries(e.data.localPackages));
 
         startPackageDirectoryWatcher(packageFolder);
         updateGithubPackages();
@@ -61,10 +61,6 @@ process.parentPort.on("message", async (e) => {
       case "stop-package-manager": {
         await stopPackageManager();
         process.parentPort.postMessage({ type: "shutdown-complete" });
-        break;
-      }
-      case "set-package-developer": {
-        developerModeEnabled = e.data.value ?? false;
         break;
       }
       case "create-package-message-port": {
@@ -87,6 +83,12 @@ process.parentPort.on("message", async (e) => {
       case "load-package":
         await loadPackage(data.id, data.payload);
         break;
+      case "restart-package":
+        if (currentlyLoadedPackages[data.id]) {
+          await unloadPackage(data.id);
+          await loadPackage(data.id, data.payload);
+        }
+        break;
       case "unload-package":
         await unloadPackage(data.id);
         break;
@@ -99,8 +101,14 @@ process.parentPort.on("message", async (e) => {
       case "uninstall-package":
         await uninstallPackage(data.id);
         break;
+      case "remove-package":
+        await removePackage(data.id);
+        break;
       case "refresh-package-list":
         await notifyListener();
+        break;
+      case "add-local-package":
+        await addLocalPackage(data.rootPath);
         break;
       case "add-github-repository":
         customGithubPackageList.set(data.id, {
@@ -190,7 +198,12 @@ async function loadPackage(packageName: string, persistedData: any) {
       return;
     }
 
-    const packageDirectory = path.join(packageFolder, packageName);
+    const packageDirectory: string =
+      localPackages.get(packageName) ?? path.join(packageFolder, packageName);
+
+    let name = require.resolve(packageDirectory);
+    delete require.cache[name];
+
     const _package = require(packageDirectory);
     await _package.loadPackage(
       {
@@ -322,13 +335,6 @@ async function uninstallPackage(packageName: string) {
     currentlyLoadedPackages[packageName].unloadPackage();
     delete currentlyLoadedPackages[packageName];
   }
-  if (customGithubPackageList.has(packageName)) {
-    customGithubPackageList.delete(packageName);
-    process.parentPort?.postMessage({
-      type: "remove-github-package",
-      id: packageName,
-    });
-  }
   const packagePath = path.join(packageFolder, packageName);
   if (haveBeenLoadedPackages.has(packageName)) {
     await stopPackageManager();
@@ -338,6 +344,49 @@ async function uninstallPackage(packageName: string) {
     });
   } else {
     fs.rm(packagePath, { recursive: true }, notifyListener);
+  }
+}
+
+async function removePackage(packageName: string) {
+  unloadPackage(packageName);
+  if (localPackages.has(packageName)) {
+    localPackages.delete(packageName);
+    process.parentPort?.postMessage({
+      type: "remove-local-package",
+      id: packageName,
+    });
+    notifyListener();
+  }
+  if (customGithubPackageList.has(packageName)) {
+    customGithubPackageList.delete(packageName);
+    process.parentPort?.postMessage({
+      type: "remove-github-package",
+      id: packageName,
+    });
+    notifyListener();
+  }
+}
+
+async function addLocalPackage(rootPath: string) {
+  const packageJsonPath = path.join(rootPath, "package.json");
+  const readfile = util.promisify(fs.readFile);
+  if (fs.existsSync(packageJsonPath)) {
+    const packageFile = await readfile(packageJsonPath);
+    const packageJson = JSON.parse(packageFile.toString());
+    const packageId = packageJson.name;
+    localPackages.set(packageId, rootPath);
+    process.parentPort?.postMessage({
+      type: "persist-local-package",
+      id: packageId,
+      rootPath: rootPath,
+    });
+    notifyListener();
+  } else {
+    process.parentPort?.postMessage({
+      type: "show-message",
+      message: `Couldn't find package.json file in ${rootPath}!`,
+      messageType: "fail",
+    });
   }
 }
 
@@ -353,6 +402,7 @@ async function getInstalledPackages(): Promise<
     componentsPath?: string;
     preferenceComponent?: string;
     packageVersion?: string;
+    loadable: boolean;
   }[]
 > {
   if (!fs.existsSync(packageFolder)) {
@@ -360,45 +410,54 @@ async function getInstalledPackages(): Promise<
   }
   const readdir = util.promisify(fs.readdir);
   const readfile = util.promisify(fs.readFile);
-  const folders = await readdir(packageFolder, { withFileTypes: true });
+  const opendir = util.promisify(fs.opendir);
+  const folders = await readdir(packageFolder, { encoding: "utf-8" });
   return Promise.all(
-    folders
+    [...folders, ...localPackages.values()]
       .filter(
         (folder) =>
-          folder.isDirectory() &&
-          !folder.name.toLowerCase().includes("ds_store")
+          path.extname(folder) === "" &&
+          !folder.toLowerCase().includes("ds_store")
       )
       .map(async (folder) => {
-        const packageId = folder.name;
-        const packagePath = path.join(packageFolder, folder.name);
-
+        let packageId: string | undefined = undefined;
+        let packagePath = folder;
+        if (!path.isAbsolute(folder)) {
+          packageId = folder;
+          packagePath = path.join(packageFolder, folder);
+        }
         let packageName: string | undefined = undefined;
         let componentsPath: string | undefined = undefined;
         let preferenceComponent: string | undefined = undefined;
         let packageVersion: string | undefined = undefined;
-        if (fs.statSync(packagePath).isDirectory()) {
-          const packageJsonPath = path.join(packagePath, "package.json");
-          if (fs.existsSync(packageJsonPath)) {
-            const packageFile = await readfile(packageJsonPath);
-            const packageJson = JSON.parse(packageFile.toString());
-            packageName = packageJson.description;
-            packageVersion = packageJson.version;
-            if (packageJson.grid_editor?.componentsPath) {
-              componentsPath = path.join(
-                folder.name,
-                packageJson.grid_editor?.componentsPath
-              );
-            }
-            preferenceComponent = packageJson.grid_editor?.preferenceComponent;
+        let loadable: boolean = false;
+        const packageJsonPath = path.join(packagePath, "package.json");
+        if (fs.existsSync(packageJsonPath)) {
+          const packageFile = await readfile(packageJsonPath);
+          const packageJson = JSON.parse(packageFile.toString());
+          if (packageId === undefined) {
+            packageId = packageJson.name;
           }
+          packageName = packageJson.description;
+          packageVersion = packageJson.version;
+          if (packageJson.grid_editor?.componentsPath) {
+            componentsPath = path.join(
+              packageId,
+              packageJson.grid_editor?.componentsPath
+            );
+          }
+          preferenceComponent = packageJson.grid_editor?.preferenceComponent;
+          loadable = packageJson.main !== undefined;
         }
+
         packageName = packageName ?? packageId;
         return {
-          packageId: packageId,
-          packageName: packageName,
-          componentsPath: componentsPath,
-          preferenceComponent: preferenceComponent,
-          packageVersion: packageVersion,
+          packageId,
+          packageName,
+          componentsPath,
+          preferenceComponent,
+          packageVersion,
+          loadable,
         };
       })
   );
@@ -431,6 +490,9 @@ async function getAvailablePackages() {
     componentsPath?: string;
     preferenceComponent?: string;
     packageVersion?: string;
+    removable: boolean;
+    uninstallable: boolean;
+    loadable: boolean;
     canUpdate: boolean;
   }[] = [];
   let githubPackageList = new Map([
@@ -448,6 +510,11 @@ async function getAvailablePackages() {
       componentsPath: _package.componentsPath,
       preferenceComponent: _package.preferenceComponent,
       packageVersion: _package.packageVersion,
+      removable:
+        !recommendedGithubPackageList.has(_package.packageId) ||
+        localPackages.has(_package.packageId),
+      loadable: _package.loadable,
+      uninstallable: !localPackages.has(_package.packageId),
       canUpdate:
         _package.packageVersion != undefined &&
         githubPackageList.get(_package.packageId)?.version != undefined &&
@@ -465,6 +532,9 @@ async function getAvailablePackages() {
       name: entry.name,
       status: getPackageStatus(key, installedPackages),
       canUpdate: false,
+      uninstallable: true,
+      removable: !recommendedGithubPackageList.has(key),
+      loadable: false,
     });
   });
   currentPackageList = packageList;
@@ -529,13 +599,6 @@ async function getCompatibleGithubRelease(githubPackageName: string) {
 
 let directoryWatcher: any = null;
 
-function restartIfDeveloperMode() {
-  if (developerModeEnabled) {
-    stopPackageManager();
-    process.parentPort.postMessage({ type: "shutdown-complete" });
-  }
-}
-
 function startPackageDirectoryWatcher(path: string): void {
   directoryWatcher = chokidar.watch(path, {
     ignored: /[\/\\]\./,
@@ -545,27 +608,10 @@ function startPackageDirectoryWatcher(path: string): void {
   });
 
   directoryWatcher
-    .on("add", function (path: string) {
-      notifyListener();
-      restartIfDeveloperMode();
-    })
-    .on("change", function (path: string) {
-      notifyListener();
-      restartIfDeveloperMode();
-    })
-    .on("unlink", function (path: string) {
-      notifyListener();
-      restartIfDeveloperMode();
-    })
-    .on("addDir", function (path: string) {
-      notifyListener();
-      restartIfDeveloperMode();
-    })
-    .on("unlinkDir", function (path: string) {
-      notifyListener();
-      restartIfDeveloperMode();
-    })
-    .on("ready", function (path: string) {
-      notifyListener();
-    });
+    .on("add", notifyListener)
+    .on("change", notifyListener)
+    .on("unlink", notifyListener)
+    .on("addDir", notifyListener)
+    .on("unlinkDir", notifyListener)
+    .on("ready", notifyListener);
 }

@@ -41,6 +41,7 @@
 
   import { instructions } from "./serialport/instructions";
   import VersionUpdateBar from "./main/VersionUpdateBar.svelte";
+  import "redefine-custom-elements";
 
   console.log("Hello from Svelte main.js");
 
@@ -90,7 +91,7 @@
       const [port] = event.ports;
       window.packageManagerPort = port;
       // register message handler
-      port.onmessage = (event) => {
+      port.onmessage = async (event) => {
         $appSettings.packageManagerRunning = true;
         const data = event.data;
         // action towards runtime
@@ -155,6 +156,24 @@
             });
             break;
           }
+          case "persist-local-package": {
+            appSettings.update((s) => {
+              let persistent = structuredClone(s.persistent);
+              persistent.localPackages[data.id] = data.rootPath;
+              s.persistent = persistent;
+              return s;
+            });
+            break;
+          }
+          case "remove-local-package": {
+            appSettings.update((s) => {
+              let persistent = structuredClone(s.persistent);
+              delete persistent.localPackages[data.id];
+              s.persistent = persistent;
+              return s;
+            });
+            break;
+          }
           case "packages": {
             // refresh packagelist
             const enabledPackages = data.packages.filter(
@@ -172,6 +191,43 @@
             });
             break;
           }
+          case "request-developer-package":
+            appSettings.update((s) => {
+              let list = s.developerPackagesRequested ?? [];
+              let newList = list.filter((e) => e.id != data.id);
+              newList.push({
+                id: data.id,
+                name: data.name,
+                rootPath: data.rootPath,
+              });
+              s.developerPackagesRequested = newList;
+              return s;
+            });
+            logger.set({
+              message: `New developer package: ${data.name}. Approve at Packages tab!`,
+              type: "progress",
+            });
+            break;
+          case "reload-package-components":
+            let packageInfo = $appSettings.packageList.find(
+              (e) => e.id == data.id
+            );
+            if (
+              packageInfo.loadable &&
+              !$appSettings.persistent.enabledPackages.includes(data.id)
+            )
+              return;
+            if (!packageInfo.componentsPath) return;
+
+            let versionKey = new Date().getTime();
+            await import(
+              `package://v${versionKey}/${packageInfo.componentsPath}`
+            );
+            appSettings.update((s) => {
+              s.packageComponentKeys[data.id] = versionKey;
+              return s;
+            });
+            break;
           case "show-message": {
             logger.set({
               message: data.message,
