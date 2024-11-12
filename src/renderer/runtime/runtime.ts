@@ -329,7 +329,7 @@ export class GridAction extends RuntimeNode<ActionData> {
 
   static getInformation(short: string): ActionBlockInformation {
     const result = getComponentInformation({ short: short });
-    return result.information as ActionBlockInformation;
+    return result?.information as ActionBlockInformation;
   }
 
   public toLua() {

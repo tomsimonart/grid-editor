@@ -31,8 +31,9 @@
       (e) => {
         dispatch("update-action", {
           short: config.short,
-          script: e.detail.script,
+          script: e.detail.script
         });
+        dispatch("sync");
       },
       false
     );
