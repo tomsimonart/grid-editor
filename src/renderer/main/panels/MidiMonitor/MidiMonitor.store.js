@@ -189,10 +189,79 @@ function getCommand(int_value) {
   }
 }
 
+function replaceNRPNMessages(messages) {
+  const NRPNCC = [99, 98, 38, 6];
+
+  for (let i = 0; i < messages.length; i++) {
+    if (messages[i].data.params.p1.value !== 99) continue;
+
+    const spliceLength = messages[i + 3]?.data.params.p1.value === 38 ? 4 : 3;
+    const NRPNMessages = messages.slice(i, i + spliceLength);
+
+    if (
+      NRPNMessages.length < spliceLength ||
+      !NRPNMessages.every((e) => NRPNCC.includes(e.data.params.p1.value))
+    ) {
+      continue;
+    }
+
+    const [m1, m2, m3, m4] = messages.splice(i, spliceLength);
+    m1.data.command.name += " (NRPN)";
+    m1.data.command.short += " (NPRN)";
+    m1.data.params.p1.value =
+      (m1.data.params.p2.value << 7) + m2.data.params.p2.value;
+    m1.data.params.p2.value =
+      spliceLength === 4
+        ? (m3.data.params.p2.value << 7) + m4.data.params.p2.value
+        : m3.data.params.p2.value;
+
+    messages.splice(i, 0, m1); // Re-insert modified m1
+  }
+
+  return messages;
+}
+
+function replaceHighResMidiMessages(messages) {
+  for (let i = 0; i < messages.length; i++) {
+    const HiResMessages = messages.slice(i, i + 2);
+
+    if (
+      HiResMessages.length !== 2 ||
+      !HiResMessages.every((e) => e.data.command.short === "CC")
+    ) {
+      continue;
+    }
+
+    const offset_diff =
+      HiResMessages[0].data.params.p1.value -
+      HiResMessages[1].data.params.p1.value;
+    if (offset_diff !== -32) {
+      continue;
+    }
+
+    // Extract the two messages from the slice
+    const [m1, m2] = messages.splice(i, 2);
+
+    // Get the two halves of the high-resolution value
+    const upper_value = m1.data.params.p2.value << 7;
+    const lower_value = m2.data.params.p2.value;
+
+    // Update display values
+    m1.data.command.name += " (14)";
+    m1.data.command.short += " (14)";
+
+    // Set the high-resolution message's value
+    m1.data.params.p2.value = upper_value + lower_value;
+
+    // Insert the modified message back into the array
+    messages.splice(i, 0, m1);
+  }
+
+  return messages;
+}
+
 function createMidiMonitor(max_length) {
   const store = writable([]);
-  let lastMessages = [];
-
   return {
     ...store,
     update_midi: (descr) => {
@@ -207,30 +276,7 @@ function createMidiMonitor(max_length) {
         let bc = descr.brc_parameters;
         let cp = descr.class_parameters;
 
-        //Helper functions
-        function isHighResMidiPart(message) {
-          if (
-            s.length === 0 ||
-            getCommandShortName(item.data.command.value) !== "CC"
-          ) {
-            return false;
-          }
-
-          const lastMessage = s[s.length - 1];
-          const offset_diff =
-            lastMessage.data.params.p1.value - message.data.params.p1.value;
-          return offset_diff === -32;
-        }
-
-        function isNSPNMidiPart(message) {
-          if (getCommandShortName(item.data.command.value) !== "CC") {
-            return false;
-          }
-          return [98, 38, 6].includes(message.data.params.p1.value);
-        }
-
         //Make full MIDI message from raw data (param names, command name, etc.)
-
         let item = {
           id: uuidv4(),
           data: new MidiMessage(
@@ -242,68 +288,10 @@ function createMidiMonitor(max_length) {
           ),
           device: new DeviceInfo(getDeviceName(bc.SX, bc.SY), bc.SX, bc.SY),
         };
-        UpdateDebugStream(structuredClone(item), "MIDI");
 
-        if (isHighResMidiPart(item)) {
-          //Get first part of hiRes MIDI
-          const lastMessage = s[s.length - 1];
-
-          //Get the two half of the high res value from current and last message
-          const upper_value = lastMessage.data.params.p2.value << 7;
-          const lower_value = item.data.params.p2.value;
-
-          //Update display values instead of pushing to the store
-          lastMessage.data.command.name += " (14)";
-          lastMessage.data.command.short += " (14)";
-
-          //Set the high resolutin messages value to the combined
-          //value of the current and last message
-          lastMessage.data.params.p2.value = upper_value + lower_value;
-        } else if (isNSPNMidiPart(item)) {
-          //Get first part of NPSPN MIDI
-          const lastMessage = s[s.length - 1];
-
-          switch (item.data.params.p1.value) {
-            case 98: {
-              //Get the two half of the address value from current and last message
-              const upper_value = lastMessage.data.params.p2.value << 7;
-              const lower_value = item.data.params.p2.value;
-
-              //Update display values
-              lastMessage.data.command.name += " (NRPN)";
-              lastMessage.data.command.short += " (NPRN)";
-
-              //Set the address value to the combined
-              //value of the current and last message
-              lastMessage.data.params.p1.value = upper_value + lower_value;
-              break;
-            }
-            case 6: {
-              //Set the CC value
-              lastMessage.data.params.p2.value = item.data.params.p2.value;
-              break;
-            }
-            case 38: {
-              //If highres value is received, the last message contained the
-              //first half.
-              const upper_value = lastMessage.data.params.p2.value << 7;
-              const lower_value = item.data.params.p2.value;
-
-              //Set the combined high resolution CC value
-              lastMessage.data.params.p2.value = upper_value + lower_value;
-              break;
-            }
-          }
-        } else {
-          //Normal message, put it into the store as it is
-          s = [...s, item];
-        }
-
-        //Update buffer
-        lastMessages.push(item);
-        if (lastMessages.length > 4) {
-          lastMessages.shift();
-        }
+        UpdateDebugStream(item, "MIDI");
+        s = replaceNRPNMessages(s);
+        s = replaceHighResMidiMessages(s);
         return s;
       });
     },

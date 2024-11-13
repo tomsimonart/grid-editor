@@ -106,12 +106,8 @@
     {placeholder}
     {disabled}
   />
-  {#if $open && !disabled}
-    <div
-      {...$menu}
-      use:menu
-      class="bg-gray-900 text-white/80 border border-white/50 rounded z-40 max-h-32 overflow-y-auto"
-    >
+  {#if $open && !disabled && suggestions.length > 0}
+    <div {...$menu} use:menu class="menu">
       {#each suggestions as suggestion}
         <div
           {...$option({
@@ -136,3 +132,10 @@
     {infoValue}
   </div>
 </div>
+
+<style lang="postcss">
+  .menu {
+    @apply bg-gray-900 text-white/80 border border-white/50 rounded z-40 max-h-32 overflow-y-auto;
+    @apply min-w-fit !important;
+  }
+</style>
