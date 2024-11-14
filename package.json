@@ -63,7 +63,6 @@
     "panzoom": "^9.3.0",
     "semver": "^7.5.4",
     "set-interval-async": "^3.0.3",
-    "simple-discord-webhooks": "^2.1.0",
     "svelte-easy-popover": "^1.0.0",
     "svelte-splitpanes": "0.8.0",
     "svelte-watch-resize": "^1.0.3",

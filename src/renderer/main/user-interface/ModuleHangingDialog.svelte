@@ -20,11 +20,6 @@
   }
 
   function handleAbortclicked(e) {
-    window.electron.discord.sendMessage({
-      title: "Writebuffer",
-      text: JSON.stringify($writeBuffer).substring(0, 1000),
-    });
-
     Analytics.track({
       event: "Writebuffer",
       payload: {

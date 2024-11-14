@@ -89,9 +89,6 @@ contextBridge.exposeInMainWorld("electron", {
     restartAfterUpdate: () => ipcRenderer.sendSync("restartAfterUpdate"),
     onAppUpdate: (callback) => ipcRenderer.on("onAppUpdate", callback),
   },
-  discord: {
-    sendMessage: (message) => ipcRenderer.invoke("sendToDiscord", { message }),
-  },
   persistentStorage: {
     get: (request) => ipcRenderer.invoke("getPersistentStore", request),
     set: (object) => ipcRenderer.invoke("setPersistentStore", object),
