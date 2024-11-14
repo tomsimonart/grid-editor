@@ -72,6 +72,9 @@ export class ConfigPage {
       "Config limit reached."
     );
     this.characterCount = page.getByTestId("charCount");
+    this.elementMaxResolutionDropdown = page.getByText(
+      "7 bit MIDI (default) 14 bit"
+    );
   }
 
   async openAndAddActionBlock(category, blockName) {
@@ -99,6 +102,10 @@ export class ConfigPage {
     return await this.blocks[category][blockName]["elements"][
       field
     ].inputValue();
+  }
+
+  async clickActionBlockElement(category, blockName, field) {
+    await this.blocks[category][blockName]["elements"][field].click();
   }
 
   async openLoopTimes() {
