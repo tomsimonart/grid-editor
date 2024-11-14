@@ -41,7 +41,7 @@
   $: handleInputChange($inputValue);
 
   function handleValueChange(value: any) {
-    if ($inputValue === value) {
+    if ($inputValue === value || !value) {
       return;
     }
 
@@ -98,7 +98,7 @@
     type="text"
     use:melt={$input}
     on:change={handleChange}
-    class="w-full flex flex-row border mb-1 {isError
+    class="w-full flex flex-row border mb-1 {isError && !disabled
       ? 'border-error'
       : 'border-black'} p-2 {disabled
       ? 'bg-black/20 text-white/40'

@@ -290,6 +290,7 @@ function createMidiMonitor(max_length) {
         };
 
         UpdateDebugStream(item, "MIDI");
+        s = [...s, structuredClone(item)];
         s = replaceNRPNMessages(s);
         s = replaceHighResMidiMessages(s);
         return s;

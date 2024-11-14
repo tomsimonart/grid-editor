@@ -49,46 +49,47 @@
   function handleScriptChange(script) {
     const arr = script.split("self:").slice(1);
 
-    const extractParam = (index) => {
-      const param = whatsInParenthesis.exec(arr[index]);
-      return param && param.length > 0 ? param[1] : null;
+    const parts = {
+      emo: null,
+      ev0: null,
+      emi: null,
+      ema: null,
+      ese: null,
     };
 
-    emo = extractParam(0);
-    ev0 = extractParam(1);
-
-    const param3 = extractParam(2);
-    const param4 = extractParam(3);
-
-    minMaxEnabled = !!param3 || !!param4;
-    if (minMaxEnabled) {
-      emi = param3;
-      ema = param4;
+    for (const [key, value] of Object.entries(parts)) {
+      const index = arr.findIndex((e) => e.includes(key));
+      if (index !== -1) {
+        parts[key] = whatsInParenthesis.exec(arr[index])[1];
+      }
     }
 
-    const param5 = extractParam(4);
-    sensitivityEnabled = !!param5;
+    emo = parts.emo;
+    ev0 = parts.ev0;
+
+    minMaxEnabled = !!parts.emi || !!parts.ema;
+
+    if (minMaxEnabled) {
+      emi = parts.emi;
+      ema = parts.ema;
+    }
+
+    sensitivityEnabled = !!parts.ese;
     if (sensitivityEnabled) {
-      ese = param5;
+      ese = parts.ese;
     }
   }
 
-  $: sendData(
-    emo,
-    ev0,
-    minMaxEnabled ? emi : undefined,
-    minMaxEnabled ? ema : undefined,
-    sensitivityEnabled ? ese : undefined
-  );
+  $: sendData(emo, ev0, emi, ema, ese, false, false);
 
-  function sendData(p1, p2, p3, p4, p5) {
+  function sendData(p1, p2, p3, p4, p5, forceMinMax, forceSensitivity) {
     const optional = [];
 
-    if (minMaxEnabled) {
+    if (minMaxEnabled || forceMinMax) {
       optional.push(`self:emi(${p3}) self:ema(${p4})`);
     }
 
-    if (sensitivityEnabled) {
+    if (sensitivityEnabled || forceSensitivity) {
       optional.push(`self:ese(${p5})`);
     }
 
@@ -114,10 +115,31 @@
     ],
   ];
 
-  let suggestionElement = undefined;
-
   let minMaxEnabled = false;
   let sensitivityEnabled = false;
+
+  $: handleMinMaxChange(minMaxEnabled);
+  function handleMinMaxChange(value) {
+    if (!value) {
+      emi = "0";
+      ema = "127";
+    }
+    sendData(emo, ev0, emi, ema, ese, true, false);
+    syncWithGrid();
+  }
+
+  $: handleSensitivityChange(sensitivityEnabled);
+  function handleSensitivityChange(value) {
+    if (!value) {
+      ese = "100";
+    }
+    sendData(emo, ev0, emi, ema, ese, false, true);
+    syncWithGrid();
+  }
+
+  function syncWithGrid() {
+    dispatch("sync");
+  }
 </script>
 
 <encoder-settings
@@ -131,14 +153,11 @@
       validator={(e) => {
         return new Validator(e).NotEmpty().Result();
       }}
-      on:input={(e) => {
-        //emo = e.detail;
-      }}
       on:validator={(e) => {
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:change={() => dispatch("sync")}
+      on:change={syncWithGrid}
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />
@@ -150,14 +169,11 @@
       validator={(e) => {
         return new Validator(e).NotEmpty().Result();
       }}
-      on:input={(e) => {
-        //ev0 = e.detail;
-      }}
       on:validator={(e) => {
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:change={() => dispatch("sync")}
+      on:change={syncWithGrid}
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />
@@ -175,14 +191,11 @@
           ? new Validator(e).NotEmpty().Result()
           : new Validator(e).Result();
       }}
-      on:input={(e) => {
-        //emi = e.detail;
-      }}
       on:validator={(e) => {
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:change={() => dispatch("sync")}
+      on:change={syncWithGrid}
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />
@@ -196,14 +209,11 @@
           ? new Validator(e).NotEmpty().Result()
           : new Validator(e).Result();
       }}
-      on:input={(e) => {
-        //ema = e.detail;
-      }}
       on:validator={(e) => {
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:change={() => dispatch("sync")}
+      on:change={syncWithGrid}
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />
@@ -219,14 +229,11 @@
         ? new Validator(e).NotEmpty().Result()
         : new Validator(e).Result();
     }}
-    on:input={(e) => {
-      //ese = e.detail;
-    }}
     on:validator={(e) => {
       const data = e.detail;
       dispatch("validator", data);
     }}
-    on:change={() => dispatch("sync")}
+    on:change={syncWithGrid}
     postProcessor={GridScript.shortify}
     preProcessor={GridScript.humanize}
   />

@@ -46,31 +46,48 @@
 
   function handleScriptChange(script) {
     const arr = script.split("self:").slice(1);
-
-    const extractParam = (index) => {
-      const param = whatsInParenthesis.exec(arr[index]);
-      return param && param.length > 0 ? param[1] : null;
+    const parts = {
+      pmo: null,
+      pma: null,
+      pmi: null,
     };
+    for (const [key, value] of Object.entries(parts)) {
+      const index = arr.findIndex((e) => e.includes(key));
+      if (index !== -1) {
+        parts[key] = whatsInParenthesis.exec(arr[index])[1];
+      }
+    }
 
-    pmo = extractParam(0);
+    pmo = parts.pmo;
 
-    const param2 = extractParam(1);
-    const param3 = extractParam(2);
-
-    minMaxEnabled = !!param2 || !!param3;
+    minMaxEnabled = !!parts.pmi || !!parts.pma;
     if (minMaxEnabled) {
-      pmi = param2;
-      pma = param3;
+      pmi = parts.pmi;
+      pma = parts.pma;
     }
   }
 
-  $: sendData(pmo, pma, minMaxEnabled ? pmi : undefined);
+  $: sendData(pmo, pmi, pma, false);
 
-  function sendData(p1, p2, p3) {
+  $: handleMinMaxChange(minMaxEnabled);
+  function handleMinMaxChange(value) {
+    if (!value) {
+      pmi = "0";
+      pma = "127";
+    }
+    sendData(pmo, pmi, pma, true);
+    syncWithGrid();
+  }
+
+  function syncWithGrid() {
+    dispatch("sync");
+  }
+
+  function sendData(p1, p2, p3, forceMinMax) {
     const optional = [];
 
-    if (minMaxEnabled) {
-      optional.push(`self:pmi(${p3})  self:pma(${p2})`);
+    if (minMaxEnabled || forceMinMax) {
+      optional.push(`self:pmi(${p2})  self:pma(${p3})`);
     }
 
     dispatch("update-action", {
@@ -119,14 +136,11 @@
     validator={(e) => {
       return new Validator(e).NotEmpty().Result();
     }}
-    on:input={(e) => {
-      //pmo = e.detail;
-    }}
     on:validator={(e) => {
       const data = e.detail;
       dispatch("validator", data);
     }}
-    on:change={() => dispatch("sync")}
+    on:change={syncWithGrid}
     postProcessor={GridScript.shortify}
     preProcessor={GridScript.humanize}
   />
@@ -143,14 +157,11 @@
           ? new Validator(e).NotEmpty().Result()
           : new Validator(e).Result();
       }}
-      on:input={(e) => {
-        //pmi = e.detail;
-      }}
       on:validator={(e) => {
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:change={() => dispatch("sync")}
+      on:change={syncWithGrid}
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />
@@ -163,14 +174,11 @@
       validator={(e) => {
         return new Validator(e).NotEmpty().Result();
       }}
-      on:input={(e) => {
-        //pma = e.detail;
-      }}
       on:validator={(e) => {
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:change={() => dispatch("sync")}
+      on:change={syncWithGrid}
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />
