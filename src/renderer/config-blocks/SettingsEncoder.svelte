@@ -80,16 +80,16 @@
     }
   }
 
-  $: sendData(emo, ev0, emi, ema, ese, false, false);
+  $: sendData(emo, ev0, emi, ema, ese);
 
-  function sendData(p1, p2, p3, p4, p5, forceMinMax, forceSensitivity) {
+  function sendData(p1, p2, p3, p4, p5) {
     const optional = [];
 
-    if (minMaxEnabled || forceMinMax) {
+    if (minMaxEnabled) {
       optional.push(`self:emi(${p3}) self:ema(${p4})`);
     }
 
-    if (sensitivityEnabled || forceSensitivity) {
+    if (sensitivityEnabled) {
       optional.push(`self:ese(${p5})`);
     }
 
@@ -120,20 +120,13 @@
 
   $: handleMinMaxChange(minMaxEnabled);
   function handleMinMaxChange(value) {
-    if (!value) {
-      emi = "0";
-      ema = "127";
-    }
-    sendData(emo, ev0, emi, ema, ese, true, false);
+    sendData(emo, ev0, emi, ema, ese);
     syncWithGrid();
   }
 
   $: handleSensitivityChange(sensitivityEnabled);
   function handleSensitivityChange(value) {
-    if (!value) {
-      ese = "100";
-    }
-    sendData(emo, ev0, emi, ema, ese, false, true);
+    sendData(emo, ev0, emi, ema, ese);
     syncWithGrid();
   }
 

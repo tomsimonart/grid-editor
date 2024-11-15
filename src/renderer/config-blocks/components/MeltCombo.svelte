@@ -136,6 +136,6 @@
 <style lang="postcss">
   .menu {
     @apply bg-gray-900 text-white/80 border border-white/50 rounded z-40 max-h-32 overflow-y-auto;
-    @apply min-w-fit !important;
+    @apply min-w-[8%] w-fit max-w-[13%] !important;
   }
 </style>

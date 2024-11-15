@@ -78,24 +78,17 @@
     }
   }
 
-  $: sendData(epmo, epv0, epmi, epma, epse, false, false);
+  $: sendData(epmo, epv0, epmi, epma, epse);
 
   $: handleMinMaxChange(minMaxEnabled);
   function handleMinMaxChange(value) {
-    if (!value) {
-      epmi = "0";
-      epma = "16383";
-    }
-    sendData(epmo, epv0, epmi, epma, epse, true, false);
+    sendData(epmo, epv0, epmi, epma, epse);
     syncWithGrid();
   }
 
   $: handleSensitivityChange(sensitivityEnabled);
   function handleSensitivityChange(value) {
-    if (!value) {
-      epse = "50";
-    }
-    sendData(epmo, epv0, epmi, epma, epse, false, true);
+    sendData(epmo, epv0, epmi, epma, epse);
     syncWithGrid();
   }
 
@@ -103,14 +96,14 @@
     dispatch("sync");
   }
 
-  function sendData(p1, p2, p3, p4, p5, forceMinMax, forceSensitivity) {
+  function sendData(p1, p2, p3, p4, p5) {
     const optional = [];
 
-    if (minMaxEnabled || forceMinMax) {
+    if (minMaxEnabled) {
       optional.push(`self:epmi(${p3}) self:epma(${p4})`);
     }
 
-    if (sensitivityEnabled || forceSensitivity) {
+    if (sensitivityEnabled) {
       optional.push(`self:epse(${p5})`);
     }
 

@@ -68,11 +68,7 @@
 
   $: handleMinMaxChange(minMaxEnabled);
   function handleMinMaxChange(value) {
-    if (!value) {
-      bmi = "0";
-      bma = "127";
-    }
-    sendData(bmo, bmi, bma, true);
+    sendData(bmo, bmi, bma);
     syncWithGrid();
   }
 
@@ -80,9 +76,9 @@
     dispatch("sync");
   }
 
-  function sendData(p1, p2, p3, forceMinMax) {
+  function sendData(p1, p2, p3) {
     const optional = [];
-    if (minMaxEnabled || forceMinMax) {
+    if (minMaxEnabled) {
       optional.push(`self:bmi(${p2}) self:bma(${p3})`);
     }
 
@@ -121,7 +117,7 @@
     minMaxEnabled ? Number(bma) : 127
   );
 
-  $: sendData(bmo, bmi, bma, false);
+  $: sendData(bmo, bmi, bma);
 </script>
 
 <encoder-settings class="flex flex-col w-full px-4 py-2 pointer-events-auto">

@@ -67,15 +67,11 @@
     }
   }
 
-  $: sendData(pmo, pmi, pma, false);
+  $: sendData(pmo, pmi, pma);
 
   $: handleMinMaxChange(minMaxEnabled);
   function handleMinMaxChange(value) {
-    if (!value) {
-      pmi = "0";
-      pma = "127";
-    }
-    sendData(pmo, pmi, pma, true);
+    sendData(pmo, pmi, pma);
     syncWithGrid();
   }
 
@@ -83,10 +79,10 @@
     dispatch("sync");
   }
 
-  function sendData(p1, p2, p3, forceMinMax) {
+  function sendData(p1, p2, p3) {
     const optional = [];
 
-    if (minMaxEnabled || forceMinMax) {
+    if (minMaxEnabled) {
       optional.push(`self:pmi(${p2})  self:pma(${p3})`);
     }
 
