@@ -2,7 +2,7 @@ export class NavbarPage {
   constructor(page) {
     this.page = page;
     this.configuration = page.getByTestId("nav-configuration");
-    this.preferences = page.getByTestId("nav-preferneces");
+    this.preferences = page.getByTestId("nav-preferences");
     this.profileCloud = page.getByTestId("nav-profile-cloud");
     this.debugMonitor = page.getByTestId("nav-debug-monitor");
     this.midiMonitor = page.getByTestId("nav-midi-monitor");
