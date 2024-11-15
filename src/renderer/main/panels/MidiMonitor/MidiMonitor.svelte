@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { MidiMonitorItem } from "./MidiMonitor.store.ts";
   import { user_input_event } from "./../configuration/Configuration";
   import Toggle from "../../user-interface/Toggle.svelte";
   import { Pane, Splitpanes } from "svelte-splitpanes";
@@ -7,8 +8,9 @@
   import {
     midi_monitor_store,
     sysex_monitor_store,
-    debug_stream,
     MusicalNotes,
+    MidiMonitorItem,
+    SysExMonitorItem,
   } from "./MidiMonitor.store";
   import { grid } from "@intechstudio/grid-protocol";
   import { SvgIcon } from "@intechstudio/grid-uikit";
@@ -17,6 +19,102 @@
   // ok but slow nice
   let event = $user_input_event;
   let configScriptLength = 0;
+
+  function replaceNRPNMessages(messages: MidiMonitorItem[]) {
+    const NRPNCC = [99, 98, 38, 6];
+
+    for (let i = 0; i < messages.length; i++) {
+      if (messages[i].data.params.p1.value !== 99) continue;
+
+      const spliceLength = messages[i + 3]?.data.params.p1.value === 38 ? 4 : 3;
+      const NRPNMessages = messages.slice(i, i + spliceLength);
+
+      if (
+        NRPNMessages.length < spliceLength ||
+        !NRPNMessages.every((e) => NRPNCC.includes(e.data.params.p1.value))
+      ) {
+        continue;
+      }
+
+      const [m1, m2, m3, m4] = messages.splice(i, spliceLength);
+      m1.data.command.name += " (NRPN)";
+      m1.data.command.short += " (NPRN)";
+      m1.data.params.p1.value =
+        (m1.data.params.p2.value << 7) + m2.data.params.p2.value;
+      m1.data.params.p2.value =
+        spliceLength === 4
+          ? (m3.data.params.p2.value << 7) + m4.data.params.p2.value
+          : m3.data.params.p2.value;
+
+      messages.splice(i, 0, m1); // Re-insert modified m1
+    }
+
+    return messages;
+  }
+
+  function replaceHighResMidiMessages(messages: MidiMonitorItem[]) {
+    for (let i = 0; i < messages.length; i++) {
+      const HiResMessages = messages.slice(i, i + 2);
+
+      if (
+        HiResMessages.length !== 2 ||
+        !HiResMessages.every((e) => e.data.command.short === "CC")
+      ) {
+        continue;
+      }
+
+      const offset_diff =
+        HiResMessages[0].data.params.p1.value -
+        HiResMessages[1].data.params.p1.value;
+      if (offset_diff !== -32) {
+        continue;
+      }
+
+      // Extract the two messages from the slice
+      const [m1, m2] = messages.splice(i, 2);
+
+      // Get the two halves of the high-resolution value
+      const upper_value = m1.data.params.p2.value << 7;
+      const lower_value = m2.data.params.p2.value;
+
+      // Update display values
+      m1.data.command.name += " (14)";
+      m1.data.command.short += " (14)";
+
+      // Set the high-resolution message's value
+      m1.data.params.p2.value = upper_value + lower_value;
+
+      // Insert the modified message back into the array
+      messages.splice(i, 0, m1);
+    }
+
+    return messages;
+  }
+
+  const debug_stream = derived(
+    [midi_monitor_store, sysex_monitor_store],
+    ([$midi_monitor_store, $sysex_monitor_store]) => {
+      return [
+        ...$midi_monitor_store.map((e) => structuredClone(e)),
+        ...$sysex_monitor_store.map((e) => structuredClone(e)),
+      ].sort((a, b) => a.date - b.date);
+    }
+  );
+
+  //Human readable midi store
+  const human_midi_store = derived(
+    [midi_monitor_store],
+    ([$midi_monitor_store]) => {
+      let result = replaceNRPNMessages(
+        $midi_monitor_store.map((e) => structuredClone(e))
+      );
+      result = replaceHighResMidiMessages(result);
+      result.forEach((e) => {
+        e = assignP1ValueAlias(e);
+      });
+      return result;
+    }
+  );
 
   $: {
     configScriptLength = $event?.toLua().length ?? 0;
@@ -91,17 +189,11 @@
     return obj;
   }
 
-  $: {
-    last = $midi_monitor_store.at(-1);
-    if (last) {
-      assignP1ValueAlias(last);
-    }
+  $: if ($sysex_monitor_store || $human_midi_store) {
     showActivity();
   }
 
-  $: if ($sysex_monitor_store) {
-    showActivity();
-  }
+  $: last = $human_midi_store?.at(-1);
 
   function showActivity() {
     activity = true;
@@ -115,13 +207,12 @@
 
   function onLeaveMidiMessage() {
     hover = false;
-    let mms = get(midi_monitor_store);
+    let mms = get(human_midi_store);
     last = mms[mms.length - 1];
   }
 
   function onEnterMidiMessage(element) {
     hover = true;
-    showActivity();
     last = element;
   }
 
@@ -139,11 +230,11 @@
       s = [];
       return s;
     });
-    debug_stream.update((s) => {
-      s = [];
-      return s;
-    });
   }
+
+  const isMIDI = (
+    msg: MidiMonitorItem | SysExMonitorItem
+  ): msg is MidiMonitorItem => msg.type === "MIDI";
 </script>
 
 <div class="flex flex-col h-full p-4 bg-primary">
@@ -266,14 +357,14 @@
             </div>
             <div
               class="flex flex-col grow overflow-y-auto bg-secondary"
-              use:scrollToBottom={$debug_stream}
+              use:scrollToBottom
             >
               {#each $debug_stream as message}
                 <div
                   class="grid grid-cols-6 items-start justify-start w-full font-mono text-green-300"
                 >
                   <div>[{message.device.x}, {message.device.y}]</div>
-                  {#if message.type === "MIDI"}
+                  {#if isMIDI(message)}
                     <div>{message.data.channel}</div>
                     <div>{message.data.command.value}</div>
                     <div>{message.data.params.p1.value}</div>
@@ -301,13 +392,13 @@
             <div class="flex w-full text-white pb-2">MIDI Messages</div>
             <div
               class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
-              use:scrollToBottom={$midi_monitor_store}
+              use:scrollToBottom
             >
-              {#each $midi_monitor_store as midi}
+              {#each $human_midi_store as midi}
                 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
                 <!-- svelte-ignore a11y-no-static-element-interactions -->
                 <div
-                  class="grid grid-cols-7 text-green-400 hover:text-green-200
+                  class="grid grid-cols-7 gap-2 text-green-400 hover:text-green-200
                   transition-transform origin-left hover:scale-105 duration-100 transform scale-100"
                   on:mouseover={() => onEnterMidiMessage(midi)}
                   on:mouseleave={() => onLeaveMidiMessage()}
@@ -320,16 +411,16 @@
                       <SvgIcon fill="#FFF" iconPath="arrow_right" />
                     {/if}
                   </div>
-                  <span>Ch: {midi.data.channel}</span>
-                  <span>{midi.data.command.short}</span>
-                  <span>{midi.data.params.p1.short}:</span>
-                  <span
+                  <span class="truncate">Ch: {midi.data.channel}</span>
+                  <span class="truncate">{midi.data.command.short}</span>
+                  <span class="truncate">{midi.data.params.p1.short}:</span>
+                  <span class="truncate"
                     >{midi.data.params.p1.value_alias
                       ? midi.data.params.p1.value_alias
                       : midi.data.params.p1.value}</span
                   >
-                  <span>{midi.data.params.p2.short}:</span>
-                  <span>{midi.data.params.p2.value}</span>
+                  <span class="truncate">{midi.data.params.p2.short}:</span>
+                  <span class="truncate">{midi.data.params.p2.value}</span>
                 </div>
               {/each}
             </div>
@@ -370,7 +461,7 @@
             </div>
             <div
               class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
-              use:scrollToBottom={$sysex_monitor_store}
+              use:scrollToBottom
             >
               {#each $sysex_monitor_store as sysex}
                 <div
