@@ -297,6 +297,7 @@
       event.preventDefault();
     });
     loaded = true;
+    window.electron.appLoaded();
   });
 
   onDestroy(() => {
