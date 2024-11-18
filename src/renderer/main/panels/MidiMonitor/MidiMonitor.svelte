@@ -357,7 +357,7 @@
             </div>
             <div
               class="flex flex-col grow overflow-y-auto bg-secondary"
-              use:scrollToBottom
+              use:scrollToBottom={$debug_stream}
             >
               {#each $debug_stream as message}
                 <div
@@ -392,7 +392,7 @@
             <div class="flex w-full text-white pb-2">MIDI Messages</div>
             <div
               class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
-              use:scrollToBottom
+              use:scrollToBottom={$human_midi_store}
             >
               {#each $human_midi_store as midi}
                 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
@@ -461,7 +461,7 @@
             </div>
             <div
               class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
-              use:scrollToBottom
+              use:scrollToBottom={$sysex_monitor_store}
             >
               {#each $sysex_monitor_store as sysex}
                 <div
