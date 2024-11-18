@@ -113,13 +113,18 @@ contextBridge.exposeInMainWorld("electron", {
   restartPackageManager: () => ipcRenderer.send("restartPackageManager"),
   installUpdate: () => ipcRenderer.send("installUpdate"),
   overlay: (payload) => ipcRenderer.invoke("overlay", { payload }),
+  appLoaded: () => appLoadedPromiseResolve(undefined),
 });
 
-const windowLoaded = new Promise((resolve) => {
-  window.onload = resolve;
+let appLoadedPromiseResolve: (any) => any;
+
+const appLoaded = new Promise((resolve) => {
+  appLoadedPromiseResolve = resolve;
 });
 
 ipcRenderer.on("package-manager-port", async (event) => {
-  await windowLoaded;
+  await appLoaded;
   window.postMessage("package-manager-port", "*", event.ports);
 });
+
+export {};

@@ -117,6 +117,7 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
       window.open(url, "_blank").focus();
     },
     overlay: () => {},
+    appLoaded: () => {},
   };
 }
 

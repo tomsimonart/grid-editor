@@ -17,6 +17,7 @@ const persistentDefaultValues = {
   packagesDataStorage: {},
   enabledPackages: [],
   githubPackages: {},
+  localPackages: {},
   keyboardLayout: "",
   websocketMonitorEnabled: false,
   portstateOverlayEnabled: false,
@@ -121,6 +122,8 @@ function createAppSettingsStore(persistent) {
     },
     packageList: [],
     packageManagerRunning: false,
+    developerPackagesRequested: [],
+    packageComponentKeys: {},
     gridLayoutShift: { x: 0, y: 0 },
     persistent: structuredClone(persistent),
   });

@@ -13,8 +13,8 @@
     $appSettings.packageList,
     refreshPackagePreferences();
 
-  let packagePreferenceComponentNames = [];
-  let packageRepositoryUrlInput = "";
+  let packagePreferenceComponents = [];
+  let packagePathInput = "";
 
   function refreshPackagePreferences() {
     const loadedPackages = $appSettings.persistent.enabledPackages;
@@ -24,24 +24,29 @@
       .filter((e) => e);
 
     const newComponents = [];
-    packagePreferenceComponentNames.forEach((componentName) => {
+    packagePreferenceComponents.forEach((preference) => {
       if (
         loadedPackageDetails
           .map((e) => e.preferenceComponent)
-          .includes(componentName)
+          .includes(preference.componentName)
       ) {
-        newComponents.push(componentName);
+        newComponents.push(preference);
       }
     });
     loadedPackageDetails.forEach((_package) => {
       if (
         _package.preferenceComponent &&
-        !newComponents.includes(_package.preferenceComponent)
+        !newComponents
+          .map((e) => e.componentName)
+          .includes(_package.preferenceComponent)
       ) {
-        newComponents.push(_package.preferenceComponent);
+        newComponents.push({
+          componentName: _package.preferenceComponent,
+          packageId: _package.id,
+        });
       }
     });
-    packagePreferenceComponentNames = newComponents;
+    packagePreferenceComponents = newComponents;
   }
 
   function changePackageStatus(packageId, enabled) {
@@ -103,6 +108,19 @@
     });
   }
 
+  function removePackage(packageId) {
+    window.packageManagerPort?.postMessage({
+      type: "remove-package",
+      id: packageId,
+    });
+
+    Analytics.track({
+      event: "Package Manager",
+      payload: { click: "Remove", id: packageId },
+      mandatory: false,
+    });
+  }
+
   function updatePackage(packageId) {
     window.packageManagerPort?.postMessage({
       type: "update-package",
@@ -119,14 +137,12 @@
   async function addPackageRepository() {
     Analytics.track({
       event: "Package Manager",
-      payload: { click: "Add repository", url: packageRepositoryUrlInput },
+      payload: { click: "Add repository", url: packagePathInput },
       mandatory: false,
     });
 
-    const githubLink = packageRepositoryUrlInput;
-
     const regexPattern = /https?:\/\/github\.com\/([^\/]+)\/([^\/]+)\/?.*/;
-    const matches = githubLink.match(regexPattern);
+    let matches = packagePathInput.match(regexPattern);
 
     if (matches) {
       const owner = matches[1];
@@ -168,13 +184,41 @@
           message: `Failed to fetch package.json: ${error.message}`,
         });
       }
+      return;
       //packageRepositoryUrlInput = "";
+    }
+    //Try to match for local path
+    const pathRegex =
+      /^(\/[^./\0]+(\/[^./\0]*)*|[a-zA-Z]:(\\[^<>:"/\\|?*]+)+\\?|~(\/[^./\0]+)*)$/;
+    matches = packagePathInput.match(pathRegex);
+    if (matches) {
+      window.packageManagerPort?.postMessage({
+        type: "add-local-package",
+        rootPath: packagePathInput,
+      });
     } else {
       logger.set({
         type: "fail",
-        message: "Couldn't detect valid Github repository!",
+        message: "Couldn't detect valid Github repository or absolute path!",
       });
     }
+  }
+
+  function approveRequest(request) {
+    window.packageManagerPort?.postMessage({
+      type: "add-local-package",
+      rootPath: request.rootPath,
+    });
+    removeRequest(request);
+  }
+
+  function removeRequest(request) {
+    appSettings.update((s) => {
+      let list = s.developerPackagesRequested ?? [];
+      let newList = list.filter((e) => e.id != request.id);
+      s.developerPackagesRequested = newList;
+      return s;
+    });
   }
 
   function restartPackageManager() {
@@ -202,7 +246,8 @@
           class="bg-primary my-1"
           type="checkbox"
           checked={_package.status === "Enabled"}
-          style="visibility:{_package.status === 'Downloaded' ||
+          style="visibility:{(_package.status === 'Downloaded' &&
+            _package.loadable) ||
           _package.status === 'Enabled'
             ? 'visible'
             : 'hidden'}"
@@ -213,8 +258,8 @@
         {#if _package.packageVersion}
           <div class="mx-1">{_package.packageVersion}</div>
         {/if}
-        <div class="mx-1">
-          {#if _package.status == "Downloading" || _package.status == "Uninstalled"}
+        {#if _package.status == "Downloading" || _package.status == "Uninstalled"}
+          <div class="mx-1">
             <MoltenPushButton
               click={() => {
                 downloadPackage(_package.id);
@@ -222,21 +267,65 @@
               disabled={_package.status == "Downloading"}
               text="Download"
             />
-          {:else if _package.canUpdate}
+          </div>
+          {#if _package.removable === true}
+            <div class="mx-1">
+              <MoltenPushButton
+                click={() => {
+                  removePackage(_package.id);
+                }}
+                text="Remove"
+              />
+            </div>
+          {/if}
+        {:else if _package.canUpdate}
+          <div class="mx-1">
             <MoltenPushButton
               click={() => {
                 updatePackage(_package.id);
               }}
               text="Update"
             />
-          {:else}
+          </div>
+        {:else if _package.uninstallable}
+          <div class="mx-1">
             <MoltenPushButton
               click={() => {
                 uninstallPackage(_package.id);
               }}
               text="Uninstall"
             />
-          {/if}
+          </div>
+        {:else if _package.removable}
+          <div class="mx-1">
+            <MoltenPushButton
+              click={() => {
+                removePackage(_package.id);
+              }}
+              text="Remove"
+            />
+          </div>
+        {/if}
+      </div>
+    {/each}
+    {#each $appSettings.developerPackagesRequested as request}
+      <div class="flex py-2 text-white items-center">
+        <div class="mx-1">{request.name}</div>
+        <div class="mx-1">
+          <MoltenPushButton
+            click={() => {
+              approveRequest(request);
+            }}
+            text="Approve"
+          />
+        </div>
+        <div class="mx-1">
+          <MoltenPushButton
+            click={() => {
+              removeRequest(request);
+            }}
+            text="Reject"
+          />
         </div>
       </div>
     {/each}
@@ -246,7 +335,7 @@
     <input
       class="bg-primary mr-2 w-full"
       type="text"
-      bind:value={packageRepositoryUrlInput}
+      bind:value={packagePathInput}
     />
     <MoltenPushButton click={addPackageRepository} text="Add repository" />
   </div>
@@ -256,13 +345,15 @@
   {/if}
 
   <div
-    class="bg-secondary rounded-lg flex flex-col mb-4 {packagePreferenceComponentNames.length >
+    class="bg-secondary rounded-lg flex flex-col mb-4 {packagePreferenceComponents.length >
     0
       ? 'block'
       : 'none'}"
   >
-    {#each packagePreferenceComponentNames as componentName}
-      <svelte:element this={componentName} />
+    {#each packagePreferenceComponents as preference}
+      {#key $appSettings.packageComponentKeys[preference.packageId]}
+        <svelte:element this={preference.componentName} />
+      {/key}
     {/each}
   </div>
 </preferences>
