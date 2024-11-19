@@ -5,6 +5,7 @@
     isCopyElementEnabled,
     isOverwriteElementEnabled,
     isDiscardElementEnabled,
+    isClearElementEnabled,
   } from "./../../panels/configuration/components/Toolbar.ts";
   import {
     overwriteElement,
