@@ -1,12 +1,16 @@
 <script lang="ts">
+  import {
+    user_input,
+    type UserInputValue,
+  } from "./../../runtime/runtime.store";
+  import { GridEvent } from "./../../runtime/runtime";
   import { get } from "svelte/store";
-  import { user_input_event } from "./../panels/configuration/Configuration";
   import { modal } from "./modal.store";
   import MoltenModal from "./MoltenModal.svelte";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import MoltenPopup from "../panels/preferences/MoltenPopup.svelte";
 
-  let event = $user_input_event;
+  export let event: GridEvent;
 
   function handleCopy() {
     const _tempSpan = document.createElement("input");

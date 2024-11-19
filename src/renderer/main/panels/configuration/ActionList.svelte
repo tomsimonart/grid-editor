@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { selected_actions, user_input_event } from "./Configuration";
+  import { selected_actions } from "./Configuration";
   import AddAction from "./components/AddAction.svelte";
   import DynamicWrapper from "./components/DynamicWrapper.svelte";
   import DropZone from "./components/DropZone.svelte";
@@ -77,87 +77,82 @@
   }
 </script>
 
-{#if $event}
-  <ul
-    bind:this={configList}
-    on:mouseleave={() => {
-      clearInterval(autoScroll);
-    }}
-    class="flex flex-col w-full flex-grow overflow-y-scroll scroll justify-start"
-  >
-    {#if $draggedActions.length === 0}
-      {#if $event.config.length === 0}
-        <div class="mt-2">
-          <AddAction
-            index={0}
-            text={"There are no actions configured on this event."}
-            on:paste={handlePaste}
-            on:new-config={handleAddConfig}
-          />
-        </div>
-      {:else}
-        <AddActionLine
-          index={0}
+<ul
+  bind:this={configList}
+  on:mouseleave={() => {
+    clearInterval(autoScroll);
+  }}
+  class="flex flex-col w-full flex-grow overflow-y-scroll scroll justify-start"
+>
+  {#if $draggedActions.length === 0}
+    {#if $event.config.length === 0}
+      <div class="mt-2">
+        <AddAction
+          target={{ event: event, index: 0 }}
+          text={"There are no actions configured on this event."}
           on:paste={handlePaste}
           on:new-config={handleAddConfig}
         />
-      {/if}
+      </div>
     {:else}
-      <DropZone index={0} {event} />
+      <AddActionLine
+        target={{ event: event, index: 0 }}
+        on:paste={handlePaste}
+        on:new-config={handleAddConfig}
+      />
     {/if}
-    {#each $event.config as action, index (action.id)}
-      {@const showHelper =
-        typeof action.information.helperText !== "undefined" &&
-        ["composite_part", "composite_open"].includes(
-          action.information.type
-        ) &&
-        $event.config[index + 1]?.indentation === action.indentation &&
-        $appSettings.persistent.actionHelperText}
-      <anim-block
-        animate:flip={{ duration: 300, easing: eases.backOut }}
-        in:fade|global={{ delay: 0 }}
-      >
-        <div class="flex flex-row gap-2">
-          <DynamicWrapper
-            {index}
-            {action}
+  {:else}
+    <DropZone index={0} {event} />
+  {/if}
+  {#each $event.config as action, index (action.id)}
+    {@const showHelper =
+      typeof action.information.helperText !== "undefined" &&
+      ["composite_part", "composite_open"].includes(action.information.type) &&
+      $event.config[index + 1]?.indentation === action.indentation &&
+      $appSettings.persistent.actionHelperText}
+    <anim-block
+      animate:flip={{ duration: 300, easing: eases.backOut }}
+      in:fade|global={{ delay: 0 }}
+    >
+      <div class="flex flex-row gap-2">
+        <DynamicWrapper
+          {index}
+          {action}
+          selected={typeof $selected_actions.find((e) => e.id === action.id) !==
+            "undefined"}
+          on:select={(e) => handleSelectionChange(action, e.detail.value)}
+        />
+        <div class="flex items-center">
+          <Option
             selected={typeof $selected_actions.find(
               (e) => e.id === action.id
             ) !== "undefined"}
+            disabled={!action.information.selectable}
             on:select={(e) => handleSelectionChange(action, e.detail.value)}
           />
-          <div class="flex items-center">
-            <Option
-              selected={typeof $selected_actions.find(
-                (e) => e.id === action.id
-              ) !== "undefined"}
-              disabled={!action.information.selectable}
-              on:select={(e) => handleSelectionChange(action, e.detail.value)}
-            />
-          </div>
         </div>
+      </div>
 
-        {#if $draggedActions.length === 0}
-          {#if showHelper}
-            <div class="mr-6">
-              <AddAction
-                text={action.information.helperText}
-                index={index + 1}
-                on:paste={handlePaste}
-                on:new-config={handleAddConfig}
-              />
-            </div>
-          {:else}
-            <AddActionLine
-              index={index + 1}
+      {#if $draggedActions.length === 0}
+        {#if showHelper}
+          <div class="mr-6">
+            <AddAction
+              text={action.information.helperText}
+              target={{ event: event, index: index + 1 }}
               on:paste={handlePaste}
               on:new-config={handleAddConfig}
             />
-          {/if}
+          </div>
         {:else}
-          <DropZone index={index + 1} {event} />
+          <AddActionLine
+            target={{ event: event, index: index + 1 }}
+            on:paste={handlePaste}
+            on:new-config={handleAddConfig}
+          />
         {/if}
-      </anim-block>
-    {/each}
-  </ul>
-{/if}
+      {:else}
+        <DropZone index={index + 1} {event} />
+      {/if}
+    </anim-block>
+  {/each}
+</ul>

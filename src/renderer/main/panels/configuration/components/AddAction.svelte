@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { user_input_event } from "./../Configuration";
+  import { GridEvent } from "./../../../../runtime/runtime.ts";
+  import { user_input } from "./../../../../runtime/runtime.store";
   import {
     appClipboard,
     ClipboardKey,
@@ -13,7 +14,7 @@
   let isButtonHovered = false;
   let pasteDisabled = $appClipboard?.key !== ClipboardKey.ACTION_BLOCKS;
 
-  export let index = undefined;
+  export let target: { event: GridEvent; index: number };
   export let text;
 
   const dispatch = createEventDispatcher();
@@ -52,7 +53,7 @@
       <button
         class="flex rounded px-3 py-1 bg-commit items-center"
         class:opacity-50={pasteDisabled}
-        on:click={() => handlePaste(index)}
+        on:click={() => handlePaste(target.index)}
         on:mouseenter={() => (isButtonHovered = true)}
         on:mouseleave={() => (isButtonHovered = false)}
         disabled={pasteDisabled}
@@ -76,8 +77,8 @@
 
 {#if showActionPicker}
   <ActionPicker
-    event={$user_input_event}
-    {index}
+    event={target.event}
+    index={target.index}
     {referenceElement}
     on:close={handleCloseActionPicker}
   />

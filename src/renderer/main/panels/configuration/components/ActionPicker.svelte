@@ -99,7 +99,7 @@
     {
       let n = index - 1;
       let indentation = 0;
-      while (n >= 0) {
+      while (n >= 0 && typeof configs[n] !== "undefined") {
         const short = configs[n].short;
         if (short === "if") {
           ++indentation;
@@ -121,7 +121,7 @@
     } else {
       let n = parts[0].index + 1;
       let indentation = 1;
-      while (n < configs.length) {
+      while (n < configs.length && typeof configs[n] !== "undefined") {
         const short = configs[n].short;
 
         if (indentation == 1) {
@@ -162,7 +162,7 @@
     //Filter out not allowed button step conditions
     let n = index - 1;
     let indentation = 0;
-    while (n >= 0) {
+    while (n >= 0 && typeof configs[n] !== "undefined") {
       const short = configs[n].short;
       if (short === "bst0") {
         ++indentation;

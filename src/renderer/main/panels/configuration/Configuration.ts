@@ -43,6 +43,7 @@ export const user_input_event: Readable<GridEvent | undefined> = derived(
     );
 
     if (typeof event === "undefined") {
+      set(event);
       return;
     }
 

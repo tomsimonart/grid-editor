@@ -1,12 +1,18 @@
 <script lang="ts">
+  import { UserInputValue } from "./../../../runtime/runtime.store.ts";
   import ActionList from "./ActionList.svelte";
   import { get } from "svelte/store";
   import ElementSelectionPanel from "./ElementSelectionPanel.svelte";
   import { fly } from "svelte/transition";
   import EventPanel from "./EventPanel.svelte";
   import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
-  import { logger, runtime, user_input } from "../../../runtime/runtime.store";
-  import { selected_actions, user_input_event } from "./Configuration";
+  import {
+    logger,
+    runtime,
+    user_input,
+    type UserInputValue,
+  } from "../../../runtime/runtime.store";
+  import { selected_actions } from "./Configuration";
   import Toolbar from "./components/Toolbar.svelte";
   import ExportConfigs from "./components/ExportConfigs.svelte";
   import AddActionButton from "./components/AddActionButton.svelte";
@@ -24,6 +30,19 @@
   } from "../../../runtime/operations";
 
   let isSystemEventSelected = false;
+  let event: GridEvent;
+
+  $: handleUserInputChange($user_input);
+
+  function handleUserInputChange(ui: UserInputValue) {
+    event = runtime.findEvent(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber,
+      ui.eventtype
+    );
+  }
 
   $: {
     const les = $lua_error_store;
@@ -170,12 +189,10 @@
 
   function handleSelectAll() {
     const selected = get(selected_actions);
-    const uie = get(user_input_event);
-
-    if (uie.config.every((e) => selected.includes(e))) {
+    if (event.config.every((e) => selected.includes(e))) {
       selected_actions.set([]);
     } else {
-      selected_actions.set(uie.config);
+      selected_actions.set(event.config);
     }
   }
 </script>
@@ -211,19 +228,18 @@
           />
         </div>
 
-        <ActionList event={$user_input_event} />
-
-        {#if $user_input_event}
+        {#if typeof event !== "undefined"}
+          <ActionList {event} />
           <div
             class="w-full flex flex-row"
             class:invisible={$runtime.modules.length === 0}
           >
             <AddActionButton
-              index={$user_input_event?.config.length ?? 0}
+              target={{ event: event, index: $event?.config.length ?? 0 }}
               on:paste={handlePaste}
               on:new-config={handleAddConfig}
             />
-            <ExportConfigs />
+            <ExportConfigs {event} />
           </div>
         {/if}
       </configs>
@@ -232,10 +248,6 @@
 </configuration>
 
 <style global>
-  /*   .grabbed {
-    cursor: grab !important;
-  }
- */
   .unselectable {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -243,7 +255,6 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    /*     cursor: default; */
   }
 
   ::-webkit-scrollbar {

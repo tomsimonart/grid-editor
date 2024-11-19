@@ -318,7 +318,11 @@
 
 <main
   use:watchResize={resize}
-  on:mousewheel|preventDefault
+  on:mousewheel={(e) => {
+    if (event.ctrlKey) {
+      event.preventDefault();
+    }
+  }}
   id="app"
   spellcheck="false"
   class="dark relative flex w-full h-full flex-row justify-between overflow-hidden"

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { user_input_event, selected_actions } from "./../Configuration";
+  import { selected_actions } from "./../Configuration";
   import { grid } from "@intechstudio/grid-protocol";
   import {
     isClearElementEnabled,
@@ -251,13 +251,9 @@
       on:mouseleave={handleToolbarButtonBlur}
     >
       <Options
-        selected={$user_input_event?.config.every((e) =>
-          $selected_actions.includes(e)
-        )}
-        halfSelected={$user_input_event?.config.some((e) =>
-          $selected_actions.includes(e)
-        )}
-        disabled={$user_input_event?.config.length === 0}
+        selected={$event?.config.every((e) => $selected_actions.includes(e))}
+        halfSelected={$event?.config.some((e) => $selected_actions.includes(e))}
+        disabled={$event?.config.length === 0}
         on:select={handleSelectAllClicked}
       />
     </button>

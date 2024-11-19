@@ -1,9 +1,11 @@
-<script>
-  import { user_input_event } from "./../Configuration.ts";
+<script lang="ts">
+  import { GridEvent } from "./../../../../runtime/runtime.ts";
+  import { GridEvent } from "./../../../../runtime/runtime";
+  import { user_input } from "./../../../../runtime/runtime.store.ts";
   import ActionPicker from "./ActionPicker.svelte";
   import { createEventDispatcher } from "svelte";
 
-  export let index = undefined;
+  export let target: { event: GridEvent; index: number };
   let showActionPicker = false;
   let referenceElement = undefined;
 
@@ -45,8 +47,8 @@
 
 {#if showActionPicker}
   <ActionPicker
-    event={$user_input_event}
-    {index}
+    event={target.event}
+    index={target.index}
     {referenceElement}
     on:close={handleCloseActionPicker}
   />

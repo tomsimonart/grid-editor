@@ -1,13 +1,27 @@
 <script lang="ts">
+  import {
+    user_input,
+    type UserInputValue,
+  } from "./../../../runtime/runtime.store.ts";
   import ActionList from "./ActionList.svelte";
   import { GridElement } from "./../../../runtime/runtime.ts";
-  import { user_input_event } from "./Configuration.ts";
   import MoltenModal from "./../../modals/MoltenModal.svelte";
 
-  const element: GridElement = $user_input_event.parent;
+  let element: GridElement;
+
+  $: handleUserInputChange($user_input);
+
+  function handleUserInputChange(ui: UserInputValue) {
+    element = runtime.findElement(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber
+    );
+  }
 
   $: {
-    $element.events.forEach((e) => {
+    $element?.events.forEach((e) => {
       e.load();
     });
   }
@@ -16,7 +30,7 @@
 <MoltenModal width={500}>
   <svelte:fragment slot="content">
     <div class="grid grid-flow-col auto-cols-fr">
-      {#each $element.events as event}
+      {#each $element?.events as event}
         <ActionList {event} />
       {/each}
     </div>
