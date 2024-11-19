@@ -34,6 +34,7 @@ log.info(
 
 import { serial, restartSerialCheckInterval } from "./ipcmain_serialport";
 import { websocket } from "./ipcmain_websocket";
+import { developerWebsocket } from "./developer_websocket";
 import { store } from "./main-store";
 import { iconBuffer, iconSize } from "./icon";
 import { firmware, firmwareDownload, findBootloaderPath } from "./src/firmware";
@@ -51,10 +52,6 @@ import {
 } from "./src/profiles";
 import { fetchUrlJSON } from "./src/fetch";
 import { getLatestVideo } from "./src/youtube";
-import {
-  desktopAutomationPackageStart,
-  desktopAutomationPackageStop,
-} from "./addon/desktopAutomation";
 import { SerialPort } from "serialport";
 
 log.info("App starting...");
@@ -175,11 +172,31 @@ if (!gotTheLock) {
     }
     createWindow();
     protocol.handle("package", (req) => {
-      const pathToMedia = req.url.substring("package://".length);
-      const packageFolder = path.resolve(
-        path.join(app.getPath("documents"), "grid-userdata", "packages")
+      let requestPath = req.url.substring("package://".length);
+
+      // import() calls are cached client side
+      // To bust through, clients may send url starting with 'vxxx/'
+      if (requestPath.startsWith("v")) {
+        requestPath = requestPath.split("/").slice(1).join("/");
+      }
+
+      let packageName = requestPath.split("/")[0];
+      let filePath = requestPath.split("/").slice(1).join("/");
+      let packageFolder = path.resolve(
+        path.join(
+          app.getPath("documents"),
+          "grid-userdata",
+          "packages",
+          packageName
+        )
       );
-      const fullPath = path.join(packageFolder, pathToMedia);
+
+      // Override package path for local dev packages
+      let localPackages = store.get("localPackages");
+      if (localPackages[packageName]) {
+        packageFolder = localPackages[packageName];
+      }
+      const fullPath = path.join(packageFolder, filePath);
       return net.fetch(`file://${fullPath}`);
     });
   });
@@ -369,8 +386,8 @@ function startPackageManager(
       packageFolder: packageFolder,
       version: configuration.EDITOR_VERSION,
       githubPackages: store.get("githubPackages"),
+      localPackages: store.get("localPackages"),
       updatePackageOnStartName,
-      packageDeveloper: store.get("packageDeveloper"),
     });
 
     packageManagerProcess.on("message", (message) => {
@@ -416,6 +433,41 @@ function stopPackageManager(stopGracefully: boolean = false) {
         startPackageManager();
       }
     }, 10000);
+  }
+}
+
+function handleDeveloperWebsocketMessage(data: any) {
+  if (data.type === "developer-package") {
+    let developerPackages = store.get("localPackages");
+    if (
+      developerPackages[data.id] &&
+      path.resolve(developerPackages[data.id]) === path.resolve(data.rootPath)
+    ) {
+      if (data.event === "components-build-complete") {
+        packageEditorPort?.postMessage({
+          type: "reload-package-components",
+          id: data.id,
+        });
+      } else if (data.event === "package-build-complete") {
+        packageManagerProcess?.postMessage({
+          type: "restart-package",
+          id: data.id,
+          payload: store.get("packagesDataStorage")[data.id],
+        });
+      }
+    } else {
+      packageEditorPort?.postMessage({
+        type: "request-developer-package",
+        id: data.id,
+        rootPath: data.rootPath,
+        name:
+          data.name ??
+          data.id
+            .split("-")
+            .map((str) => str.charAt(0).toUpperCase() + str.slice(1))
+            .join(" "),
+      });
+    }
   }
 }
 
@@ -490,15 +542,15 @@ async function restartPackageManagerProcess() {
   }
 }
 
+if (store.get("packageDeveloper")) {
+  developerWebsocket.startWebsocketServer(handleDeveloperWebsocketMessage);
+}
+
 store.onDidChange("packageDeveloper", (newValue) => {
-  if (packageManagerProcess) {
-    packageManagerProcess.postMessage(
-      {
-        type: "set-package-developer",
-        value: newValue ?? false,
-      },
-      []
-    );
+  if (newValue) {
+    developerWebsocket.startWebsocketServer(handleDeveloperWebsocketMessage);
+  } else {
+    developerWebsocket.stopWebsocketServer();
   }
 });
 

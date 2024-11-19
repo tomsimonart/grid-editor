@@ -106,6 +106,24 @@
     handleKeyUp(e);
     handleMouseUp(e);
   }
+
+  function handleMouseWheel(e: MouseEvent) {
+    const as = get(appSettings);
+    const deltaY = e.deltaY > 0 ? 1 : -1;
+    switch (deltaY) {
+      case 1:
+        if (as.maxSize <= as.persistent.size) return;
+        break;
+      case -1:
+        if (as.minSize >= as.persistent.size) return;
+        break;
+    }
+
+    appSettings.update((s) => {
+      s.persistent.size += s.stepSize * deltaY;
+      return s;
+    });
+  }
 </script>
 
 <svelte:window on:keydown={handleKeyEvent} on:keyup={handleKeyEvent} />
@@ -118,6 +136,7 @@
   on:mousemove={handleMouseMove}
   on:mousedown={handleMouseEvent}
   on:mouseup={handleMouseEvent}
+  on:mousewheel|preventDefault={handleMouseWheel}
   class:pointer-events-none={!trackMouse}
   class:cursor-grabbing={dragMouse}
   class:cursor-grab={trackMouse}

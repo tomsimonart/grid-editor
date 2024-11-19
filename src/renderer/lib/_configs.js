@@ -19,9 +19,13 @@ export async function init_config_block_library() {
   }
 }
 
-export function getComponentInformation({ short }) {
+export function getComponentInformation(short) {
   const comps = getAllComponents();
-  return comps?.find((c) => c.information.short == short);
+  let result = comps?.find((c) => c.information.short == short);
+  if (!result) {
+    result = comps?.find((c) => c.information.short == "raw");
+  }
+  return result;
 }
 
 export function getAllComponents() {

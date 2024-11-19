@@ -67,12 +67,9 @@
         continue;
       }
 
-      const obj = getComponentInformation({ short: value });
+      const obj = getComponentInformation(value);
       //Can not replace for RAW code
-      if (
-        typeof obj !== "undefined" &&
-        obj.information.short !== information.short
-      ) {
+      if (obj.information.short !== information.short) {
         block = obj;
         break;
       }
@@ -80,7 +77,7 @@
 
     //Fallback logic, everything can be converted to codeblock
     if (!block) {
-      block = getComponentInformation({ short: "cb" });
+      block = getComponentInformation("cb");
     }
 
     return block;

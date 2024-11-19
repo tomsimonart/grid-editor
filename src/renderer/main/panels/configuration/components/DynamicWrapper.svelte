@@ -45,7 +45,7 @@
       toggled = true;
     }
 
-    const result = getComponentInformation({ short: action.short });
+    const result = getComponentInformation(action.short);
     header = result.header;
     component = result.component;
   });
