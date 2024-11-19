@@ -213,5 +213,5 @@ test.describe("Element Mode MAX value", () => {
     await configPage.clickActionBlockElement(category, blockName, "Max");
     await expect(configPage.elementMaxResolutionDropdown).toBeVisible();
   });
+  */
 });
-*/
