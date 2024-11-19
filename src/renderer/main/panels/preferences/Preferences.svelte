@@ -117,14 +117,14 @@
       <BlockRow>
         <MeltSlider
           bind:target={$appSettings.persistent.size}
-          min={0.5}
-          max={2.6}
-          step={0.1}
+          min={$appSettings.minSize}
+          max={$appSettings.maxSize}
+          step={$appSettings.stepSize}
         />
         <MoltenButton
           title={"Reset"}
           click={() => {
-            $appSettings.persistent.size = 1.0;
+            $appSettings.persistent.size = $appSettings.defaultSize;
           }}
         />
       </BlockRow>
@@ -509,10 +509,10 @@
       <!-- Checkbox for packageDeveloper -->
 
       <BlockTitle>Package Developer Mode</BlockTitle>
-      <BlockBody
-        >Automatically restart the package manager process when files are
-        changed inside the package folder</BlockBody
-      >
+      <BlockBody>
+        Starts a developer websocket in Editor allowing hot reload functionality
+        for packages.
+      </BlockBody>
       <MeltCheckbox
         bind:target={$appSettings.persistent.packageDeveloper}
         title={"Enabled"}

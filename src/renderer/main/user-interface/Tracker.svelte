@@ -24,6 +24,7 @@
   function handleGridLayoutResetClicked(e) {
     appSettings.update((s) => {
       s.gridLayoutShift = { x: 0, y: 0 };
+      s.persistent.size = s.defaultSize;
       return s;
     });
   }
@@ -59,7 +60,8 @@
         click={handleGridLayoutResetClicked}
         snap={"full"}
         disabled={$appSettings.gridLayoutShift.x == 0 &&
-          $appSettings.gridLayoutShift.y == 0}
+          $appSettings.gridLayoutShift.y == 0 &&
+          $appSettings.persistent.size == $appSettings.defaultSize}
       />
     </div>
   </div>

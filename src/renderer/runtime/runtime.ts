@@ -249,10 +249,6 @@ export class ActionData extends NodeData {
 
   public get information() {
     let result = GridAction.getInformation(this.short);
-    //Backward compatibility
-    if (typeof result === "undefined") {
-      result = GridAction.getInformation("raw");
-    }
     return result;
   }
 
@@ -328,7 +324,7 @@ export class GridAction extends RuntimeNode<ActionData> {
   }
 
   static getInformation(short: string): ActionBlockInformation {
-    const result = getComponentInformation({ short: short });
+    const result = getComponentInformation(short);
     return result.information as ActionBlockInformation;
   }
 

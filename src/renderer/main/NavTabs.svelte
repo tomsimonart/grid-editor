@@ -79,6 +79,7 @@
     -->
 
     <button
+      data-testid="nav-configuration"
       use:tooltip={{
         nowrap: true,
         placement: "right",
@@ -115,6 +116,7 @@
     </button>
 
     <button
+      data-testid="nav-preferences"
       use:tooltip={{
         nowrap: true,
         placement: "right",
@@ -173,6 +175,7 @@
 
   <div class="flex flex-col">
     <button
+      data-testid="nav-profile-cloud"
       use:tooltip={{
         nowrap: true,
         placement: "right",
@@ -208,6 +211,7 @@
     </button>
 
     <button
+      data-testid="nav-debug-monitor"
       use:tooltip={{
         nowrap: true,
         placement: "right",
@@ -268,6 +272,7 @@
     </button>
 
     <button
+      data-testid="nav-midi-monitor"
       use:tooltip={{
         nowrap: true,
         placement: "right",

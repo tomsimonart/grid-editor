@@ -355,6 +355,11 @@
         fixedUrl = `${fixedUrl}/wc/components.js`;
       }
     }
+    if (profileCloudUrl === configuration.PROFILE_CLOUD_URL_LOCAL) {
+      fixedUrl = `package://v${new Date().getTime()}/${configuration.PROFILE_CLOUD_URL_LOCAL.substring(
+        "package://".length
+      )}`;
+    }
     if (offlineMode) {
       profileCloudWebComponentName = "profile-cloud-offline";
     } else {
@@ -371,6 +376,7 @@
           }
         })
         .catch((e) => {
+          profileCloudWebComponentName = "profile-cloud-dev";
           console.log(e);
         });
     }
@@ -437,6 +443,11 @@
     </div>
   {/if}
   {#if profileCloudWebComponentName}
-    <svelte:element this={profileCloudWebComponentName} class="w-full h-full" />
+    {#key profileCloudWebComponentName == "profile-cloud-dev" ? $appSettings.packageComponentKeys["profile-cloud"] : true}
+      <svelte:element
+        this={profileCloudWebComponentName}
+        class="w-full h-full"
+      />
+    {/key}
   {/if}
 </div>
