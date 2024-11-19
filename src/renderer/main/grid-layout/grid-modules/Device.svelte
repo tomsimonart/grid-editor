@@ -2,14 +2,15 @@
   import { appClipboard } from "./../../../runtime/clipboard.store.ts";
   import { runtime, user_input } from "./../../../runtime/runtime.store";
   import {
+    isCopyElementEnabled,
+    isOverwriteElementEnabled,
+    isDiscardElementEnabled,
+  } from "./../../panels/configuration/components/Toolbar.ts";
+  import {
     overwriteElement,
     copyElement,
     discardElement,
     clearElement,
-    isCopyElementEnabled,
-    isOverwriteElementEnabled,
-    isDiscardElementEnabled,
-    isClearElementEnabled,
   } from "./../../../runtime/operations";
   import { contextMenu, contextTarget } from "@intechstudio/grid-uikit";
   import XX16 from "./devices/XX16.svelte";
