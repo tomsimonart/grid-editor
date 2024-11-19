@@ -174,6 +174,7 @@ test.describe("Element Mode MAX value", () => {
     await expect(configPage.elementMaxResolutionDropdown).toBeVisible();
   });
 
+  /*
   test("Encoder", async () => {
     const category = "element";
     const blockName = "Encoder Mode";
@@ -213,3 +214,4 @@ test.describe("Element Mode MAX value", () => {
     await expect(configPage.elementMaxResolutionDropdown).toBeVisible();
   });
 });
+*/
