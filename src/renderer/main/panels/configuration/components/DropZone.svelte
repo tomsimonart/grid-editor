@@ -4,6 +4,7 @@
     dropEventTarget,
     dropzone,
     draggedActions,
+    type DropTarget,
   } from "../../../_actions/move.action";
 
   export let index: number;
@@ -12,23 +13,32 @@
 
   let disabled = false;
 
-  $: {
-    if (
-      $dropEventTarget?.event === event &&
-      $dropEventTarget?.index === index
-    ) {
-      let targetIndexes = $draggedActions.map((action) =>
-        event.config.findIndex((e) => e.id === action.id)
-      );
-      const targetMinIndex = Math.min(...targetIndexes);
-      const targetMaxIndex = Math.max(...targetIndexes);
+  $: handleDropEventTargetChange($dropEventTarget);
 
-      if (index >= targetMinIndex && index <= targetMaxIndex + 1) {
-        disabled = true;
-      } else {
-        disabled = false;
-      }
+  function handleDropEventTargetChange(target: DropTarget) {
+    if (target?.index !== index) {
+      return;
     }
+
+    // Always droppable
+    const crossDrop = $draggedActions.every(
+      (e) => (e.parent as GridEvent) !== event
+    );
+    if (crossDrop) {
+      disabled = false;
+      return;
+    }
+
+    const targetIndexes = $draggedActions.map((action) =>
+      event.config.findIndex((e) => e.id === action.id)
+    );
+
+    const [targetMinIndex, targetMaxIndex] = [
+      Math.min(...targetIndexes),
+      Math.max(...targetIndexes),
+    ];
+
+    disabled = index >= targetMinIndex && index <= targetMaxIndex + 1;
   }
 </script>
 

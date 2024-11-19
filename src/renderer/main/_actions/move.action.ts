@@ -3,8 +3,8 @@ import { GridAction, GridEvent } from "../../runtime/runtime";
 import { dropActions, removeActions } from "../../runtime/operations";
 
 export const draggedActions: Writable<GridAction[]> = writable([]);
-export const dropEventTarget: Writable<{ event: GridEvent; index: number }> =
-  writable();
+export type DropTarget = { event: GridEvent; index: number };
+export const dropEventTarget: Writable<DropTarget> = writable();
 
 function getDraggedActions(action: GridAction): GridAction[] {
   const actions: GridAction[] = [];

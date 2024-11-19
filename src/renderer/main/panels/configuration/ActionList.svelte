@@ -85,21 +85,23 @@
     }}
     class="flex flex-col w-full flex-grow overflow-y-scroll scroll justify-start"
   >
-    {#if $event.config.length === 0}
-      <div class="mt-2">
-        <AddAction
+    {#if $draggedActions.length === 0}
+      {#if $event.config.length === 0}
+        <div class="mt-2">
+          <AddAction
+            index={0}
+            text={"There are no actions configured on this event."}
+            on:paste={handlePaste}
+            on:new-config={handleAddConfig}
+          />
+        </div>
+      {:else}
+        <AddActionLine
           index={0}
-          text={"There are no actions configured on this event."}
           on:paste={handlePaste}
           on:new-config={handleAddConfig}
         />
-      </div>
-    {:else if $draggedActions.length === 0}
-      <AddActionLine
-        index={0}
-        on:paste={handlePaste}
-        on:new-config={handleAddConfig}
-      />
+      {/if}
     {:else}
       <DropZone index={0} {event} />
     {/if}
