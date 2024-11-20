@@ -1,17 +1,39 @@
-import { writable, get } from "svelte/store";
+import { writable, type Writable } from "svelte/store";
 import { getDeviceName } from "../../../runtime/runtime.store";
 import { v4 as uuidv4 } from "uuid";
 
 class DeviceInfo {
-  constructor(name, dx, dy) {
+  public name: string;
+  public x: number;
+  public y: number;
+
+  constructor(name: string, dx: number, dy: number) {
     this.name = name;
     this.x = dx;
     this.y = dy;
   }
 }
 
-class MidiMessage {
-  constructor(channel, command, param1, param2, direction) {
+type MidiParameter = {
+  name: string;
+  short: string;
+  value: number;
+  value_alias?: string;
+};
+
+export class MidiMessage {
+  public params: { p1: MidiParameter; p2: MidiParameter };
+  public channel: number;
+  public command: MidiParameter;
+  public direction: string;
+
+  constructor(
+    channel: number,
+    command: number,
+    param1: number,
+    param2: number,
+    direction: string
+  ) {
     this.channel = channel;
     this.command = {
       name: getCommandName(command),
@@ -37,7 +59,10 @@ class MidiMessage {
 }
 
 class SysExMessage {
-  constructor(channel, direction, raw) {
+  public channel: number;
+  public direction: string;
+  public raw: any;
+  constructor(channel: number, direction: string, raw: any) {
     this.channel = channel;
     this.direction = direction;
     this.raw = raw;
@@ -143,7 +168,7 @@ const cmdLookup = new Map([
 
 //Musical Notes
 export class MusicalNotes {
-  static #musNotes = [
+  static musNotes = [
     "C",
     "C#",
     "D",
@@ -157,30 +182,27 @@ export class MusicalNotes {
     "A#",
     "B",
   ];
-  static FromInt(int_value) {
-    return (
-      this.#musNotes[Math.floor(int_value % 12)] +
-      (Math.floor(int_value / 12) - 2)
-    );
+  static FromInt(value: number) {
+    return this.musNotes[Math.floor(value % 12)] + (Math.floor(value / 12) - 2);
   }
 }
 
 //Retrieves an object with all the user friendly naming
-function getCommand(int_value) {
+function getCommand(value: number) {
   try {
-    if (!Number.isInteger(int_value)) throw int_value + " is not an integer.";
+    if (!Number.isInteger(value)) throw value + " is not an integer.";
 
-    let hex = int_value.toString(16);
+    let hex = value.toString(16);
     let cmd = cmdLookup.get(hex[0].toUpperCase());
 
-    if (cmd === undefined) throw "Unknown Command (" + int_value + ")";
+    if (cmd === undefined) throw "Unknown Command (" + value + ")";
 
     return cmd;
   } catch (e) {
     console.log("MIDI message parsing error: " + e);
     return {
       name: "Unknown",
-      short: int_value.toString(),
+      short: value.toString(),
       params: {
         p1: { name: "P1", short: "P1" },
         p2: { name: "P2", short: "P2" },
@@ -189,13 +211,19 @@ function getCommand(int_value) {
   }
 }
 
-function createMidiMonitor(max_length) {
-  const store = writable([]);
-  let lastMessages = [];
+export type MidiMonitorItem = {
+  id: any;
+  date: number;
+  type: string;
+  data: MidiMessage;
+  device: DeviceInfo;
+};
 
+function createMidiMonitor(max_length) {
+  const store: Writable<MidiMonitorItem[]> = writable([]);
   return {
     ...store,
-    update_midi: (descr) => {
+    update_midi: (descr: any) => {
       if (descr.class_name !== "MIDI") return;
 
       store.update((s) => {
@@ -207,32 +235,11 @@ function createMidiMonitor(max_length) {
         let bc = descr.brc_parameters;
         let cp = descr.class_parameters;
 
-        //Helper functions
-        function isHighResMidiPart(message) {
-          if (
-            s.length === 0 ||
-            getCommandShortName(item.data.command.value) !== "CC"
-          ) {
-            return false;
-          }
-
-          const lastMessage = s[s.length - 1];
-          const offset_diff =
-            lastMessage.data.params.p1.value - message.data.params.p1.value;
-          return offset_diff === -32;
-        }
-
-        function isNSPNMidiPart(message) {
-          if (getCommandShortName(item.data.command.value) !== "CC") {
-            return false;
-          }
-          return [98, 38, 6].includes(message.data.params.p1.value);
-        }
-
         //Make full MIDI message from raw data (param names, command name, etc.)
-
         let item = {
           id: uuidv4(),
+          date: Date.now(),
+          type: "MIDI",
           data: new MidiMessage(
             cp.CHANNEL,
             cp.COMMAND,
@@ -242,79 +249,25 @@ function createMidiMonitor(max_length) {
           ),
           device: new DeviceInfo(getDeviceName(bc.SX, bc.SY), bc.SX, bc.SY),
         };
-        UpdateDebugStream(structuredClone(item), "MIDI");
-
-        if (isHighResMidiPart(item)) {
-          //Get first part of hiRes MIDI
-          const lastMessage = s[s.length - 1];
-
-          //Get the two half of the high res value from current and last message
-          const upper_value = lastMessage.data.params.p2.value << 7;
-          const lower_value = item.data.params.p2.value;
-
-          //Update display values instead of pushing to the store
-          lastMessage.data.command.name += " (14)";
-          lastMessage.data.command.short += " (14)";
-
-          //Set the high resolutin messages value to the combined
-          //value of the current and last message
-          lastMessage.data.params.p2.value = upper_value + lower_value;
-        } else if (isNSPNMidiPart(item)) {
-          //Get first part of NPSPN MIDI
-          const lastMessage = s[s.length - 1];
-
-          switch (item.data.params.p1.value) {
-            case 98: {
-              //Get the two half of the address value from current and last message
-              const upper_value = lastMessage.data.params.p2.value << 7;
-              const lower_value = item.data.params.p2.value;
-
-              //Update display values
-              lastMessage.data.command.name += " (NRPN)";
-              lastMessage.data.command.short += " (NPRN)";
-
-              //Set the address value to the combined
-              //value of the current and last message
-              lastMessage.data.params.p1.value = upper_value + lower_value;
-              break;
-            }
-            case 6: {
-              //Set the CC value
-              lastMessage.data.params.p2.value = item.data.params.p2.value;
-              break;
-            }
-            case 38: {
-              //If highres value is received, the last message contained the
-              //first half.
-              const upper_value = lastMessage.data.params.p2.value << 7;
-              const lower_value = item.data.params.p2.value;
-
-              //Set the combined high resolution CC value
-              lastMessage.data.params.p2.value = upper_value + lower_value;
-              break;
-            }
-          }
-        } else {
-          //Normal message, put it into the store as it is
-          s = [...s, item];
-        }
-
-        //Update buffer
-        lastMessages.push(item);
-        if (lastMessages.length > 4) {
-          lastMessages.shift();
-        }
-        return s;
+        return [...s, item];
       });
     },
   };
 }
 
+export type SysExMonitorItem = {
+  id: any;
+  date: number;
+  type: string;
+  data: SysExMessage;
+  device: DeviceInfo;
+};
+
 function createSysExMonitor(max_val) {
-  const store = writable([]);
+  const store: Writable<SysExMonitorItem[]> = writable([]);
   return {
     ...store,
-    update_sysex: (descr) => {
+    update_sysex: (descr: any) => {
       if (descr.class_name !== "MIDISYSEX") return;
 
       store.update((s) => {
@@ -327,30 +280,16 @@ function createSysExMonitor(max_val) {
 
         let item = {
           id: uuidv4(),
+          date: Date.now(),
+          type: "SYSEX",
           data: new SysExMessage(cp.CHANNEL, descr.class_instr, descr.raw),
           device: new DeviceInfo(getDeviceName(bc.SX, bc.SY), bc.SX, bc.SY),
         };
 
-        UpdateDebugStream(item, "SYSEX");
-
-        s = [...s, item];
-        return s;
+        return [...s, item];
       });
     },
   };
-}
-
-export const debug_stream = writable([]);
-
-function UpdateDebugStream(item, msg_type) {
-  debug_stream.update((items) => {
-    if (items.length >= 32) {
-      items.shift();
-    }
-
-    item.type = msg_type;
-    return [...items, item];
-  });
 }
 
 export const maxMidi = 32;

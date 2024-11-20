@@ -28,7 +28,7 @@
   import MeltCombo from "./components/MeltCombo.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "./_validators";
-  import { MeltCheckbox } from "@intechstudio/grid-uikit";
+  import { MeltCheckbox, Block, BlockBody } from "@intechstudio/grid-uikit";
 
   export let config;
   export let index;
@@ -46,31 +46,44 @@
 
   function handleScriptChange(script) {
     const arr = script.split("self:").slice(1);
-
-    const extractParam = (index) => {
-      const param = whatsInParenthesis.exec(arr[index]);
-      return param && param.length > 0 ? param[1] : null;
+    const parts = {
+      pmo: null,
+      pma: null,
+      pmi: null,
     };
+    for (const [key, value] of Object.entries(parts)) {
+      const index = arr.findIndex((e) => e.includes(key));
+      if (index !== -1) {
+        parts[key] = whatsInParenthesis.exec(arr[index])[1];
+      }
+    }
 
-    pmo = extractParam(0);
+    pmo = parts.pmo;
 
-    const param2 = extractParam(1);
-    const param3 = extractParam(2);
-
-    minMaxEnabled = !!param2 || !!param3;
+    minMaxEnabled = !!parts.pmi || !!parts.pma;
     if (minMaxEnabled) {
-      pmi = param2;
-      pma = param3;
+      pmi = parts.pmi;
+      pma = parts.pma;
     }
   }
 
-  $: sendData(pmo, pma, minMaxEnabled ? pmi : undefined);
+  $: sendData(pmo, pmi, pma);
+
+  $: handleMinMaxChange(minMaxEnabled);
+  function handleMinMaxChange(value) {
+    sendData(pmo, pmi, pma);
+    syncWithGrid();
+  }
+
+  function syncWithGrid() {
+    dispatch("sync");
+  }
 
   function sendData(p1, p2, p3) {
     const optional = [];
 
     if (minMaxEnabled) {
-      optional.push(`self:pmi(${p3})  self:pma(${p2})`);
+      optional.push(`self:pmi(${p2})  self:pma(${p3})`);
     }
 
     dispatch("update-action", {
@@ -119,62 +132,59 @@
     validator={(e) => {
       return new Validator(e).NotEmpty().Result();
     }}
-    on:input={(e) => {
-      //pmo = e.detail;
-    }}
     on:validator={(e) => {
       const data = e.detail;
       dispatch("validator", data);
     }}
-    on:change={() => dispatch("sync")}
+    on:change={syncWithGrid}
     postProcessor={GridScript.shortify}
     preProcessor={GridScript.humanize}
   />
 
-  <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
+  <Block>
+    <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
 
-  <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
-    <MeltCombo
-      title={"Min"}
-      disabled={!minMaxEnabled}
-      bind:value={pmi}
-      validator={(e) => {
-        return minMaxEnabled
-          ? new Validator(e).NotEmpty().Result()
-          : new Validator(e).Result();
-      }}
-      on:input={(e) => {
-        //pmi = e.detail;
-      }}
-      on:validator={(e) => {
-        const data = e.detail;
-        dispatch("validator", data);
-      }}
-      on:change={() => dispatch("sync")}
-      postProcessor={GridScript.shortify}
-      preProcessor={GridScript.humanize}
-    />
+    <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
+      <MeltCombo
+        title={"Min"}
+        disabled={!minMaxEnabled}
+        bind:value={pmi}
+        validator={(e) => {
+          return minMaxEnabled
+            ? new Validator(e).NotEmpty().Result()
+            : new Validator(e).Result();
+        }}
+        on:validator={(e) => {
+          const data = e.detail;
+          dispatch("validator", data);
+        }}
+        on:change={syncWithGrid}
+        postProcessor={GridScript.shortify}
+        preProcessor={GridScript.humanize}
+      />
 
-    <MeltCombo
-      title={"Max"}
-      disabled={!minMaxEnabled}
-      bind:value={pma}
-      suggestions={suggestions[1]}
-      validator={(e) => {
-        return new Validator(e).NotEmpty().Result();
-      }}
-      on:input={(e) => {
-        //pma = e.detail;
-      }}
-      on:validator={(e) => {
-        const data = e.detail;
-        dispatch("validator", data);
-      }}
-      on:change={() => dispatch("sync")}
-      postProcessor={GridScript.shortify}
-      preProcessor={GridScript.humanize}
-    />
-  </div>
+      <MeltCombo
+        title={"Max"}
+        disabled={!minMaxEnabled}
+        bind:value={pma}
+        suggestions={suggestions[1]}
+        validator={(e) => {
+          return new Validator(e).NotEmpty().Result();
+        }}
+        on:validator={(e) => {
+          const data = e.detail;
+          dispatch("validator", data);
+        }}
+        on:change={syncWithGrid}
+        postProcessor={GridScript.shortify}
+        preProcessor={GridScript.humanize}
+      />
+    </div>
+    <BlockBody>
+      Note: When Min/Max values are disabled, any changes to the default values
+      will only be reset after storing.
+    </BlockBody>
+  </Block>
 
   {#if minMaxEnabled}
     <div class="flex flex-row gap-2">

@@ -334,7 +334,7 @@ export function getDeviceName(x, y) {
   const currentModule = runtime.modules.find(
     (device) => device.dx == x && device.dy == y
   );
-  return currentModule?.id.slice(0, 4);
+  return currentModule?.type;
 }
 
 export function getElementEventTypes(x, y, elementNumber) {

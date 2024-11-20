@@ -13,7 +13,7 @@
     isCutActionsEnabled,
     isMergeActionsEnabled,
     isRemoveActionsEnabled,
-  } from "./../../../../runtime/operations";
+  } from "./Toolbar";
   import { createEventDispatcher } from "svelte";
   import { appClipboard } from "./../../../../runtime/clipboard.store";
   import { GridEvent, GridElement } from "./../../../../runtime/runtime";

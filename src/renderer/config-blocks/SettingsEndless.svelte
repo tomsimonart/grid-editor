@@ -28,7 +28,7 @@
   import MeltCombo from "./components/MeltCombo.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "./_validators.js";
-  import { MeltCheckbox } from "@intechstudio/grid-uikit";
+  import { MeltCheckbox, Block, BlockBody } from "@intechstudio/grid-uikit";
 
   export let config;
   export let index;
@@ -48,38 +48,53 @@
 
   function handleScriptChange(script) {
     const arr = script.split("self:").slice(1);
-
-    const extractParam = (index) => {
-      const param = whatsInParenthesis.exec(arr[index]);
-      return param && param.length > 0 ? param[1] : null;
+    const parts = {
+      epmo: null,
+      epv0: null,
+      epmi: null,
+      epma: null,
+      epse: null,
     };
 
-    epmo = extractParam(0);
-    epv0 = extractParam(1);
-
-    const param3 = extractParam(2);
-    const param4 = extractParam(3);
-
-    minMaxEnabled = !!param3 || !!param4;
-    if (minMaxEnabled) {
-      epmi = param3;
-      epma = param4;
+    for (const [key, value] of Object.entries(parts)) {
+      const index = arr.findIndex((e) => e.includes(key));
+      if (index !== -1) {
+        parts[key] = whatsInParenthesis.exec(arr[index])[1];
+      }
     }
 
-    const param5 = extractParam(4);
-    sensitivityEnabled = !!param5;
+    epmo = parts.epmo;
+    epv0 = parts.epv0;
+
+    minMaxEnabled = !!parts.epmi || !!parts.epma;
+    if (minMaxEnabled) {
+      epmi = parts.epmi;
+      epma = parts.epma;
+    }
+
+    sensitivityEnabled = !!parts.epse;
     if (sensitivityEnabled) {
-      epse = param5;
+      epse = parts.epse;
     }
   }
 
-  $: sendData(
-    epmo,
-    epv0,
-    minMaxEnabled ? epmi : undefined,
-    minMaxEnabled ? epma : undefined,
-    sensitivityEnabled ? epse : undefined
-  );
+  $: sendData(epmo, epv0, epmi, epma, epse);
+
+  $: handleMinMaxChange(minMaxEnabled);
+  function handleMinMaxChange(value) {
+    sendData(epmo, epv0, epmi, epma, epse);
+    syncWithGrid();
+  }
+
+  $: handleSensitivityChange(sensitivityEnabled);
+  function handleSensitivityChange(value) {
+    sendData(epmo, epv0, epmi, epma, epse);
+    syncWithGrid();
+  }
+
+  function syncWithGrid() {
+    dispatch("sync");
+  }
 
   function sendData(p1, p2, p3, p4, p5) {
     const optional = [];
@@ -120,109 +135,100 @@
 <endless-settings
   class="{$$props.class} flex flex-col w-full px-4 py-2 pointer-events-auto"
 >
-  <MeltCombo
-    title={"Endless Mode"}
-    bind:value={epmo}
-    suggestions={suggestions[0]}
-    validator={(e) => {
-      return new Validator(e).NotEmpty().Result();
-    }}
-    on:input={(e) => {
-      //epmo = e.detail;
-    }}
-    on:validator={(e) => {
-      const data = e.detail;
-      dispatch("validator", data);
-    }}
-    on:change={() => dispatch("sync")}
-    postProcessor={GridScript.shortify}
-    preProcessor={GridScript.humanize}
-  />
-
-  <MeltCombo
-    title={"Endless Velocity"}
-    bind:value={epv0}
-    suggestions={suggestions[1]}
-    validator={(e) => {
-      return new Validator(e).NotEmpty().Result();
-    }}
-    on:input={(e) => {
-      //epv0 = e.detail;
-    }}
-    on:validator={(e) => {
-      const data = e.detail;
-      dispatch("validator", data);
-    }}
-    on:change={() => dispatch("sync")}
-    postProcessor={GridScript.shortify}
-    preProcessor={GridScript.humanize}
-  />
-
-  <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
-  <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
+  <Block>
     <MeltCombo
-      title={"Min"}
-      disabled={!minMaxEnabled}
-      bind:value={epmi}
+      title={"Endless Mode"}
+      bind:value={epmo}
+      suggestions={suggestions[0]}
       validator={(e) => {
-        return minMaxEnabled
-          ? new Validator(e).NotEmpty().Result()
-          : new Validator(e).Result();
-      }}
-      on:input={(e) => {
-        //epmi = e.detail;
+        return new Validator(e).NotEmpty().Result();
       }}
       on:validator={(e) => {
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:change={() => dispatch("sync")}
+      on:change={syncWithGrid}
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />
 
     <MeltCombo
-      title={"Max"}
-      disabled={!minMaxEnabled}
-      bind:value={epma}
+      title={"Endless Velocity"}
+      bind:value={epv0}
+      suggestions={suggestions[1]}
       validator={(e) => {
-        return minMaxEnabled
-          ? new Validator(e).NotEmpty().Result()
-          : new Validator(e).Result();
-      }}
-      on:input={(e) => {
-        //epma = e.detail;
+        return new Validator(e).NotEmpty().Result();
       }}
       on:validator={(e) => {
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:change={() => dispatch("sync")}
+      on:change={syncWithGrid}
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />
-  </div>
 
-  <MeltCheckbox bind:target={sensitivityEnabled} title="Enable Sensitivity" />
+    <MeltCheckbox bind:target={minMaxEnabled} title={"Enable Min/Max Value"} />
+    <div class="w-full grid grid-flow-col auto-cols-fr gap-2">
+      <MeltCombo
+        title={"Min"}
+        disabled={!minMaxEnabled}
+        bind:value={epmi}
+        validator={(e) => {
+          return minMaxEnabled
+            ? new Validator(e).NotEmpty().Result()
+            : new Validator(e).Result();
+        }}
+        on:validator={(e) => {
+          const data = e.detail;
+          dispatch("validator", data);
+        }}
+        on:change={syncWithGrid}
+        postProcessor={GridScript.shortify}
+        preProcessor={GridScript.humanize}
+      />
 
-  <MeltCombo
-    title={"Sensitivity"}
-    disabled={!sensitivityEnabled}
-    bind:value={epse}
-    validator={(e) => {
-      return minMaxEnabled
-        ? new Validator(e).NotEmpty().Result()
-        : new Validator(e).Result();
-    }}
-    on:input={(e) => {
-      //epse = e.detail;
-    }}
-    on:validator={(e) => {
-      const data = e.detail;
-      dispatch("validator", data);
-    }}
-    on:change={() => dispatch("sync")}
-    postProcessor={GridScript.shortify}
-    preProcessor={GridScript.humanize}
-  />
+      <MeltCombo
+        title={"Max"}
+        disabled={!minMaxEnabled}
+        bind:value={epma}
+        validator={(e) => {
+          return minMaxEnabled
+            ? new Validator(e).NotEmpty().Result()
+            : new Validator(e).Result();
+        }}
+        on:validator={(e) => {
+          const data = e.detail;
+          dispatch("validator", data);
+        }}
+        on:change={syncWithGrid}
+        postProcessor={GridScript.shortify}
+        preProcessor={GridScript.humanize}
+      />
+    </div>
+
+    <MeltCheckbox bind:target={sensitivityEnabled} title="Enable Sensitivity" />
+
+    <MeltCombo
+      title={"Sensitivity"}
+      disabled={!sensitivityEnabled}
+      bind:value={epse}
+      validator={(e) => {
+        return minMaxEnabled
+          ? new Validator(e).NotEmpty().Result()
+          : new Validator(e).Result();
+      }}
+      on:validator={(e) => {
+        const data = e.detail;
+        dispatch("validator", data);
+      }}
+      on:change={syncWithGrid}
+      postProcessor={GridScript.shortify}
+      preProcessor={GridScript.humanize}
+    />
+    <BlockBody>
+      Note: When Min/Max or Sensitivity values are disabled, any changes to the
+      default values will only be reset after storing.
+    </BlockBody>
+  </Block>
 </endless-settings>
