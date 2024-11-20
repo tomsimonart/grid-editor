@@ -50,7 +50,6 @@ import {
   deleteConfig,
   migrateToProfileCloud,
 } from "./src/profiles";
-import { sendToDiscord } from "./src/discord";
 import { fetchUrlJSON } from "./src/fetch";
 import { getLatestVideo } from "./src/youtube";
 import { SerialPort } from "serialport";
@@ -678,11 +677,6 @@ ipcMain.handle("findBootloaderPath", async (event, arg) => {
 
 ipcMain.handle("restartSerialCheckInterval", (event, arg) => {
   return restartSerialCheckInterval();
-});
-
-ipcMain.handle("sendToDiscord", async (event, arg) => {
-  console.log("sendTOdiscord", arg.message);
-  return await sendToDiscord(arg.message);
 });
 
 ipcMain.handle("fetchUrlJSON", (event, arg) => {

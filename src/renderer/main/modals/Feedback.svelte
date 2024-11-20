@@ -19,11 +19,6 @@
     feedbackSubmitted = true;
     setTimeout(handleClose, 3000);
     const [title, text] = [inputField.value, textArea.value];
-    await window.electron.discord.sendMessage({
-      title: title,
-      text: text,
-    });
-
     Analytics.track({
       event: "Feedback",
       payload: {

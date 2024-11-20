@@ -1,6 +1,5 @@
 <script lang="ts">
   import { get } from "svelte/store";
-  import { ActionData } from "./../../runtime/runtime.ts";
   import { Grid } from "./../../lib/_utils";
   import {
     GridElement,
@@ -29,6 +28,7 @@
   import { appSettings } from "../../runtime/app-helper.store";
   import { SvgIcon } from "@intechstudio/grid-uikit";
   import { clickOutside } from "../_actions/click-outside.action";
+  import { syncWithGrid } from "../../runtime/operations";
 
   export let monaco_action: GridAction;
 
@@ -41,7 +41,7 @@
   let commitEnabled = false;
   let errorMesssage = "";
 
-  let commited: ActionData = { script: "", name: "" };
+  let commited = { script: "", name: "" };
 
   let scrollDown;
   let autoscroll;
@@ -179,13 +179,14 @@
       scrollDown.scrollTo(0, scrollDown.scrollHeight);
   });
 
-  async function handleCommit() {
+  async function handleCommitClicked() {
     $monaco_action.script = GridScript.compressScript(editor.getValue());
     $monaco_action.name =
       name !== $monaco_action?.information.displayName ? name : undefined;
     commited.name = $monaco_action.name;
     commited.script = $monaco_action.script;
     commitEnabled = false;
+    syncWithGrid(monaco_action);
   }
 
   onDestroy(() => {
@@ -300,7 +301,7 @@
 
         <div class="flex flex-row flex-wrap gap-2 justify-end">
           <MoltenPushButton
-            click={handleCommit}
+            click={handleCommitClicked}
             disabled={!commitEnabled || isDeleted($monaco_action)}
             text="Commit"
             style="accept"

@@ -111,6 +111,7 @@ export interface GridOperationResult {
 
 export interface PasteActionsResult extends GridOperationResult {
   info: EventInfo;
+  pasted: GridAction[];
 }
 export interface DiscardElementResult extends GridOperationResult {}
 export interface OverwriteElementResult extends GridOperationResult {}
@@ -119,6 +120,7 @@ export interface UpdateActionResult extends GridOperationResult {
 }
 export interface MergeActionsToCodeResult extends GridOperationResult {
   info: EventInfo;
+  merged: GridAction;
 }
 export interface RemoveActionsResult extends GridOperationResult {}
 export interface CutActionsResult extends GridOperationResult {}
@@ -639,6 +641,7 @@ export class GridEvent extends RuntimeNode<EventData> {
         text: "OK",
         type: GridOperationType.PASTE_ACTION,
         info: this.getInfo(),
+        pasted: actions,
       });
     } catch (e) {
       return Promise.reject({
@@ -789,6 +792,7 @@ export class GridEvent extends RuntimeNode<EventData> {
       text: "OK",
       type: GridOperationType.MERGE_ACTIONS_TO_CODE,
       info: this.getInfo(),
+      merged: codeBlock,
     });
   }
 

@@ -149,3 +149,69 @@ test.describe("NRPN converting", () => {
     await expect(actualValue).toBe(expectedValue);
   });
 });
+
+test.describe("Element Mode MAX value", () => {
+  test.beforeEach(async ({ page }) => {
+    connectModulePage = new ConnectModulePage(page);
+    modulePage = new ModulePage(page);
+    configPage = new ConfigPage(page);
+    await page.goto(PAGE_PATH);
+    await connectModulePage.openVirtualModules();
+    await connectModulePage.addModule("EF44");
+    await configPage.removeAllActions();
+  });
+
+  test("Potmeter", async () => {
+    const category = "element";
+    const blockName = "Potmeter Mode";
+    await configPage.openAndAddActionBlock(category, blockName);
+    await configPage.clickActionBlockElement(
+      category,
+      blockName,
+      "Enable Min/Max Value"
+    );
+    await configPage.clickActionBlockElement(category, blockName, "Max");
+    await expect(configPage.elementMaxResolutionDropdown).toBeVisible();
+  });
+
+  /*
+  test("Encoder", async () => {
+    const category = "element";
+    const blockName = "Encoder Mode";
+    await configPage.openAndAddActionBlock(category, blockName);
+    await configPage.clickActionBlockElement(
+      category,
+      blockName,
+      "Enable Min/Max Value"
+    );
+    await configPage.clickActionBlockElement(category, blockName, "Max");
+    await expect(configPage.elementMaxResolutionDropdown).toBeVisible();
+  });
+
+  test("Endless", async () => {
+    const category = "element";
+    const blockName = "Endless Mode";
+    await configPage.openAndAddActionBlock(category, blockName);
+    await configPage.clickActionBlockElement(
+      category,
+      blockName,
+      "Enable Min/Max Value"
+    );
+    await configPage.clickActionBlockElement(category, blockName, "Max");
+    await expect(configPage.elementMaxResolutionDropdown).toBeVisible();
+  });
+
+  test("Button", async () => {
+    const category = "element";
+    const blockName = "Button Mode";
+    await configPage.openAndAddActionBlock(category, blockName);
+    await configPage.clickActionBlockElement(
+      category,
+      blockName,
+      "Enable Min/Max Value"
+    );
+    await configPage.clickActionBlockElement(category, blockName, "Max");
+    await expect(configPage.elementMaxResolutionDropdown).toBeVisible();
+  });
+  */
+});

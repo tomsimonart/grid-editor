@@ -41,7 +41,7 @@
   $: handleInputChange($inputValue);
 
   function handleValueChange(value: any) {
-    if ($inputValue === value) {
+    if ($inputValue === value || !value) {
       return;
     }
 
@@ -98,7 +98,7 @@
     type="text"
     use:melt={$input}
     on:change={handleChange}
-    class="w-full flex flex-row border mb-1 {isError
+    class="w-full flex flex-row border mb-1 {isError && !disabled
       ? 'border-error'
       : 'border-black'} p-2 {disabled
       ? 'bg-black/20 text-white/40'
@@ -106,12 +106,8 @@
     {placeholder}
     {disabled}
   />
-  {#if $open && !disabled}
-    <div
-      {...$menu}
-      use:menu
-      class="bg-gray-900 text-white/80 border border-white/50 rounded z-40 max-h-32 overflow-y-auto"
-    >
+  {#if $open && !disabled && suggestions.length > 0}
+    <div {...$menu} use:menu class="menu">
       {#each suggestions as suggestion}
         <div
           {...$option({
@@ -136,3 +132,10 @@
     {infoValue}
   </div>
 </div>
+
+<style lang="postcss">
+  .menu {
+    @apply bg-gray-900 text-white/80 border border-white/50 rounded z-40 max-h-32 overflow-y-auto;
+    @apply min-w-[8%] w-fit max-w-[13%] !important;
+  }
+</style>

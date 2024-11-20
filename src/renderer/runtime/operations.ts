@@ -1,6 +1,6 @@
 import { Analytics } from "./analytics";
-import { appClipboard, ClipboardData, ClipboardKey } from "./clipboard.store";
-import { logger, runtime, user_input } from "./runtime.store";
+import { appClipboard, ClipboardKey } from "./clipboard.store";
+import { logger, user_input } from "./runtime.store";
 import {
   GridOperationResult,
   ElementData,
@@ -16,7 +16,7 @@ import {
   GridModule,
   GridPresetData,
 } from "./runtime";
-import { get, derived } from "svelte/store";
+import { get } from "svelte/store";
 import { selected_actions } from "../main/panels/configuration/Configuration";
 
 function handleError(e: GridOperationResult) {
@@ -50,13 +50,6 @@ function handleError(e: GridOperationResult) {
 }
 
 //Clipboard handlers
-export const isCopyElementEnabled = derived(
-  [selected_actions],
-  ([$selected_actions]) => {
-    return $selected_actions.length === 0 && runtime.modules.length > 0;
-  }
-);
-
 export async function copyElement(element: GridElement) {
   logger.set({
     type: "progress",
@@ -85,13 +78,6 @@ export async function copyElement(element: GridElement) {
     });
 }
 
-export const isCopyActionsEnabled = derived(
-  selected_actions,
-  ($selected_actions) => {
-    return $selected_actions.length > 0;
-  }
-);
-
 export async function copyActions(...actions: GridAction[]) {
   appClipboard
     .copyActions(...actions)
@@ -114,19 +100,6 @@ export async function copyActions(...actions: GridAction[]) {
 }
 
 //GridElement handlers
-export function isOverwriteElementEnabled(
-  data: ElementData,
-  clipboard: ClipboardData
-) {
-  if (typeof clipboard === "undefined" || typeof data === "undefined") {
-    return false;
-  }
-
-  return (
-    clipboard.key === ClipboardKey.ELEMENT &&
-    data.isCompatible((clipboard.payload as ElementData).type)
-  );
-}
 
 export async function overwriteElement(target: GridElement) {
   const clipboard = get(appClipboard);
@@ -152,14 +125,6 @@ export async function overwriteElement(target: GridElement) {
         mandatory: false,
       });
     });
-}
-
-export function isDiscardElementEnabled(data: ElementData) {
-  if (typeof data === "undefined") {
-    return false;
-  }
-
-  return data.hasChanges();
 }
 
 export async function discardElement(target: GridElement) {
@@ -189,10 +154,6 @@ export async function discardElement(target: GridElement) {
         mandatory: false,
       });
     });
-}
-
-export function isClearElementEnabled(data: ElementData) {
-  return typeof data !== "undefined";
 }
 
 export async function clearElement(target: GridElement) {
@@ -259,13 +220,6 @@ export async function updateAction(
 
 //GridEvent handlers
 
-export const isMergeActionsEnabled = derived(
-  selected_actions,
-  ($selected_actions) => {
-    return $selected_actions.length > 0;
-  }
-);
-
 export async function mergeActionsToCode(
   target: GridEvent,
   ...actions: GridAction[]
@@ -274,20 +228,18 @@ export async function mergeActionsToCode(
     .merge(...actions)
     .then((result) => {
       target.sendToGrid();
+      selected_actions.set([result.merged]);
     })
     .catch(handleError)
     .finally(() => {});
 }
-
-export const isPasteActionsEnabled = derived(appClipboard, ($appClipboard) => {
-  return $appClipboard?.key === ClipboardKey.ACTION_BLOCKS;
-});
 
 export async function pasteActions(target: GridEvent, index?: number) {
   target
     .pasteFromClipboard(index)
     .then((result) => {
       target.sendToGrid();
+      selected_actions.set(result.pasted);
     })
     .catch(handleError)
     .finally(() => {
@@ -299,13 +251,6 @@ export async function pasteActions(target: GridEvent, index?: number) {
     });
 }
 
-export const isRemoveActionsEnabled = derived(
-  selected_actions,
-  ($selected_actions) => {
-    return $selected_actions.length > 0;
-  }
-);
-
 export async function removeActions(
   target: GridEvent,
   ...actions: GridAction[]
@@ -314,6 +259,14 @@ export async function removeActions(
     .remove(...actions)
     .then((result) => {
       target.sendToGrid();
+      selected_actions.update((s) => {
+        for (const action of actions) {
+          if (s.includes(action)) {
+            s = s.filter((item) => item !== action);
+          }
+        }
+        return s;
+      });
     })
     .catch(handleError)
     .finally(() => {
@@ -324,13 +277,6 @@ export async function removeActions(
       });
     });
 }
-
-export const isCutActionsEnabled = derived(
-  selected_actions,
-  ($selected_actions) => {
-    return $selected_actions.length > 0;
-  }
-);
 
 export async function cutActions(target: GridEvent, ...actions: GridAction[]) {
   appClipboard
