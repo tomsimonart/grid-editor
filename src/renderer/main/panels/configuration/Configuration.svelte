@@ -1,17 +1,12 @@
 <script lang="ts">
-  import { UserInputValue } from "./../../../runtime/runtime.store.ts";
+  import { UserInputValue } from "./../../../runtime/runtime.store";
   import ActionList from "./ActionList.svelte";
   import { get } from "svelte/store";
   import ElementSelectionPanel from "./ElementSelectionPanel.svelte";
   import { fly } from "svelte/transition";
   import EventPanel from "./EventPanel.svelte";
   import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
-  import {
-    logger,
-    runtime,
-    user_input,
-    type UserInputValue,
-  } from "../../../runtime/runtime.store";
+  import { logger, runtime, user_input } from "../../../runtime/runtime.store";
   import { selected_actions } from "./Configuration";
   import Toolbar from "./components/Toolbar.svelte";
   import ExportConfigs from "./components/ExportConfigs.svelte";
@@ -239,7 +234,7 @@
               on:paste={handlePaste}
               on:new-config={handleAddConfig}
             />
-            <ExportConfigs {event} />
+            <ExportConfigs />
           </div>
         {/if}
       </configs>

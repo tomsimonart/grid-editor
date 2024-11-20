@@ -1756,6 +1756,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
 
   destroy_module(dx, dy) {
     console.log("DESTORY", dx, dy);
+    user_input.module_destroy_handler(dx, dy);
     // remove the destroyed device from runtime
     const removed = this.modules.find((e) => e.dx == dx && e.dy == dy);
     this.modules = this.modules.filter((e) => e.dx !== dx && e.dy !== dy);
@@ -1774,7 +1775,6 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       });
     }
 
-    user_input.module_destroy_handler(dx, dy);
     if (removed.architecture === "virtual") {
       virtual_runtime.destroyModule(dx, dy);
     } else {
