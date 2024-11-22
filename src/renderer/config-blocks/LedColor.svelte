@@ -49,7 +49,7 @@ A -> B : AB-First step
 */
 
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
-  import MeltCombo from "./components/MeltCombo.svelte";
+  import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { user_input_event } from "../main/panels/configuration/Configuration";
   import Toggle from "../main/user-interface/Toggle.svelte";

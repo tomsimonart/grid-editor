@@ -26,7 +26,7 @@
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
   import { MeltCheckbox, Block, BlockBody } from "@intechstudio/grid-uikit";
-  import MeltCombo from "./components/MeltCombo.svelte";
+  import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "./_validators";
 

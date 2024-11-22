@@ -53,7 +53,7 @@
 
 <script>
   import { createEventDispatcher, onDestroy, onMount } from "svelte";
-  import MeltCombo from "./components/MeltCombo.svelte";
+  import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { user_input_event } from "../main/panels/configuration/Configuration";
   import { Script } from "./_script_parsers.js";

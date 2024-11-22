@@ -33,7 +33,7 @@
 
 <script>
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
-  import MeltCombo from "./components/MeltCombo.svelte";
+  import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
 
   import { Script } from "./_script_parsers.js";
