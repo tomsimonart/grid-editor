@@ -125,7 +125,7 @@
     id="cfg-{index}"
     class="group/bg-color flex flex-grow h-auto min-h-[32px] border {!$action.checkSyntax()
       ? 'border-error'
-      : 'border-transparent'} bri"
+      : 'border-black'} bri"
     class:rounded-tr-xl={$action.information.rounding === "top"}
     class:rounded-br-xl={$action.information.rounding === "bottom"}
     use:draggable={(this,

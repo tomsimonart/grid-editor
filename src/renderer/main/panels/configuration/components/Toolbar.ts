@@ -1,12 +1,11 @@
 import { derived } from "svelte/store";
-import { runtime } from "../../../../runtime/runtime.store";
+import { runtime, selected_actions } from "../../../../runtime/runtime.store";
 import {
   appClipboard,
   ClipboardData,
   ClipboardKey,
 } from "../../../../runtime/clipboard.store";
 import { ElementData } from "../../../../runtime/runtime";
-import { selected_actions } from "../Configuration";
 
 export const isCutActionsEnabled = derived(
   selected_actions,

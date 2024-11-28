@@ -1,66 +1,109 @@
 <script lang="ts">
-  import { selected_actions } from "./../Configuration";
-  import { grid } from "@intechstudio/grid-protocol";
   import {
     isClearElementEnabled,
     isCopyElementEnabled,
     isDiscardElementEnabled,
     isOverwriteElementEnabled,
     isCopyActionsEnabled,
-    isPasteActionsEnabled,
     isCutActionsEnabled,
     isMergeActionsEnabled,
     isRemoveActionsEnabled,
   } from "./Toolbar";
-  import { createEventDispatcher } from "svelte";
   import { appClipboard } from "./../../../../runtime/clipboard.store";
   import { GridEvent, GridElement } from "./../../../../runtime/runtime";
-  import { UserInputValue } from "./../../../../runtime/runtime.store";
-  import { runtime, user_input } from "./../../../../runtime/runtime.store";
-  import { shortcut } from "./../../../_actions/shortcut.action";
+  import {
+    runtime,
+    user_input,
+    UserInputValue,
+    selected_actions,
+  } from "./../../../../runtime/runtime.store";
   import MoltenToolbarButton from "../../../user-interface/MoltenToolbarButton.svelte";
-  import Options from "./Options.svelte";
+  import { get } from "svelte/store";
+  import {
+    mergeActionsToCode,
+    copyActions,
+    removeActions,
+    cutActions,
+    discardElement,
+    overwriteElement,
+    copyElement,
+    clearElement,
+  } from "../../../../runtime/operations";
 
-  const dispatch = createEventDispatcher();
-
-  function handleConvertToCodeBlockClicked(e) {
-    dispatch("convert-to-code-block");
+  function handleOverwriteElement() {
+    const ui = get(user_input);
+    const target = runtime.findElement(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber
+    );
+    overwriteElement(target);
   }
 
-  function handleCutClicked(e) {
-    dispatch("cut");
+  function handleCopyElement() {
+    const ui = get(user_input);
+    const target = runtime.findElement(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber
+    );
+    copyElement(target);
   }
 
-  function handleCopyClicked(e) {
-    dispatch("copy");
-  }
-
-  function handlePasteClicked(e) {
-    dispatch("paste");
-  }
-
-  function handleRemoveClicked(e) {
-    dispatch("remove");
-  }
-
-  function handleSelectAllClicked() {
-    dispatch("select-all");
-  }
-
-  function handleCopyAll(e) {
-    dispatch("copy-all");
-  }
-
-  function handleOverwriteAll(e) {
-    dispatch("overwrite-all");
-  }
-
-  function handleDiscard(e) {
-    dispatch("discard");
+  function handleCopy() {
+    copyActions(...get(selected_actions));
   }
 
   function handleClearElement() {
-    dispatch("clear-element");
+    const ui = get(user_input);
+    const target = runtime.findElement(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber
+    );
+
+    clearElement(target);
+  }
+
+  function handleDiscardElement() {
+    const ui = get(user_input);
+    const element = runtime.findElement(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber
+    );
+    discardElement(element);
+  }
+
+  function handleConvertToCodeBlock() {
+    const selected = get(selected_actions);
+    if (!selected.every((e) => e.parent === selected[0].parent)) {
+      throw "Clipboard error: Mismatched clipboard";
+    }
+
+    mergeActionsToCode(selected[0].parent as GridEvent, ...selected);
+  }
+
+  function handleRemove() {
+    const selected = get(selected_actions);
+    if (!selected.every((e) => e.parent === selected[0].parent)) {
+      throw "Clipboard error: Mismatched clipboard";
+    }
+
+    removeActions(selected[0].parent as GridEvent, ...selected);
+  }
+
+  function handleCut() {
+    const selected = get(selected_actions);
+    if (!selected.every((e) => e.parent === selected[0].parent)) {
+      throw "Clipboard error: Mismatched clipboard";
+    }
+
+    cutActions(selected[0].parent as GridEvent, ...selected);
   }
 
   let selectedAction = undefined;
@@ -120,7 +163,7 @@
     <div class="flex flex-col">
       <div class="flex flex-wrap justify-end">
         <MoltenToolbarButton
-          on:click={handleCopyAll}
+          on:click={handleCopyElement}
           on:mouseenter={() =>
             setToolbarHoverText("Copy Element", `(${modifier[0]} + C)`)}
           on:mouseleave={handleToolbarButtonBlur}
@@ -131,7 +174,7 @@
         />
 
         <MoltenToolbarButton
-          on:click={handleOverwriteAll}
+          on:click={handleOverwriteElement}
           on:mouseenter={() =>
             setToolbarHoverText(`Overwrite Element`, `(${modifier[0]} + V)`)}
           on:mouseleave={handleToolbarButtonBlur}
@@ -142,7 +185,7 @@
         />
 
         <MoltenToolbarButton
-          on:click={handleDiscard}
+          on:click={handleDiscardElement}
           on:mouseenter={() =>
             setToolbarHoverText(
               `Discard Element Changes`,
@@ -175,7 +218,7 @@
       </div>
       <div class="flex flex-wrap justify-end">
         <MoltenToolbarButton
-          on:click={handleCopyClicked}
+          on:click={handleCopy}
           on:mouseenter={() =>
             setToolbarHoverText(`Copy Action(s)`, `(${modifier[0]} + C)`)}
           on:mouseleave={handleToolbarButtonBlur}
@@ -186,18 +229,7 @@
         />
 
         <MoltenToolbarButton
-          on:click={handlePasteClicked}
-          on:mouseenter={() =>
-            setToolbarHoverText(`Paste Action(s)`, `(${modifier[0]} + V)`)}
-          on:mouseleave={handleToolbarButtonBlur}
-          shortcut={{ control: true, code: "KeyV" }}
-          disabled={$isPasteActionsEnabled === false}
-          iconPath={"paste"}
-          color={"#006cb7"}
-        />
-
-        <MoltenToolbarButton
-          on:click={handleCutClicked}
+          on:click={handleCut}
           on:mouseenter={() =>
             setToolbarHoverText(`Cut Action(s)`, `(${modifier[0]} + X)`)}
           on:mouseleave={handleToolbarButtonBlur}
@@ -208,7 +240,7 @@
         />
 
         <MoltenToolbarButton
-          on:click={handleConvertToCodeBlockClicked}
+          on:click={handleConvertToCodeBlock}
           on:mouseenter={() =>
             setToolbarHoverText(
               `Merge Action(s) into Code`,
@@ -226,7 +258,7 @@
         />
 
         <MoltenToolbarButton
-          on:click={handleRemoveClicked}
+          on:click={handleRemove}
           on:mouseenter={() =>
             setToolbarHoverText(`Remove Action(s)`, `(Delete)`)}
           on:mouseleave={handleToolbarButtonBlur}
@@ -238,32 +270,6 @@
           color={"#ff2323"}
         />
       </div>
-    </div>
-    <button
-      class="w-fit h-fit mx-2"
-      use:shortcut={{
-        control: true,
-        code: "KeyA",
-        callback: handleSelectAllClicked,
-      }}
-      on:mouseenter={() =>
-        setToolbarHoverText(`Select All`, `(${modifier[0]} + A)`)}
-      on:mouseleave={handleToolbarButtonBlur}
-    >
-      <Options
-        selected={$event?.config.every((e) => $selected_actions.includes(e))}
-        halfSelected={$event?.config.some((e) => $selected_actions.includes(e))}
-        disabled={$event?.config.length === 0}
-        on:select={handleSelectAllClicked}
-      />
-    </button>
-  </div>
-  <div class="flex flex-row gap-2">
-    <div class="text-gray-500 text-sm">Script length:</div>
-    <div class="text-white text-sm mr-10">
-      <span data-testid="charCount">
-        {$event?.toLua().length ?? 0}/{grid.getProperty("CONFIG_LENGTH") - 1}
-      </span>
     </div>
   </div>
 </div>

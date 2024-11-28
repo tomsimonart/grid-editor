@@ -33,6 +33,7 @@ import * as CodeBlock from "../config-blocks/CodeBlock.svelte";
 import { appClipboard, ClipboardKey } from "./clipboard.store";
 import { ActionBlockInformation } from "../config-blocks/ActionBlockInformation";
 import { Runtime } from "./string-table";
+import { Grid } from "../lib/_utils";
 
 type UUID = string;
 type LuaScript = string;
@@ -255,8 +256,12 @@ export class ActionData extends NodeData {
   }
 
   public get indentation() {
-    let indentation = 0;
     const event = this.parent as GridEvent;
+    if (typeof event === "undefined") {
+      return 0;
+    }
+
+    let indentation = 0;
     for (let i = 0; i < event.config.length; ++i) {
       let action = event.config[i];
       if (action.id === this.id) {
@@ -432,6 +437,10 @@ export class EventData extends NodeData {
     return this.stored !== this.toLua();
   }
 
+  public getName(): string {
+    return Grid.toFirstCase(NumberToEventType(this.type));
+  }
+
   public toLua(): string {
     return `<?lua ${this.config
       .map((e) => e.toLua())
@@ -490,6 +499,10 @@ export class GridEvent extends RuntimeNode<EventData> {
 
   public getInfo() {
     return this.data.getInfo();
+  }
+
+  public getName() {
+    return this.data.getName();
   }
 
   public async replace(

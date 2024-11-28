@@ -363,7 +363,7 @@
         <Pane
           bind:size={$splitpanes.right.size}
           minSize={$splitpanes.right.default}
-          maxSize={45}
+          maxSize={65}
         >
           <RightPanelContainer />
         </Pane>

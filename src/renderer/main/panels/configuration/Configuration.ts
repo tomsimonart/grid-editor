@@ -1,13 +1,7 @@
-import {
-  derived,
-  get,
-  type Writable,
-  writable,
-  type Readable,
-} from "svelte/store";
+import { get, writable } from "svelte/store";
 
-import { runtime, user_input } from "../../../runtime/runtime.store";
-import { GridAction, GridEvent } from "../../../runtime/runtime";
+import { logger } from "../../../runtime/runtime.store";
+import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
 
 export let lastOpenedActionblocks = writable([]);
 
@@ -30,49 +24,29 @@ export function lastOpenedActionblocksRemove(short) {
   lastOpenedActionblocks.set(currentList.filter((e) => e !== short));
 }
 
-// Derive a readable store from user_input
-export const user_input_event: Readable<GridEvent | undefined> = derived(
-  user_input,
-  ($user_input, set) => {
-    const event = runtime.findEvent(
-      $user_input.dx,
-      $user_input.dy,
-      $user_input.pagenumber,
-      $user_input.elementnumber,
-      $user_input.eventtype
-    );
-
-    if (typeof event === "undefined") {
-      set(event);
-      return;
-    }
-
-    if (event.isLoaded()) {
-      set(event);
-      return;
-    }
-
-    // Load the event and set it
-    event
-      .load()
-      .then(() => {
-        set(event);
-      })
-      .catch((err) => {
-        console.error("Failed to load event:", err);
-        set(undefined); // Handle loading error by setting undefined
-      });
+//Lua Error handling and display
+lua_error_store.subscribe((store) => {
+  const error = store.slice(-1).pop();
+  if (typeof error === "undefined") {
     return;
   }
-);
 
-export const selected_actions: Writable<GridAction[]> =
-  create_selected_actions_store();
-
-function create_selected_actions_store() {
-  const internal: Writable<GridAction[]> = writable([]);
-  user_input_event.subscribe(() => {
-    internal.set([]);
-  });
-  return internal;
-}
+  switch (error.type) {
+    case "luanotok":
+      logger.set({
+        type: "alert",
+        mode: 0,
+        classname: "luanotok",
+        message: `${error.device}: Error on Element ${error.element.no} ${error.event.type} event.`,
+      });
+      break;
+    case "kbisdisabled":
+      logger.set({
+        type: "alert",
+        mode: 0,
+        classname: "kbisdisabled",
+        message: `${error.device}: Keyboard events are disabled until storing.`,
+      });
+      break;
+  }
+});

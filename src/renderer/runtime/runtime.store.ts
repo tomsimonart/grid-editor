@@ -3,7 +3,7 @@ import { writeBuffer, sendHeartbeat } from "./engine.store";
 import { appSettings } from "./app-helper.store";
 import { modal } from "../main/modals/modal.store";
 import { ProtectedStore } from "./smart-store.store";
-import { GridRuntime, aliveModules } from "./runtime";
+import { GridAction, GridRuntime, aliveModules } from "./runtime";
 
 const setIntervalAsync = (fn, ms) => {
   fn().then(() => {
@@ -317,6 +317,8 @@ function create_user_input() {
   };
 }
 
+export const runtime = new GridRuntime();
+
 export type UserInputValue = {
   dx: number;
   dy: number;
@@ -327,7 +329,16 @@ export type UserInputValue = {
 
 export const user_input = create_user_input();
 
-export const runtime = new GridRuntime();
+export const selected_actions: Writable<GridAction[]> =
+  create_selected_actions_store();
+
+function create_selected_actions_store() {
+  const internal: Writable<GridAction[]> = writable([]);
+  user_input.subscribe(() => {
+    internal.set([]);
+  });
+  return internal;
+}
 
 //Retrieves device name from coordinates of the device
 export function getDeviceName(x, y) {

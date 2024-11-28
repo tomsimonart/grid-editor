@@ -1,4 +1,10 @@
 <script lang="ts">
+  import {
+    runtime,
+    user_input,
+    UserInputValue,
+  } from "./../../../runtime/runtime.store";
+  import { GridEvent } from "./../../../runtime/runtime";
   import { modal } from "./../../modals/modal.store";
   import Export from "./../../modals/Export.svelte";
   import {
@@ -16,10 +22,22 @@
   import PolyLineGraph from "../../user-interface/PolyLineGraph.svelte";
   import { incoming_messages } from "../../../serialport/message-stream.store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
-  import { user_input_event } from "../../panels/configuration/Configuration";
   import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
-  let event = $user_input_event;
+  let event: GridEvent;
+
+  $: handleUserInputChange($user_input);
+
+  function handleUserInputChange(ui: UserInputValue) {
+    event = runtime.findEvent(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber,
+      ui.eventtype
+    );
+  }
+
   let configScriptLength = 0;
   let syntaxError = false;
   const incoming_messages_stores = writable([]);

@@ -85,7 +85,7 @@
       />
     </div>
   {:else}
-    <span
+    <span class="truncate"
       >{typeof $config?.name === "undefined"
         ? config.information.displayName
         : $config.name}</span
