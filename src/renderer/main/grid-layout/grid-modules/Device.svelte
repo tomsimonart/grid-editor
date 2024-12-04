@@ -97,6 +97,8 @@
     window.navigator.platform.indexOf("Mac") != -1
       ? ["Cmd ⌘", "Alt ⌥"]
       : ["Ctrl", "Alt"];
+
+  $: console.log($contextMenu);
 </script>
 
 <div class="pointer-events-none {$$props.classs}" style={$$props.style}>
@@ -191,7 +193,7 @@
           {isRightCut}
           {device}
           visible={typeof $moduleOverlay === "undefined" &&
-            (typeof $contextMenu !== "undefined" ||
+            (typeof $contextMenu === "undefined" ||
               ($user_input.dx === device.dx &&
                 $user_input.dy === device.dy &&
                 $user_input.elementnumber === elementNumber))}
