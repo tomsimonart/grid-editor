@@ -191,7 +191,7 @@
           {isRightCut}
           {device}
           visible={typeof $moduleOverlay === "undefined" &&
-            (!$contextMenu ||
+            (typeof $contextMenu !== "undefined" ||
               ($user_input.dx === device.dx &&
                 $user_input.dy === device.dy &&
                 $user_input.elementnumber === elementNumber))}
