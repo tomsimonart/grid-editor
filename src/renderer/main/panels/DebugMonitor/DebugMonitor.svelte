@@ -17,7 +17,8 @@
   import { incoming_messages } from "../../../serialport/message-stream.store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { user_input_event } from "../../panels/configuration/Configuration";
-  import { MoltenPushButton } from "@intechstudio/grid-uikit";
+  import { MoltenPushButton, MoltenInput } from "@intechstudio/grid-uikit";
+  import { instructions } from "../../../serialport/instructions";
 
   let event = $user_input_event;
   let configScriptLength = 0;
@@ -141,6 +142,8 @@
   function handleShowCode(e) {
     modal.show({ component: Export });
   }
+
+  let immediateCommand = "print(0,1,2,3)";
 </script>
 
 <config-debug
@@ -172,6 +175,17 @@
       <MoltenPushButton text="Show Code" click={handleShowCode} />
     </div>
   </div>
+  <MoltenInput bind:target={immediateCommand} />
+  <MoltenPushButton
+    click={() => {
+      instructions.sendImmediateToGrid(
+        0,
+        0,
+        "<?lua " + immediateCommand + " ?>"
+      );
+    }}
+    text="Immediate"
+  />
 
   <div class="flex felx-row gap-2 flex-wrap text-white items-center my-4">
     <MoltenPushButton click={clearDebugtext} text="Clear" />
