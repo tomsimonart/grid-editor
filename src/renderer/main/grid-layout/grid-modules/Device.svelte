@@ -97,8 +97,6 @@
     window.navigator.platform.indexOf("Mac") != -1
       ? ["Cmd ⌘", "Alt ⌥"]
       : ["Ctrl", "Alt"];
-
-  $: console.log($contextMenu);
 </script>
 
 <div class="pointer-events-none {$$props.classs}" style={$$props.style}>
