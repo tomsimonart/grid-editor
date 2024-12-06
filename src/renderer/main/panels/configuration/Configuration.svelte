@@ -18,8 +18,8 @@
   import EventPanel from "./EventPanel.svelte";
   import Toolbar from "./components/Toolbar.svelte";
   import { GridElement, GridEvent } from "../../../runtime/runtime";
-    import { appSettings } from "../../../runtime/app-helper.store";
-    import { onDestroy } from "svelte";
+  import { appSettings } from "../../../runtime/app-helper.store";
+  import { onDestroy } from "svelte";
 
   let element: GridElement;
   let event: GridEvent;
@@ -52,21 +52,23 @@
   let isMultiView = false;
 
   $: {
-    if(containerWidth){
-    appSettings.update(store =>{
-      store.isMultiView = document.body.clientWidth * 0.4 < containerWidth && containerWidth > 550 && typeof element !== "undefined"
-      return store;
-    })
-  }
+    if (containerWidth) {
+      appSettings.update((store) => {
+        store.isMultiView =
+          document.body.clientWidth * 0.4 < containerWidth &&
+          containerWidth > 550 &&
+          typeof element !== "undefined";
+        return store;
+      });
+    }
   }
 
-  onDestroy(() =>{
-    appSettings.update(store =>{
-      store.isMultiView = false
+  onDestroy(() => {
+    appSettings.update((store) => {
+      store.isMultiView = false;
       return store;
-    })
-  })
-
+    });
+  });
 </script>
 
 {#key (isMultiView && $user_input.elementnumber) || (!isMultiView && $user_input)}
@@ -93,11 +95,13 @@
           {#if $appSettings.isMultiView}
             {#each $element?.events ?? [] as event, i}
               <ActionList {event} />
-              <div class="h-full flex border-r border-black" class:hidden={i === $element.events.length - 1}/>
+              <div
+                class="h-full flex border-r border-black"
+                class:hidden={i === $element.events.length - 1}
+              />
             {/each}
           {:else}
             <ActionList {event} />
-            
           {/if}
         </div>
       </configs>
