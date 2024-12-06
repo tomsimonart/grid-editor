@@ -73,7 +73,7 @@ export class ConfigPage {
     );
     this.characterCount = page.getByTestId("charCount");
     this.elementMaxResolutionDropdown = page.getByText(
-      "7 bit MIDI (default) 14 bit"
+      "7 bit MIDI (default)"
     );
   }
 

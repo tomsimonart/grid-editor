@@ -136,7 +136,7 @@ export const blocks = (page) => ({
     "GamePad Button": {
       block: page.getByText("GamePad Button"),
       elements: {
-        Button: page.getByRole("combobox", { name: "Button" }),
+        Button: page.getByLabel("Button"),
         State: page.getByLabel("State"),
       },
     },
@@ -154,7 +154,7 @@ export const blocks = (page) => ({
     "Mouse Button": {
       block: page.getByText("Mouse Button"),
       elements: {
-        Button: page.getByRole("combobox", { name: "Button" }),
+        Button: page.getByLabel("Button"),
         State: page.getByLabel("State"),
       },
     },

@@ -90,10 +90,6 @@ test.describe("Elements Existence", () => {
             test(`should find ${blockName} block's ${elementName} element`, async () => {
               const element =
                 configPage.blocks[category][blockName]["elements"][elementName];
-              console.log(
-                "yay",
-                configPage.blocks[category][blockName]["elements"]
-              );
               await expect(element).toBeVisible({ timeout: 5000 });
             });
           }
