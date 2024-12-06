@@ -60,9 +60,9 @@
 
   export let commitState = 1;
 
-  $: handleConfigChange($config)
-  
-  function handleConfigChange(config){
+  $: handleConfigChange($config);
+
+  function handleConfigChange(config) {
     scriptSegments = globalsToConfig({ script: config.script });
   }
 

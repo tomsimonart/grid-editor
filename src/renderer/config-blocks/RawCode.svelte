@@ -50,11 +50,11 @@
   export let index;
 
   let compBlock = undefined;
-  $: handleConfigChange($config)
+  $: handleConfigChange($config);
 
-  function handleConfigChange(config){
+  function handleConfigChange(config) {
     compBlock = getCompatiblityBlock(config.script);
-  };
+  }
 
   function getCompatiblityBlock(script) {
     let block = undefined;

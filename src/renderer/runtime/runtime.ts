@@ -346,7 +346,7 @@ export class GridAction extends RuntimeNode<ActionData> {
     const parent = this.parent as GridEvent;
     const diff = data.toLua().length - this.data.toLua().length;
 
-    if(!Grid.isParenthesisClosed(data.script)){
+    if (!Grid.isParenthesisClosed(data.script)) {
       return Promise.reject({
         value: false,
         text: Runtime.ErrorText.UNCLOSED_PARENTHESIS,

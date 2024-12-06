@@ -111,7 +111,6 @@ export async function overwriteElement(target: GridElement) {
     return;
   }
 
-
   target
     .overwrite(clipboard.payload as ElementData)
     .then((result) => {

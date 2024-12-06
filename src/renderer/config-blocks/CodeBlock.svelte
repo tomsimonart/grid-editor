@@ -39,7 +39,12 @@
 </script>
 
 <script lang="ts">
-  import { GridAction, GridEvent, GridElement, ActionData } from "./../runtime/runtime";
+  import {
+    GridAction,
+    GridEvent,
+    GridElement,
+    ActionData,
+  } from "./../runtime/runtime";
   import { GridScript } from "@intechstudio/grid-protocol";
 
   import { createEventDispatcher, onMount, onDestroy, tick } from "svelte";
@@ -108,7 +113,6 @@
   $: if (codePreview) {
     handleConfigChange($config);
   }
-
 
   async function open_monaco() {
     const event = config.parent as GridEvent;
