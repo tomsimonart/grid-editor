@@ -117,6 +117,7 @@
       committedCode = outputCode;
       outputCode = GridScript.shortify(outputCode);
       dispatch("update-action", { short: "s", script: outputCode });
+      dispatch("sync");
       commitState = 0;
     }
 
