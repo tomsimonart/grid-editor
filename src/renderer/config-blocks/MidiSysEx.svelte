@@ -45,7 +45,7 @@
 
 <script>
   import { fly } from "svelte/transition";
-  import {  createEventDispatcher } from "svelte";
+  import { createEventDispatcher } from "svelte";
 
   import TabButton from "../main/user-interface/TabButton.svelte";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
@@ -64,7 +64,6 @@
 
   $: handleScriptChange($config.script);
 
-
   function handleScriptChange(script) {
     let textdata = whatsInParenthesis.exec(script);
 
@@ -73,12 +72,15 @@
         value = textdata[1];
       }
     }
-  };
+  }
 
   function sendData(e) {
     commitState = 0;
-    dispatch("update-action", { short: config.short, script: "gmss(" + value + ")" });
-    dispatch("sync")
+    dispatch("update-action", {
+      short: config.short,
+      script: "gmss(" + value + ")",
+    });
+    dispatch("sync");
   }
 
   const tabs = [
@@ -93,9 +95,7 @@
   }
 </script>
 
-<action-midi
-  class="flex flex-col w-full pb-2 px-2 pointer-events-auto"
->
+<action-midi class="flex flex-col w-full pb-2 px-2 pointer-events-auto">
   {#if tabs !== undefined}
     <div class="ml-auto flex flex-row mb-2">
       <div />

@@ -55,9 +55,7 @@
   };
 </script>
 
-<element-name
-  class="flex flex-col w-full p-2 pointer-events-auto"
->
+<element-name class="flex flex-col w-full p-2 pointer-events-auto">
   <MeltCombo
     title={"Comment"}
     bind:value={scriptValue}
