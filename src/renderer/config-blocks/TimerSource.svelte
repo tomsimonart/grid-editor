@@ -60,15 +60,14 @@
 
   $: {
     scriptSegments = Script.toSegments({
-      short: config.short,
-      script: config.script,
+      short: $config.short,
+      script: $config.script,
     });
   }
 
   function sendData(e, index) {
     scriptSegments[index] = e;
     const script = Script.toScript({
-      human: config.human,
       short: config.short,
       array: scriptSegments,
     });

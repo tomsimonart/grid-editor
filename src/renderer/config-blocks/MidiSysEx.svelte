@@ -45,7 +45,7 @@
 
 <script>
   import { fly } from "svelte/transition";
-  import { onMount, createEventDispatcher, onDestroy } from "svelte";
+  import {  createEventDispatcher } from "svelte";
 
   import TabButton from "../main/user-interface/TabButton.svelte";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
@@ -60,26 +60,25 @@
 
   const dispatch = createEventDispatcher();
 
-  let textarea;
+  let value;
 
-  onMount(() => {
-    const arr = config.script;
+  $: handleScriptChange($config.script);
 
-    let textdata = whatsInParenthesis.exec(arr);
+
+  function handleScriptChange(script) {
+    let textdata = whatsInParenthesis.exec(script);
 
     if (textdata !== null) {
       if (textdata.length > 0) {
-        textarea.innerText = textdata[1];
+        value = textdata[1];
       }
     }
-  });
+  };
 
   function sendData(e) {
     commitState = 0;
-
-    config.script = "gmss(" + textarea.innerText.toString() + ")";
-
-    dispatch("update-action", { short: config.short, script: config.script });
+    dispatch("update-action", { short: config.short, script: "gmss(" + value + ")" });
+    dispatch("sync")
   }
 
   const tabs = [
@@ -95,7 +94,7 @@
 </script>
 
 <action-midi
-  class="{$$props.class} flex flex-col w-full pb-2 px-2 pointer-events-auto"
+  class="flex flex-col w-full pb-2 px-2 pointer-events-auto"
 >
   {#if tabs !== undefined}
     <div class="ml-auto flex flex-row mb-2">
@@ -120,8 +119,8 @@
 
     <div
       class="w-full px-2 py-1 text-white bg-secondary"
-      contentEditable="true"
-      bind:this={textarea}
+      contenteditable="true"
+      bind:innerText={value}
       on:input={() => {
         commitState = 1;
       }}

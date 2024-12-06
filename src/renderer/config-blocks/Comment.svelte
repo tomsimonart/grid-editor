@@ -40,14 +40,10 @@
 
   let scriptValue = ""; // local script part
 
-  $: handleConfigChange(config.script);
+  $: handleConfigChange($config.script);
 
   function handleConfigChange(script) {
     scriptValue = script.split("--[[")[1].split("]]")[0];
-  }
-
-  $: if (scriptValue) {
-    sendData(scriptValue);
   }
 
   function sendData(e) {
@@ -60,7 +56,7 @@
 </script>
 
 <element-name
-  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
+  class="flex flex-col w-full p-2 pointer-events-auto"
 >
   <MeltCombo
     title={"Comment"}

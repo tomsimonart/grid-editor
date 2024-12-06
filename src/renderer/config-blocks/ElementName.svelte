@@ -41,7 +41,7 @@
   let scriptValue = ""; // local script part
 
   $: {
-    const matches = config.script.match(/self:gen\("([^"]*)"\)/);
+    const matches = $config.script.match(/self:gen\("([^"]*)"\)/);
     scriptValue = matches[1];
   }
 

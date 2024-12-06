@@ -88,7 +88,7 @@
   let midiLSB = []; // local script part
   let midiMSB = [];
 
-  $: handleScriptChange(config.script);
+  $: handleScriptChange($config.script);
 
   $: sendData(scriptSegments);
 

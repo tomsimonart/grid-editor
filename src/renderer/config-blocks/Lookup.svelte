@@ -76,7 +76,6 @@
       array.push(pair.output);
     });
 
-    console.log(lookupTable);
     array = [lookupTable.source, ...array];
 
     const script = Script.toScript({

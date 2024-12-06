@@ -52,7 +52,7 @@
   let displayValue = "?";
   let toggleValue = false;
 
-  $: handleConfigChange(config);
+  $: handleConfigChange($config);
 
   function handleConfigChange(config) {
     const script = config.script;

@@ -82,8 +82,8 @@
   // config.script cannot be undefined
   $: {
     scriptSegments = Script.toSegments({
-      short: config.short,
-      script: config.script,
+      short: $config.short,
+      script: $config.script,
     });
   }
 
