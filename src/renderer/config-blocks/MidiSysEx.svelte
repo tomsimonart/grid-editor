@@ -62,7 +62,9 @@
 
   let textarea;
 
-  onMount(() => {
+  $: handleConfigChange($config)
+  
+  function handleConfigChange(config){
     const arr = config.script;
 
     let textdata = whatsInParenthesis.exec(arr);
@@ -72,7 +74,7 @@
         textarea.innerText = textdata[1];
       }
     }
-  });
+  };
 
   function sendData(e) {
     commitState = 0;

@@ -60,10 +60,10 @@
 
   export let commitState = 1;
 
-  // config.script cannot be undefined
-  $: {
-    // this works differently from normal _utils...
-    scriptSegments = globalsToConfig({ script: $config.script });
+  $: handleConfigChange($config)
+  
+  function handleConfigChange(config){
+    scriptSegments = globalsToConfig({ script: config.script });
   }
 
   function saveChangesOnInput(e, i, k) {

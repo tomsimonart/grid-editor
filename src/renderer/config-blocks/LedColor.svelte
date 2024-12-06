@@ -91,14 +91,13 @@ A -> B : AB-First step
   let beautify = 1;
 
   // config.script cannot be undefined
-  $: {
-    console.log(config.script);
+  $: handleConfigChange($config)
+  
+  function handleConfigChange(config){
     const _segments = Script.toSegments({
       short: config.short,
       script: config.script,
     });
-
-    console.log(_segments);
 
     // handle legacy and new beautify command
     if (_segments.length == 6) {

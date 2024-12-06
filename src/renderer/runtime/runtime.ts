@@ -33,6 +33,7 @@ import * as CodeBlock from "../config-blocks/CodeBlock.svelte";
 import { appClipboard, ClipboardKey } from "./clipboard.store";
 import { ActionBlockInformation } from "../config-blocks/ActionBlockInformation";
 import { Runtime } from "./string-table";
+import { Grid } from "../lib/_utils";
 
 type UUID = string;
 type LuaScript = string;
@@ -344,6 +345,16 @@ export class GridAction extends RuntimeNode<ActionData> {
   public async updateData(data: ActionData): Promise<UpdateActionResult> {
     const parent = this.parent as GridEvent;
     const diff = data.toLua().length - this.data.toLua().length;
+
+    if(!Grid.isParenthesisClosed(data.script)){
+      return Promise.reject({
+        value: false,
+        text: Runtime.ErrorText.UNCLOSED_PARENTHESIS,
+        type: GridOperationType.UPDATE_ACTION,
+        info: (this.parent as GridEvent)?.getInfo(),
+      });
+    }
+
     if (parent.getAvailableChars() - diff >= 0) {
       this.script = data.script;
       this.short = data.short;

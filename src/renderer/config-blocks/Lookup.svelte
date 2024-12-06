@@ -49,13 +49,12 @@
 
   const dispatch = createEventDispatcher();
 
-  let scriptSegments = [];
   let lookupTable = {};
 
-  $: handleScriptChange($config.script);
+  $: handleConfigChange($config);
 
-  function handleScriptChange(script) {
-    lookupTable = createLookupTable(script);
+  function handleConfigChange(config) {
+    lookupTable = createLookupTable(config.script);
   }
 
   let suggestions = [];
@@ -76,7 +75,6 @@
       array.push(pair.output);
     });
 
-    console.log(lookupTable);
     array = [lookupTable.source, ...array];
 
     const script = Script.toScript({

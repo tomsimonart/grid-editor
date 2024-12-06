@@ -39,7 +39,7 @@
 </script>
 
 <script lang="ts">
-  import { GridAction, GridEvent, GridElement } from "./../runtime/runtime";
+  import { GridAction, GridEvent, GridElement, ActionData } from "./../runtime/runtime";
   import { GridScript } from "@intechstudio/grid-protocol";
 
   import { createEventDispatcher, onMount, onDestroy, tick } from "svelte";
@@ -97,8 +97,8 @@
     });
   });
 
-  function displayConfigScript(script: string) {
-    codePreview.innerHTML = GridScript.expandScript(script);
+  function handleConfigChange(config: ActionData) {
+    codePreview.innerHTML = GridScript.expandScript(config.script);
     monaco_editor.colorizeElement(codePreview, {
       theme: "my-theme",
       tabSize: 2,
@@ -106,12 +106,9 @@
   }
 
   $: if (codePreview) {
-    displayConfigScript($config.script);
+    handleConfigChange($config);
   }
 
-  onMount(() => {
-    displayConfigScript(config.script);
-  });
 
   async function open_monaco() {
     const event = config.parent as GridEvent;

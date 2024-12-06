@@ -40,7 +40,7 @@
   let bmi = "0";
   let bma = "127";
 
-  $: handleConfigChange(config);
+  $: handleConfigChange($config);
 
   function handleConfigChange(config) {
     const arr = config.script.split("self:").slice(1);
