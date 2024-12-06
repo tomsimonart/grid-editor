@@ -102,6 +102,7 @@ function createAppSettingsStore(persistent) {
     rightPanelVisible: true,
     leftPanel: "ProfileCloud",
     leftPanelVisible: true,
+    isMultiView: false,
     trayState: false,
     intervalPause: false,
     firmwareNotificationState: 0,

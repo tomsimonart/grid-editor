@@ -1,20 +1,20 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
   import DropZone from "./DropZone.svelte";
   import AddActionLine from "./AddActionLine.svelte";
   import { GridEvent } from "../../../../runtime/runtime";
   import { draggedActions } from "../../../_actions/move.action";
   import { addActions, pasteActions } from "../../../../runtime/operations";
 
-  const dispatch = createEventDispatcher();
   export let target: { index: number; event: GridEvent } = undefined;
 
-  function handleNewConfig(e) {
-    dispatch("new-config", e.detail);
+  function handleNewConfig(e: CustomEvent) {
+    const { configs, index } = e.detail;
+    addActions(target.event, index, ...configs);
   }
 
-  function handlePaste(e) {
-    dispatch("paste", e.detail);
+  function handlePaste(e: CustomEvent) {
+    const { index } = e?.detail ?? { index: undefined };
+    pasteActions(target.event, index);
   }
 </script>
 

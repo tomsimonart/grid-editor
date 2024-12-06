@@ -8,6 +8,7 @@
     isCutActionsEnabled,
     isMergeActionsEnabled,
     isRemoveActionsEnabled,
+    isPasteActionsEnabled,
   } from "./Toolbar";
   import { appClipboard } from "./../../../../runtime/clipboard.store";
   import { GridEvent, GridElement } from "./../../../../runtime/runtime";
@@ -28,7 +29,9 @@
     overwriteElement,
     copyElement,
     clearElement,
+    pasteActions,
   } from "../../../../runtime/operations";
+  import { appSettings } from "../../../../runtime/app-helper.store";
 
   function handleOverwriteElement() {
     const ui = get(user_input);
@@ -104,6 +107,11 @@
     }
 
     cutActions(selected[0].parent as GridEvent, ...selected);
+  }
+
+  function handlePaste(e: CustomEvent) {
+    const { index } = e?.detail ?? { index: undefined };
+    pasteActions(event, index);
   }
 
   let selectedAction = undefined;
@@ -227,6 +235,19 @@
           iconPath={"copy"}
           color={"#03cb00"}
         />
+
+        {#if !$appSettings.isMultiView}
+          <MoltenToolbarButton
+            on:click={handlePaste}
+            on:mouseenter={() =>
+              setToolbarHoverText(`Paste Action(s)`, `(${modifier[0]} + V)`)}
+            on:mouseleave={handleToolbarButtonBlur}
+            shortcut={{ control: true, code: "KeyV" }}
+            disabled={$isPasteActionsEnabled === false}
+            iconPath={"paste"}
+            color={"#006cb7"}
+          />
+        {/if}
 
         <MoltenToolbarButton
           on:click={handleCut}

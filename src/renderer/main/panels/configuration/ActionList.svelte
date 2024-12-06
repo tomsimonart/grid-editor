@@ -126,10 +126,13 @@
     bind:this={configList}
     on:mousemove={handleMouseMove}
     on:mouseleave={() => clearInterval(autoScroll)}
-    class="flex-1 overflow-y-scroll justify-start border border-black px-3"
+    class="flex-1 overflow-y-scroll justify-start px-3"
   >
     {#if $event?.config.length === 0 && $draggedActions.length === 0}
-      <ActionHelper text={"There are no actions configured on this event."} />
+      <ActionHelper
+        target={{ event: event, index: 0 }}
+        text={"There are no actions configured on this event."}
+      />
     {:else}
       <SeparatorLine target={{ event: event, index: 0 }} />
     {/if}
@@ -167,8 +170,11 @@
           </div>
         </div>
 
-        {#if showHelper}
-          <ActionHelper text={action.information.helperText} />
+        {#if showHelper && $draggedActions.length === 0}
+          <ActionHelper
+            target={{ event: event, index: index + 1 }}
+            text={action.information.helperText}
+          />
         {:else}
           <SeparatorLine target={{ event: event, index: index + 1 }} />
         {/if}

@@ -3,22 +3,13 @@
   import { GridEvent } from "./../../../runtime/runtime";
   import ActionPicker from "./components/ActionPicker.svelte";
   import { createEventDispatcher } from "svelte";
+  import ExportButton from "./components/ExportButton.svelte";
+  import AddActionButton from "./components/AddActionButton.svelte";
+  import { appSettings } from "../../../runtime/app-helper.store";
 
   export let target: { event: GridEvent; index: number };
 
-  let showActionPicker = false;
-  let referenceElement = undefined;
-  let isAddDisabled = typeof target.event === "undefined";
-
   const dispatch = createEventDispatcher();
-
-  function handleShowActionPicker(e) {
-    showActionPicker = true;
-  }
-
-  function handleCloseActionPicker(e) {
-    showActionPicker = false;
-  }
 
   function handlePaste(index: number) {
     dispatch("paste", { index: index });
@@ -29,8 +20,13 @@
   }
 </script>
 
-<div>
-  <div class="w-full flex flex-col gap-2">
+<div class="w-full grid grid-cols-[1fr_auto_auto] gap-2">
+  <AddActionButton
+    {target}
+    on:new-config={handleNewConfig}
+    on:click={() => handlePaste(target.index)}
+  />
+  {#if $appSettings.isMultiView}
     <button
       class="flex rounded px-3 py-1 bg-commit items-center justify-center"
       class:opacity-50={!$isPasteActionsEnabled}
@@ -39,24 +35,9 @@
     >
       <span class="text-white"> Paste </span>
     </button>
-    <button
-      bind:this={referenceElement}
-      class="rounded px-3 py-1 border border-pick group-hover:bg-pick/40 items-center justify-center flex"
-      class:opacity-50={isAddDisabled}
-      on:click={handleShowActionPicker}
-      disabled={isAddDisabled}
-      on:new-config={handleNewConfig}
-    >
-      <span class="text-white">Add +</span>
-    </button>
-  </div>
+  {/if}
 
-  {#if showActionPicker}
-    <ActionPicker
-      event={target.event}
-      index={target.index}
-      {referenceElement}
-      on:close={handleCloseActionPicker}
-    />
+  {#if !$appSettings.isMultiView}
+    <ExportButton />
   {/if}
 </div>

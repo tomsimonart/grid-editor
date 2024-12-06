@@ -11,6 +11,7 @@
   const dispatch = createEventDispatcher();
 
   function handleNewConfig(e) {
+    console.log("yay", e.detail);
     dispatch("new-config", e.detail);
   }
 

@@ -247,6 +247,7 @@
       },
     });
     referenceElement.dispatchEvent(event);
+    handleClose();
   }
 
   function handleReferenceElementClick(e) {
