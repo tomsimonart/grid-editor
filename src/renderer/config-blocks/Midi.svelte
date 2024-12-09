@@ -85,8 +85,8 @@
 
   function handleConfigChange(config) {
     scriptSegments = Script.toSegments({
-      short: $config.short,
-      script: $config.script,
+      short: config.short,
+      script: config.script,
     });
   }
 

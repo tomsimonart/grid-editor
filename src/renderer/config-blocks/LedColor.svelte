@@ -96,8 +96,8 @@ A -> B : AB-First step
 
   function handleConfigChange(config) {
     const _segments = Script.toSegments({
-      short: $config.short,
-      script: $config.script,
+      short: config.short,
+      script: config.script,
     });
 
     // handle legacy and new beautify command

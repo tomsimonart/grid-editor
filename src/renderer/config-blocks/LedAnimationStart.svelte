@@ -90,7 +90,7 @@
   function handleConfigChange(config) {
     scriptSegments = Script.toSegments({
       short: "glpfs",
-      script: $config.script,
+      script: config.script,
     });
   }
 
