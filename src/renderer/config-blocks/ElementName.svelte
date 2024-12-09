@@ -29,7 +29,7 @@
 
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
-  import MeltCombo from "./components/MeltCombo.svelte";
+  import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "./_validators";
 
@@ -41,7 +41,7 @@
   let scriptValue = ""; // local script part
 
   $: {
-    const matches = config.script.match(/self:gen\("([^"]*)"\)/);
+    const matches = $config.script.match(/self:gen\("([^"]*)"\)/);
     scriptValue = matches[1];
   }
 

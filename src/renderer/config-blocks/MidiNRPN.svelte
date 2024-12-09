@@ -45,8 +45,7 @@
 
 <script lang="ts">
   import { onMount, createEventDispatcher } from "svelte";
-  import { MeltCheckbox } from "@intechstudio/grid-uikit";
-  import MeltCombo from "./components/MeltCombo.svelte";
+  import { MeltCheckbox, MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { user_input_event } from "../main/panels/configuration/Configuration";
   import { LocalDefinitions } from "../runtime/runtime.store";
@@ -89,7 +88,7 @@
   let midiLSB = []; // local script part
   let midiMSB = [];
 
-  $: handleScriptChange(config.script);
+  $: handleScriptChange($config.script);
 
   $: sendData(scriptSegments);
 

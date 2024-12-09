@@ -9,7 +9,7 @@
 
   let scriptSegments = [];
 
-  $: handleConfigChange(config);
+  $: handleConfigChange($config);
 
   function handleConfigChange(config) {
     scriptSegments = Script.toSegments({

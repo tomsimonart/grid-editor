@@ -46,7 +46,7 @@
 
 <script>
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
-  import MeltCombo from "./components/MeltCombo.svelte";
+  import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { user_input_event } from "../main/panels/configuration/Configuration";
   import { LocalDefinitions } from "../runtime/runtime.store";
@@ -86,7 +86,7 @@
 
   // config.script cannot be undefined
   $: {
-    const arr = config.script.split(" gms");
+    const arr = $config.script.split(" gms");
 
     let lsb = whatsInParenthesis.exec(arr[0]);
 
