@@ -44,12 +44,13 @@
   };
 </script>
 
-<script>
+<script lang="ts">
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
+  import { createEventDispatcher } from "svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { user_input_event } from "../main/panels/configuration/Configuration";
   import { LocalDefinitions } from "../runtime/runtime.store";
+  import { GridEvent } from "./../runtime/runtime";
 
   import { Validator } from "./_validators";
 
@@ -58,6 +59,8 @@
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import TabButton from "../main/user-interface/TabButton.svelte";
+
+  let event = config.parent as GridEvent;
 
   const dispatch = createEventDispatcher();
 
@@ -156,9 +159,10 @@
   let suggestions = [];
 
   function renderSuggestions() {
-    const index = $user_input_event.config.findIndex((e) => e.id === config.id);
+    const actions = $event.config;
+    const index = actions.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $user_input_event.config,
+      configs: actions,
       index: index,
     });
 
@@ -167,7 +171,7 @@
     suggestions[2] = [...localDefinitions];
   }
 
-  $: if ($user_input_event) {
+  $: if ($event) {
     renderSuggestions();
   }
   const tabs = [

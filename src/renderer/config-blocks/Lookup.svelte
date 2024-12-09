@@ -34,12 +34,12 @@
   };
 </script>
 
-<script>
+<script lang="ts">
   import { createEventDispatcher, onDestroy } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { user_input_event } from "../main/panels/configuration/Configuration";
   import { LocalDefinitions } from "../runtime/runtime.store";
+  import { GridEvent } from "./../runtime/runtime";
 
   import { Validator } from "./_validators";
   import { Script } from "./_script_parsers.js";
@@ -48,6 +48,8 @@
   export let index;
 
   const dispatch = createEventDispatcher();
+
+  let event = config.parent as GridEvent;
 
   let lookupTable = {};
 
@@ -58,10 +60,11 @@
   }
 
   let suggestions = [];
-  $: if ($user_input_event) {
-    const index = $user_input_event.config.findIndex((e) => e.id === config.id);
+  $: {
+    const actions = $event.config;
+    const index = actions.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $user_input_event.config,
+      configs: actions,
       index: index,
     });
     suggestions = localDefinitions;
@@ -78,7 +81,6 @@
     array = [lookupTable.source, ...array];
 
     const script = Script.toScript({
-      human: config.human,
       short: config.short,
       array: array,
     }); // important to set the function name

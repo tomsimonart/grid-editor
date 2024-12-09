@@ -5,21 +5,15 @@
   } from "./../../../../runtime/clipboard.store";
   import { fade } from "svelte/transition";
   import ActionPicker from "./ActionPicker.svelte";
-  import { createEventDispatcher } from "svelte";
+  import { GridEvent } from "../../../../runtime/runtime";
+  import { addActions, pasteActions } from "../../../../runtime/operations";
 
   let showActionPicker = false;
   let referenceElement = undefined;
-  let isButtonHovered = false;
   let pasteDisabled = $appClipboard?.key !== ClipboardKey.ACTION_BLOCKS;
 
-  export let index = undefined;
-  export let text;
-
-  const dispatch = createEventDispatcher();
-
-  function handleNewConfig(e) {
-    dispatch("new-config", e.detail);
-  }
+  export let text: string;
+  export let target: { event: GridEvent; index: number };
 
   function handleShowActionPicker(e) {
     showActionPicker = true;
@@ -29,31 +23,33 @@
     showActionPicker = false;
   }
 
-  function handlePaste(index: number) {
-    dispatch("paste", { index: index });
+  function handleNewConfig(e: any) {
+    const { configs, index } = e.detail;
+    addActions(target.event, index, ...configs);
+  }
+
+  function handlePaste(e: any) {
+    const { index } = e?.detail ?? { index: undefined };
+    pasteActions(target.event, index);
   }
 </script>
 
 <container
-  class="{$$props.class} relative"
   bind:this={referenceElement}
   on:new-config={handleNewConfig}
-  on:paste={(e) => handlePaste(e.detail.index)}
+  on:paste={handlePaste}
+  class="relativ flex w-full"
 >
   <div
-    id="background-with-text"
-    class="text-white/50 grid grid-cols-[1fr_auto] py-2 my-1 px-5 mr-4 justify-between items-center gap-2"
-    class:hover-bg={isButtonHovered}
+    class="text-white/50 w-full grid grid-cols-[1fr_auto] py-2 my-4 px-5 justify-between items-center gap-2 bg-white/5"
     in:fade={{ delay: 200 }}
   >
-    <span class="text-start line-clamp-3">{text}</span>
+    <span class="text-start line-clamp-3 flex-grow">{text}</span>
     <div class="flex flex-row gap-2">
       <button
         class="flex rounded px-3 py-1 bg-commit items-center"
         class:opacity-50={pasteDisabled}
-        on:click={() => handlePaste(index)}
-        on:mouseenter={() => (isButtonHovered = true)}
-        on:mouseleave={() => (isButtonHovered = false)}
+        on:click={(e) => handlePaste({ detail: { index: target.index } })}
         disabled={pasteDisabled}
       >
         <span class="text-white"> Paste </span>
@@ -61,8 +57,6 @@
       <button
         class="rounded px-2 py-1 border border-pick group-hover:bg-pick/40"
         on:click={handleShowActionPicker}
-        on:mouseenter={() => (isButtonHovered = true)}
-        on:mouseleave={() => (isButtonHovered = false)}
       >
         <div class="flex flex-row items-center gap-2 text-white">
           <span> Add </span>
@@ -71,14 +65,13 @@
       </button>
     </div>
   </div>
+
+  {#if showActionPicker}
+    <ActionPicker
+      event={target.event}
+      index={target.index}
+      {referenceElement}
+      on:close={handleCloseActionPicker}
+    />
+  {/if}
 </container>
-
-{#if showActionPicker}
-  <ActionPicker {index} {referenceElement} on:close={handleCloseActionPicker} />
-{/if}
-
-<style>
-  .hover-bg {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-</style>

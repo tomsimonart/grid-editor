@@ -38,7 +38,7 @@
 
     options = target.events.map((e: GridEvent) =>
       Object({
-        title: Grid.toFirstCase(NumberToEventType(e.type)),
+        title: e.getName(),
         value: e.type,
       })
     );

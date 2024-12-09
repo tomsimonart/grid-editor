@@ -1,77 +1,57 @@
-<script>
-  import { createEventDispatcher } from "svelte";
-  export let index;
-  export let drag_target;
-  export let thresholdTop = 0;
-  export let thresholdBottom = 0;
+<script lang="ts">
+  import { GridEvent } from "./../../../../runtime/runtime";
+  import {
+    dropEventTarget,
+    dropzone,
+    draggedActions,
+    type DropTarget,
+  } from "../../../_actions/move.action";
 
-  const dispatch = createEventDispatcher();
+  export let target: { index: number; event: GridEvent } = undefined;
 
-  let dropZoneEnabled = true;
-  let hovered = false;
+  export let threshold = 25;
 
-  $: if (drag_target.length === 1) {
-    const dragIndex = Number(drag_target.at(0));
-    handleDrag(dragIndex);
-  } else if (drag_target.length > 1) {
-    const firstDragIndex = Number(drag_target.at(0));
-    const lastDragIndex = Number(drag_target.at(-1));
-    handleMultiDrag(firstDragIndex, lastDragIndex);
-  }
+  let disabled = false;
 
-  function handleDrag(dragIndex) {
-    dropZoneEnabled = index != dragIndex && index != dragIndex + 1;
-  }
+  $: handleDropEventTargetChange($dropEventTarget);
 
-  function handleMultiDrag(firstDragIndex, lastDragIndex) {
-    dropZoneEnabled = index < firstDragIndex || index > lastDragIndex;
-  }
+  function handleDropEventTargetChange(drop: DropTarget) {
+    if (drop?.index !== target.index) {
+      return;
+    }
 
-  function handleMouseOver() {
-    hovered = true;
-    dispatch("drop-target-change", { index: index });
-  }
+    // Always droppable
+    const crossDrop = $draggedActions.every(
+      (e) => (e.parent as GridEvent) !== target.event
+    );
+    if (crossDrop) {
+      disabled = false;
+      return;
+    }
 
-  function handleMouseOut() {
-    hovered = false;
-    dispatch("drop-target-change", { index: undefined });
+    const targetIndexes = $draggedActions.map((action) =>
+      target.event.config.findIndex((e) => e.id === action.id)
+    );
+
+    const [targetMinIndex, targetMaxIndex] = [
+      Math.min(...targetIndexes),
+      Math.max(...targetIndexes),
+    ];
+
+    disabled =
+      target.index >= targetMinIndex && target.index <= targetMaxIndex + 1;
   }
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<!-- svelte-ignore a11y-mouse-events-have-key-events -->
-<drop-zone
-  class="{$$props.class} block select-none focus:outline-none border-none outline-none relative"
->
+<div class="flex relative h-2 w-full">
   <div
-    class="{hovered
-      ? 'opacity-100 '
-      : 'opacity-0 '} h-5 w-full pointer-events-none transition-opacity duration-300 flex items-center"
+    class="opacity-0 hover:opacity-75 w-full transition-opacity duration-300 flex items-center absolute top-1/2 -translate-y-1/2"
+    style="height: calc(100% + {threshold}px)"
+    use:dropzone={(this,
+    { event: target.event, disabled: disabled, index: target.index })}
   >
     <div
-      class="h-2 w-full rounded-full {dropZoneEnabled
-        ? 'bg-commit'
-        : 'bg-error'}"
+      class="h-2 w-full rounded-full {disabled ? 'bg-error' : 'bg-commit'}"
     />
   </div>
-  <div
-    on:mouseover={handleMouseOver}
-    on:mouseout={handleMouseOut}
-    style="--thresholdTop:{thresholdTop}px; --thresholdBottom:{thresholdBottom}px;"
-    class="{$$props.class} dropzone"
-  />
-</drop-zone>
-
-<style>
-  .dropzone {
-    position: absolute;
-    top: calc(50%);
-    left: 50%;
-    transform: translate(
-      calc(-50%),
-      calc(-50% + (var(--thresholdBottom) / 2) - (var(--thresholdTop) / 2))
-    );
-    height: calc(100% + var(--thresholdTop) + var(--thresholdBottom));
-    width: 100%;
-  }
-</style>
+</div>

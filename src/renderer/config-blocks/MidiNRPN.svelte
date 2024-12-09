@@ -47,8 +47,8 @@
   import { onMount, createEventDispatcher } from "svelte";
   import { MeltCheckbox, MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
-  import { user_input_event } from "../main/panels/configuration/Configuration";
   import { LocalDefinitions } from "../runtime/runtime.store";
+  import { GridEvent } from "./../runtime/runtime";
 
   import { Validator } from "./_validators.js";
 
@@ -59,6 +59,7 @@
   import TabButton from "../main/user-interface/TabButton.svelte";
 
   const dispatch = createEventDispatcher();
+  let event = config.parent as GridEvent;
 
   const validators = [
     (e) => {
@@ -75,22 +76,15 @@
     },
   ];
 
-  type ScriptSegments = {
-    channel: string;
-    addressMSB: string;
-    addressLSB: string;
-    value: string;
-    hiRes: boolean;
-    nrpnCC: string;
-  };
-  let scriptSegments: ScriptSegments = undefined;
-
-  let midiLSB = []; // local script part
-  let midiMSB = [];
+  let channel: string;
+  let msb: string;
+  let lsb: string;
+  let nrpnCC: string;
+  let value: string;
+  let hiRes: boolean;
 
   $: handleConfigChange($config);
-
-  $: sendData(scriptSegments);
+  let hiResCheckboxValue = false;
 
   function handleConfigChange(config) {
     // Extract all contents
@@ -103,6 +97,9 @@
       matches.push(match[1].trim()); // trim to remove any extra spaces
     }
 
+    let midiLSB = [];
+    let midiMSB = [];
+
     for (let i = 0; i < matches.length; ++i) {
       let part = matches[i];
 
@@ -113,28 +110,22 @@
       }
     }
 
-    const hiRes = midiLSB.length > 1 ? true : false;
-    let value = midiMSB[1].split("//")[0];
+    value = midiMSB[1].split("//")[0];
     if (value.startsWith("(") && value.endsWith(")")) {
       value = value.slice(1, -1);
     }
 
-    scriptSegments = {
-      channel: matches[0].split(",")[0],
-      addressMSB: midiMSB[0],
-      addressLSB: midiLSB[0],
-      nrpnCC: undefined,
-      value: value,
-      hiRes: hiRes,
-    };
-    scriptSegments = calculateNRPNCC(scriptSegments);
+    channel = matches[0].split(",")[0];
+    msb = midiMSB[0];
+    lsb = midiLSB[0];
+    nrpnCC = calculateNRPNCC(midiMSB[0], midiLSB[0]);
+    hiRes = midiLSB.length > 1 ? true : false;
   }
 
-  function sendData(data: ScriptSegments) {
-    const { channel, addressMSB, addressLSB, value, hiRes } = data;
+  function sendData() {
     let script = [
-      `gms(${channel},176,99,${addressMSB})`,
-      `gms(${channel},176,98,${addressLSB})`,
+      `gms(${channel},176,99,${msb})`,
+      `gms(${channel},176,98,${lsb})`,
       `gms(${channel},176,6,${hiRes ? `(${value})//128` : value})`,
     ];
     if (hiRes) {
@@ -144,6 +135,12 @@
       short: config.short,
       script: script.join(" "),
     });
+  }
+
+  $: handleHighResValueChange(hiRes);
+
+  function handleHighResValueChange(hiRes: boolean) {
+    sendData();
   }
 
   const channels = (length) => {
@@ -168,9 +165,10 @@
   let suggestions = [];
 
   function renderSuggestions() {
-    const index = $user_input_event.config.findIndex((e) => e.id === config.id);
+    const actions = $event.config;
+    const index = actions.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $user_input_event.config,
+      configs: actions,
       index: index,
     });
 
@@ -180,7 +178,7 @@
     suggestions[3] = [...localDefinitions];
   }
 
-  $: if ($user_input_event) {
+  $: if ($event) {
     renderSuggestions();
   }
 
@@ -195,42 +193,21 @@
     dispatch("replace", { short: element.short });
   }
 
-  let valueSuggestionElement = undefined;
-  let channelSuggestionElement = undefined;
-  let ccSuggestionElement = undefined;
-
-  function calculateNRPNCC(segments: ScriptSegments): ScriptSegments {
-    const { channel, addressMSB, addressLSB, value, hiRes } = segments;
-    let res;
+  function calculateNRPNCC(msb: string, lsb: string) {
     if (
-      addressMSB.endsWith("//128") &&
-      addressLSB.endsWith("%128") &&
-      addressMSB.slice(0, -5) === addressLSB.slice(0, -4)
+      msb.endsWith("//128") &&
+      lsb.endsWith("%128") &&
+      msb.slice(0, -5) === lsb.slice(0, -4)
     ) {
-      const msb = addressMSB.slice(0, -5);
-      let nrpnCC = msb;
+      const msbValue = msb.slice(0, -5);
+      let nrpnCC = msbValue;
       if (nrpnCC.startsWith("(") && nrpnCC.endsWith(")")) {
         nrpnCC = nrpnCC.slice(1, -1);
       }
-      res = {
-        channel,
-        addressMSB,
-        addressLSB,
-        value,
-        hiRes,
-        nrpnCC: nrpnCC,
-      };
+      return nrpnCC;
     } else {
-      res = {
-        channel,
-        addressMSB,
-        addressLSB,
-        value,
-        hiRes,
-        nrpnCC: `(${addressMSB})*128+${addressLSB}`,
-      };
+      return `(${msb})*128+${lsb}`;
     }
-    return res;
   }
 </script>
 
@@ -252,15 +229,15 @@
 
   <MeltCombo
     title={"Channel"}
-    bind:value={scriptSegments.channel}
+    bind:value={channel}
     suggestions={suggestions[0]}
     validator={validators[0]}
     on:validator={(e) => {
       const data = e.detail;
       dispatch("validator", data);
     }}
-    on:input={(e) => {
-      scriptSegments.channel = e.detail;
+    on:input={() => {
+      sendData();
     }}
     on:change={() => dispatch("sync")}
     postProcessor={GridScript.shortify}
@@ -271,16 +248,16 @@
     <div class="flex flex-col">
       <MeltCombo
         title={"MSB"}
-        bind:value={scriptSegments.addressMSB}
+        bind:value={msb}
         suggestions={suggestions[1]}
         validator={validators[1]}
         on:validator={(e) => {
           const data = e.detail;
           dispatch("validator", data);
         }}
-        on:input={(e) => {
-          scriptSegments.addressMSB = e.detail;
-          scriptSegments = calculateNRPNCC(scriptSegments);
+        on:input={() => {
+          nrpnCC = calculateNRPNCC(msb, lsb);
+          sendData();
         }}
         on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}
@@ -289,16 +266,16 @@
 
       <MeltCombo
         title={"LSB"}
-        bind:value={scriptSegments.addressLSB}
+        bind:value={lsb}
         suggestions={suggestions[2]}
         validator={validators[2]}
         on:validator={(e) => {
           const data = e.detail;
           dispatch("validator", data);
         }}
-        on:input={(e) => {
-          scriptSegments.addressLSB = e.detail;
-          scriptSegments = calculateNRPNCC(scriptSegments);
+        on:input={() => {
+          nrpnCC = calculateNRPNCC(msb, lsb);
+          sendData();
         }}
         on:change={() => dispatch("sync")}
         postProcessor={GridScript.shortify}
@@ -332,7 +309,7 @@
 
     <MeltCombo
       title={"NRPN CC"}
-      bind:value={scriptSegments.nrpnCC}
+      bind:value={nrpnCC}
       suggestions={suggestions[1]}
       validator={validators[1]}
       on:validator={(e) => {
@@ -340,9 +317,9 @@
         dispatch("validator", data);
       }}
       on:input={(e) => {
-        scriptSegments.nrpnCC = e.detail;
-        scriptSegments.addressMSB = `(${e.detail})//128`;
-        scriptSegments.addressLSB = `(${e.detail})%128`;
+        msb = `(${e.detail})//128`;
+        lsb = `(${e.detail})%128`;
+        sendData();
       }}
       on:change={() => dispatch("sync")}
       postProcessor={GridScript.shortify}
@@ -353,21 +330,21 @@
   <div class="w-full grid grid-cols-2 gap-2 items-center">
     <MeltCombo
       title={"Value"}
-      bind:value={scriptSegments.value}
+      bind:value
       suggestions={suggestions[3]}
       validator={validators[3]}
       on:validator={(e) => {
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:input={(e) => {
-        scriptSegments.value = e.detail;
+      on:input={() => {
+        sendData();
       }}
       on:change={() => dispatch("sync")}
       postProcessor={GridScript.shortify}
       preProcessor={GridScript.humanize}
     />
-    <MeltCheckbox bind:target={scriptSegments.hiRes} title="14bit Resolution" />
+    <MeltCheckbox bind:target={hiResCheckboxValue} title="14bit Resolution" />
   </div>
 
   <SendFeedback

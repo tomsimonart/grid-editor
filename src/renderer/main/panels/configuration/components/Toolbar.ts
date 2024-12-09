@@ -1,6 +1,5 @@
 import { derived } from "svelte/store";
-import { config_panel_blocks } from "../Configuration";
-import { runtime } from "../../../../runtime/runtime.store";
+import { runtime, selected_actions } from "../../../../runtime/runtime.store";
 import {
   appClipboard,
   ClipboardData,
@@ -9,33 +8,30 @@ import {
 import { ElementData } from "../../../../runtime/runtime";
 
 export const isCutActionsEnabled = derived(
-  config_panel_blocks,
-  ($config_panel_blocks) => {
-    return $config_panel_blocks.some((e) => e.selected);
+  selected_actions,
+  ($selected_actions) => {
+    return $selected_actions.length > 0;
   }
 );
 
 export const isCopyElementEnabled = derived(
-  config_panel_blocks,
-  ($config_panel_blocks) => {
-    return (
-      !$config_panel_blocks.some((e) => e.selected) &&
-      runtime.modules.length > 0
-    );
+  [selected_actions],
+  ([$selected_actions]) => {
+    return $selected_actions.length === 0 && runtime.modules.length > 0;
   }
 );
 
 export const isCopyActionsEnabled = derived(
-  config_panel_blocks,
-  ($config_panel_blocks) => {
-    return $config_panel_blocks.some((e) => e.selected);
+  selected_actions,
+  ($selected_actions) => {
+    return $selected_actions.length > 0;
   }
 );
 
 export const isMergeActionsEnabled = derived(
-  config_panel_blocks,
-  ($config_panel_blocks) => {
-    return $config_panel_blocks.some((e) => e.selected);
+  selected_actions,
+  ($selected_actions) => {
+    return $selected_actions.length > 0;
   }
 );
 
@@ -44,9 +40,9 @@ export const isPasteActionsEnabled = derived(appClipboard, ($appClipboard) => {
 });
 
 export const isRemoveActionsEnabled = derived(
-  config_panel_blocks,
-  ($config_panel_blocks) => {
-    return $config_panel_blocks.some((e) => e.selected);
+  selected_actions,
+  ($selected_actions) => {
+    return $selected_actions.length > 0;
   }
 );
 

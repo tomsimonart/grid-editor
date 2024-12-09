@@ -5,24 +5,25 @@
     runtime,
     LocalDefinitions,
   } from "./../../../../runtime/runtime.store";
-  import { GridAction, ActionData } from "./../../../../runtime/runtime";
+  import {
+    GridAction,
+    ActionData,
+    GridEvent,
+    EventData,
+  } from "./../../../../runtime/runtime";
+  import { SvgIcon } from "@intechstudio/grid-uikit";
+  import { LocalDefinitions } from "./../../../../runtime/runtime.store";
   import {
     ClipboardKey,
     appClipboard,
   } from "./../../../../runtime/clipboard.store";
   import Popover from "svelte-easy-popover";
   import { createEventDispatcher } from "svelte";
-
   import { clickOutside } from "../../../_actions/click-outside.action";
-
   import { Analytics } from "../../../../runtime/analytics.js";
-
   import { getAllComponents } from "../../../../lib/_configs";
-  import { user_input_event } from "../Configuration";
-
   import { lastOpenedActionblocksInsert } from "../Configuration";
   import { NumberToEventType } from "@intechstudio/grid-protocol";
-
   import { onMount, onDestroy } from "svelte";
   import {
     MoltenPushButton,
@@ -36,6 +37,7 @@
 
   export let index;
   export let referenceElement = undefined;
+  export let event: GridEvent;
 
   let offset = 0;
   const dispatch = createEventDispatcher();
@@ -73,7 +75,7 @@
 
   $: {
     try {
-      options = getAvailableOptions($user_input_event.config);
+      options = getAvailableOptions($event);
     } catch (e) {
       handleClose();
     }
@@ -85,17 +87,10 @@
   /////////////////       FUNCTION DEFINITIONS        //////////////////////////
   //////////////////////////////////////////////////////////////////////////////
 
-  function getAvailableOptions(configs) {
-    const ui = get(user_input);
-    const target = runtime.findEvent(
-      ui.dx,
-      ui.dy,
-      ui.pagenumber,
-      ui.elementnumber,
-      ui.eventtype
-    );
+  function getAvailableOptions(target: EventData) {
+    const configs = target.config;
 
-    if (typeof configs === "undefined" || typeof target === "undefined") {
+    if (typeof target === "undefined") {
       throw "Unexpected Error";
     }
 
@@ -114,7 +109,7 @@
     {
       let n = index - 1;
       let indentation = 0;
-      while (n >= 0) {
+      while (n >= 0 && typeof configs[n] !== "undefined") {
         const short = configs[n].short;
         if (short === "if") {
           ++indentation;
@@ -136,7 +131,7 @@
     } else {
       let n = parts[0].index + 1;
       let indentation = 1;
-      while (n < configs.length) {
+      while (n < configs.length && typeof configs[n] !== "undefined") {
         const short = configs[n].short;
 
         if (indentation == 1) {
@@ -177,7 +172,7 @@
     //Filter out not allowed button step conditions
     let n = index - 1;
     let indentation = 0;
-    while (n >= 0) {
+    while (n >= 0 && typeof configs[n] !== "undefined") {
       const short = configs[n].short;
       if (short === "bst0") {
         ++indentation;
@@ -262,6 +257,7 @@
       },
     });
     referenceElement.dispatchEvent(event);
+    handleClose();
   }
 
   function handleReferenceElementClick(e) {
@@ -280,8 +276,8 @@
   function replaceToLocalDefinition(script, segment, localDefinition) {
     if (script.includes(segment)) {
       const localDefinitions = LocalDefinitions.getFrom({
-        configs: $user_input_event.config,
-        index: Math.min(index, $user_input_event.config.length - 1),
+        configs: $event.config,
+        index: Math.min(index, $event.config.length - 1),
       });
       const defaultLocal = localDefinitions.find(
         (e) => e.value === localDefinition
