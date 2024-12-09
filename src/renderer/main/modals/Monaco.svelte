@@ -10,7 +10,11 @@
     ActionData,
   } from "./../../runtime/runtime";
   import { watchResize } from "svelte-watch-resize";
-  import { MoltenInput, MoltenPushButton } from "@intechstudio/grid-uikit";
+  import {
+    MoltenInput,
+    MoltenPushButton,
+    SvgIcon,
+  } from "@intechstudio/grid-uikit";
   import { onDestroy } from "svelte";
   import {
     grid,
@@ -26,7 +30,6 @@
 
   import { beforeUpdate, afterUpdate, onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
-  import { SvgIcon } from "@intechstudio/grid-uikit";
   import { clickOutside } from "../_actions/click-outside.action";
   import { syncWithGrid } from "../../runtime/operations";
 

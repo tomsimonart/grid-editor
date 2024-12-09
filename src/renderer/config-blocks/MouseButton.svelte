@@ -33,7 +33,7 @@
 
 <script>
   import { createEventDispatcher, onDestroy, onMount } from "svelte";
-  import MeltCombo from "./components/MeltCombo.svelte";
+  import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { LocalDefinitions } from "../runtime/runtime.store";
   import { user_input_event } from "../main/panels/configuration/Configuration";
@@ -60,8 +60,8 @@
 
   function handleConfigChange(config) {
     scriptSegments = Script.toSegments({
-      short: config.short,
-      script: config.script,
+      short: $config.short,
+      script: $config.script,
     });
   }
 
@@ -69,7 +69,6 @@
     scriptSegments[index] = value;
 
     const script = Script.toScript({
-      human: config.human,
       short: config.short,
       array: scriptSegments,
     });

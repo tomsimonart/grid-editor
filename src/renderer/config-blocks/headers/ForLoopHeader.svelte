@@ -5,7 +5,7 @@
   import Toggle from "../../main/user-interface/Toggle.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "../_validators";
-  import MeltCombo from "../components/MeltCombo.svelte";
+  import { MeltCombo } from "@intechstudio/grid-uikit";
   import SendFeedback from "../../main/user-interface/SendFeedback.svelte";
 
   export let index;
