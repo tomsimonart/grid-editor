@@ -83,7 +83,7 @@ test.describe("Issues", () => {
     await modulePage.selectModuleElement(0);
 
     const actualValue = await configPage.getTextFromName();
-    await expect(actualValue).toBe("custom name");
+    await expect(actualValue).toBe("testwrite");
   });
 });
 
