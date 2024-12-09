@@ -85,8 +85,11 @@
   const whatsInParenthesis = /\(([^)]+)\)/;
 
   // config.script cannot be undefined
-  $: {
-    const arr = $config.script.split(" gms");
+
+  $: handleConfigChange($config);
+
+  function handleConfigChange(config) {
+    const arr = config.script.split(" gms");
 
     let lsb = whatsInParenthesis.exec(arr[0]);
 

@@ -40,10 +40,10 @@
 
   let scriptValue = ""; // local script part
 
-  $: handleConfigChange($config.script);
+  $: handleConfigChange($config);
 
-  function handleConfigChange(script) {
-    scriptValue = script.split("--[[")[1].split("]]")[0];
+  function handleConfigChange(config) {
+    scriptValue = config.script.split("--[[")[1].split("]]")[0];
   }
 
   function sendData(e) {

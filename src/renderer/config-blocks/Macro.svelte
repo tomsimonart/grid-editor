@@ -88,9 +88,7 @@
     lastKeyDivList = keyDivList;
   });
 
-  $: {
-    scriptToKeyList({ script: $config.script });
-  }
+  $: handleConfigChange($config);
 
   function change_layout() {
     layout = layouts.find((e) => {
@@ -107,14 +105,14 @@
       $appSettings.persistent.keyboardLayout = selectedLayout;
     }
 
-    scriptToKeyList({ script: config.script });
+    handleConfigChange(config);
   }
 
-  function scriptToKeyList({ script }) {
+  function handleConfigChange(config) {
     let array = [];
     let _keys = [];
     try {
-      const text = script.split("gks(")[1].slice(0, -1);
+      const text = config.script.split("gks(")[1].slice(0, -1);
       array = text.split(",");
       defaultDelay = array[0] ? array[0] : defaultDelay;
       array = array.slice(1);
@@ -156,7 +154,7 @@
         keyDivList = colorize(_keys);
       }
     } catch (error) {
-      console.warn("gsk can't be turned to config", script, error);
+      console.warn("gsk can't be turned to config", config.script, error);
     }
   }
 
@@ -260,8 +258,6 @@
       args.splice(cut, 1);
       caretPos--;
     });
-
-    //console.log(cuts, args )
 
     return args;
   }
