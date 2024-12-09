@@ -104,6 +104,10 @@ export class ConfigPage {
     ].inputValue();
   }
 
+  async getActionBlock(category, blockName) {
+    return await this.blocks[category][blockName]["block"];
+  }
+
   async clickActionBlockElement(category, blockName, field) {
     await this.blocks[category][blockName]["elements"][field].click();
   }
@@ -236,7 +240,9 @@ export class ConfigPage {
   }
 
   async getTextFromComment() {
-    return await this.blocks["code"]["Comment Block"]["elements"]["input"];
+    return await this.blocks["code"]["Comment Block"]["elements"][
+      "input"
+    ].inputValue();
   }
 
   async getTextFromCode() {
@@ -246,7 +252,7 @@ export class ConfigPage {
   async getTextFromName() {
     return await this.blocks["code"]["Element Name"]["elements"][
       "input"
-    ].textContent();
+    ].inputValue();
   }
 
   async openFirstActionBlock() {
