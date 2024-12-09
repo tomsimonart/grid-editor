@@ -60,10 +60,11 @@
 
   export let commitState = 1;
 
-  // config.script cannot be undefined
-  $: {
+  $: handleConfigChange($config);
+
+  function handleConfigChange(config) {
     // this works differently from normal _utils...
-    scriptSegments = selfsToConfig({ script: $config.script });
+    scriptSegments = selfsToConfig({ script: config.script });
   }
 
   function saveChangesOnInput(e, i, k) {
@@ -117,6 +118,7 @@
       committedCode = outputCode;
       outputCode = GridScript.shortify(outputCode);
       dispatch("update-action", { short: "s", script: outputCode });
+      dispatch("sync");
       commitState = 0;
     }
 

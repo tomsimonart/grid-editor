@@ -45,8 +45,7 @@
 
 <script lang="ts">
   import { onMount, createEventDispatcher } from "svelte";
-  import { MeltCheckbox } from "@intechstudio/grid-uikit";
-  import MeltCombo from "./components/MeltCombo.svelte";
+  import { MeltCheckbox, MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { user_input_event } from "../main/panels/configuration/Configuration";
   import { LocalDefinitions } from "../runtime/runtime.store";
@@ -89,18 +88,18 @@
   let midiLSB = []; // local script part
   let midiMSB = [];
 
-  $: handleScriptChange(config.script);
+  $: handleConfigChange($config);
 
   $: sendData(scriptSegments);
 
-  function handleScriptChange(script) {
+  function handleConfigChange(config) {
     // Extract all contents
     const matches = [];
     const regex = /gms\((.*?[^)])\)(?=\s|$)/g;
 
     let match;
 
-    while ((match = regex.exec(script)) !== null) {
+    while ((match = regex.exec(config.script)) !== null) {
       matches.push(match[1].trim()); // trim to remove any extra spaces
     }
 

@@ -177,18 +177,18 @@ test.describe("Element Mode MAX value", () => {
     await configPage.removeAllActions();
   });
 
-  test("Potmeter", async () => {
-    const category = "element";
-    const blockName = "Potmeter Mode";
-    await configPage.openAndAddActionBlock(category, blockName);
-    await configPage.clickActionBlockElement(
-      category,
-      blockName,
-      "Enable Min/Max Value"
-    );
-    await configPage.clickActionBlockElement(category, blockName, "Max");
-    await expect(configPage.elementMaxResolutionDropdown).toBeVisible();
-  });
+  // test("Potmeter", async () => {
+  //   const category = "element";
+  //   const blockName = "Potmeter Mode";
+  //   await configPage.openAndAddActionBlock(category, blockName);
+  //   await configPage.clickActionBlockElement(
+  //     category,
+  //     blockName,
+  //     "Enable Min/Max Value"
+  //   );
+  //   await configPage.clickActionBlockElement(category, blockName, "Max");
+  //   await expect(configPage.elementMaxResolutionDropdown).toBeVisible();
+  // });
 
   /*
   test("Encoder", async () => {

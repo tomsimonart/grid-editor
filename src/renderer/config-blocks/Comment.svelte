@@ -29,7 +29,7 @@
 
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
-  import MeltCombo from "./components/MeltCombo.svelte";
+  import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "./_validators";
 
@@ -40,14 +40,10 @@
 
   let scriptValue = ""; // local script part
 
-  $: handleConfigChange(config.script);
+  $: handleConfigChange($config);
 
-  function handleConfigChange(script) {
-    scriptValue = script.split("--[[")[1].split("]]")[0];
-  }
-
-  $: if (scriptValue) {
-    sendData(scriptValue);
+  function handleConfigChange(config) {
+    scriptValue = config.script.split("--[[")[1].split("]]")[0];
   }
 
   function sendData(e) {
@@ -59,9 +55,7 @@
   };
 </script>
 
-<element-name
-  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
->
+<element-name class="flex flex-col w-full p-2 pointer-events-auto">
   <MeltCombo
     title={"Comment"}
     bind:value={scriptValue}

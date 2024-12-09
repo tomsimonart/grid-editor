@@ -36,7 +36,7 @@
 
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
-  import MeltCombo from "./components/MeltCombo.svelte";
+  import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { user_input_event } from "../main/panels/configuration/Configuration";
   import { LocalDefinitions } from "../runtime/runtime.store";
@@ -49,13 +49,12 @@
 
   const dispatch = createEventDispatcher();
 
-  let scriptSegments = [];
   let lookupTable = {};
 
-  $: handleScriptChange($config.script);
+  $: handleConfigChange($config);
 
-  function handleScriptChange(script) {
-    lookupTable = createLookupTable(script);
+  function handleConfigChange(config) {
+    lookupTable = createLookupTable(config.script);
   }
 
   let suggestions = [];
@@ -76,7 +75,6 @@
       array.push(pair.output);
     });
 
-    console.log(lookupTable);
     array = [lookupTable.source, ...array];
 
     const script = Script.toScript({
@@ -115,11 +113,14 @@
   function addNewLine() {
     lookupTable.pairs = [...lookupTable.pairs, ["", ""]];
     sendData();
+    dispatch("sync");
   }
 
   function removeLine(i) {
     lookupTable.pairs.splice(i, 1);
     lookupTable.pairs = [...lookupTable.pairs];
+    sendData();
+    dispatch("sync");
   }
 </script>
 
@@ -159,6 +160,10 @@
             class="py-0.5 pl-1 w-full bg-secondary text-white"
             placeholder="input"
             bind:value={pair.input}
+            on:input={(e) => {
+              sendData();
+            }}
+            on:change={() => dispatch("sync")}
           />
         </div>
         <div class="w-1/2 pl-1">
@@ -166,6 +171,10 @@
             class="py-0.5 pl-1 w-full bg-secondary text-white"
             placeholder="output"
             bind:value={pair.output}
+            on:input={(e) => {
+              sendData();
+            }}
+            on:change={() => dispatch("sync")}
           />
         </div>
         {#if i !== 0}

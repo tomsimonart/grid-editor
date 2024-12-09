@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { ActionData } from "./../../../../runtime/runtime.ts";
   import { get } from "svelte/store";
-  import { user_input, runtime } from "./../../../../runtime/runtime.store";
-  import { GridAction } from "./../../../../runtime/runtime";
-  import { SvgIcon } from "@intechstudio/grid-uikit";
-  import { LocalDefinitions } from "./../../../../runtime/runtime.store";
+  import {
+    user_input,
+    runtime,
+    LocalDefinitions,
+  } from "./../../../../runtime/runtime.store";
+  import { GridAction, ActionData } from "./../../../../runtime/runtime";
   import {
     ClipboardKey,
     appClipboard,
@@ -23,7 +24,11 @@
   import { NumberToEventType } from "@intechstudio/grid-protocol";
 
   import { onMount, onDestroy } from "svelte";
-  import { MoltenPushButton, MoltenInput } from "@intechstudio/grid-uikit";
+  import {
+    MoltenPushButton,
+    MoltenInput,
+    SvgIcon,
+  } from "@intechstudio/grid-uikit";
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////

@@ -33,7 +33,7 @@
 
 <script>
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
-  import MeltCombo from "./components/MeltCombo.svelte";
+  import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
 
   import { Script } from "./_script_parsers.js";
@@ -60,7 +60,9 @@
   let scriptSegments = [];
 
   // config.script cannot be undefined
-  $: {
+  $: handleConfigChange($config);
+
+  function handleConfigChange(config) {
     scriptSegments = Script.toSegments({
       short: config.short,
       script: config.script,
@@ -70,7 +72,6 @@
   function sendData(e, index) {
     scriptSegments[index] = e;
     const script = Script.toScript({
-      human: config.human,
       short: config.short,
       array: scriptSegments,
     });
