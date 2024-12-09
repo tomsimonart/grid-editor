@@ -40,7 +40,6 @@
 
   let scriptValue = ""; // local script part
 
-
   $: handleConfigChange($config);
 
   function handleConfigChange(config) {
