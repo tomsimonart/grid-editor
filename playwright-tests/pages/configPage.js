@@ -243,6 +243,12 @@ export class ConfigPage {
     return await this.blocks["code"]["Code Block"]["elements"]["input"];
   }
 
+  async getTextFromName() {
+    return await this.blocks["code"]["Element Name"]["elements"][
+      "input"
+    ].textContent();
+  }
+
   async openFirstActionBlock() {
     await this.firstActionBlock.click();
   }

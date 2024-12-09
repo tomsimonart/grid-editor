@@ -69,6 +69,23 @@ test.describe("Issues", () => {
     );
     await expect(actualValue).toBe(expectedValue);
   });
+
+  // test("Element name freezes Editor", async () => {
+  //   await configPage.removeAllActions();
+  //   await configPage.openAndAddActionBlock("code", "Element Name");
+  //   await configPage.writeActionBlockField(
+  //     "code",
+  //     "Element Name",
+  //     "input",
+  //     "testwrite"
+  //   );
+  //   const actualValue = await configPage.getTextFromName();
+  //   await expect(actualValue).toBe("testwrite");
+  //   // await modulePage.selectModuleElement(2);
+  //   // await modulePage.selectModuleElement(0);
+  //   // await modulePage.selectModuleElement(2);
+  //   // await modulePage.selectModuleElement(0);
+  // });
 });
 
 test.describe("NRPN converting", () => {
