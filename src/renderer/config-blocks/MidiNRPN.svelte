@@ -88,18 +88,18 @@
   let midiLSB = []; // local script part
   let midiMSB = [];
 
-  $: handleScriptChange($config.script);
+  $: handleConfigChange($config);
 
   $: sendData(scriptSegments);
 
-  function handleScriptChange(script) {
+  function handleConfigChange(config) {
     // Extract all contents
     const matches = [];
     const regex = /gms\((.*?[^)])\)(?=\s|$)/g;
 
     let match;
 
-    while ((match = regex.exec(script)) !== null) {
+    while ((match = regex.exec(config.script)) !== null) {
       matches.push(match[1].trim()); // trim to remove any extra spaces
     }
 

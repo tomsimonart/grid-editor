@@ -48,10 +48,10 @@
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 
-  $: handleScriptChange($config.script);
+  $: handleConfigChange($config);
 
-  function handleScriptChange(script) {
-    const arr = script.split("self:").slice(1);
+  function handleConfigChange(config) {
+    const arr = config.script.split("self:").slice(1);
     const parts = {
       epmo: null,
       epv0: null,

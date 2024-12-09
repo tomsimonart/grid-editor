@@ -46,10 +46,10 @@
   const whatsInParenthesis = /gtp\(([^"]*)\)/;
   let scriptValue = "";
 
-  $: handleScriptChange($config.script);
+  $: handleConfigChange($config);
 
-  function handleScriptChange(script) {
-    let param1 = whatsInParenthesis.exec(script);
+  function handleConfigChange(config) {
+    let param1 = whatsInParenthesis.exec(config.script);
     if (param1 !== null) {
       if (param1.length > 0) {
         scriptValue = param1[1];

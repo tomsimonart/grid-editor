@@ -60,10 +60,12 @@
   let scriptSegments = [];
 
   // config.script cannot be undefined
-  $: {
+  $: handleConfigChange($config);
+
+  function handleConfigChange(config) {
     scriptSegments = Script.toSegments({
-      short: $config.short,
-      script: $config.script,
+      short: config.short,
+      script: config.script,
     });
   }
 

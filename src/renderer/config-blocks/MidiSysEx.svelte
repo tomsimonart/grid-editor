@@ -62,10 +62,10 @@
 
   let value;
 
-  $: handleScriptChange($config.script);
+  $: handleConfigChange($config);
 
-  function handleScriptChange(script) {
-    let textdata = whatsInParenthesis.exec(script);
+  function handleConfigChange(config) {
+    let textdata = whatsInParenthesis.exec(config.script);
 
     if (textdata !== null) {
       if (textdata.length > 0) {
