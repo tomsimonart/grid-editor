@@ -60,10 +60,11 @@
 
   export let commitState = 1;
 
-  // config.script cannot be undefined
-  $: {
+  $: handleConfigChange($config);
+
+  function handleConfigChange(config) {
     // this works differently from normal _utils...
-    scriptSegments = localsToConfig({ script: $config.script });
+    scriptSegments = localsToConfig({ script: config.script });
   }
 
   function saveChangesOnInput(e, i, k) {

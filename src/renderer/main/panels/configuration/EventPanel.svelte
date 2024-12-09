@@ -64,24 +64,22 @@
   }
 </script>
 
-<div class="pb-2 flex flex-col justify-center">
-  <div class="flex flex-col justify-center items-center">
-    <MeltRadio
-      bind:target={selected}
-      style="button"
-      orientation="horizontal"
-      size="full"
-      {options}
-    >
-      <svelte:fragment slot="item" let:value>
-        {@const event = target?.events.find((e) => e.type === Number(value))}
-        {#key $runtime}
-          <unsaved-changes-marker
-            class:hidden={!event?.hasChanges()}
-            class="absolute right-0 top-0 w-4 h-4 bg-unsavedchange rounded-full translate-x-1/3 -translate-y-1/3"
-          />
-        {/key}
-      </svelte:fragment>
-    </MeltRadio>
-  </div>
+<div class="pb-2 flex flex-col justify-center items-center relative">
+  <MeltRadio
+    bind:target={selected}
+    style="button"
+    orientation="horizontal"
+    size="full"
+    {options}
+  >
+    <svelte:fragment slot="item" let:value>
+      {@const event = target?.events.find((e) => e.type === Number(value))}
+      {#key $runtime}
+        <unsaved-changes-marker
+          class:hidden={!event?.hasChanges()}
+          class="absolute right-0 top-0 w-4 h-4 bg-unsavedchange rounded-full translate-x-1/3 -translate-y-1/3"
+        />
+      {/key}
+    </svelte:fragment>
+  </MeltRadio>
 </div>

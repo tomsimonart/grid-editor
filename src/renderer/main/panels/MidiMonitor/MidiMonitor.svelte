@@ -16,8 +16,7 @@
     SysExMonitorItem,
   } from "./MidiMonitor.store";
   import { grid } from "@intechstudio/grid-protocol";
-  import { SvgIcon } from "@intechstudio/grid-uikit";
-  import { MoltenPushButton } from "@intechstudio/grid-uikit";
+  import { MoltenPushButton, SvgIcon } from "@intechstudio/grid-uikit";
   import { GridEvent } from "../../../runtime/runtime";
 
   let event: GridEvent;

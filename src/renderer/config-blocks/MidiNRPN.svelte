@@ -45,8 +45,7 @@
 
 <script lang="ts">
   import { onMount, createEventDispatcher } from "svelte";
-  import { MeltCheckbox } from "@intechstudio/grid-uikit";
-  import MeltCombo from "./components/MeltCombo.svelte";
+  import { MeltCheckbox, MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { LocalDefinitions } from "../runtime/runtime.store";
   import { GridEvent } from "./../runtime/runtime";
@@ -84,9 +83,8 @@
   let value: string;
   let hiRes: boolean;
 
+  $: handleConfigChange($config);
   let hiResCheckboxValue = false;
-
-  $: handleConfigChange(config);
 
   function handleConfigChange(config) {
     // Extract all contents

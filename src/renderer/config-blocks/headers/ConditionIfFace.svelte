@@ -12,8 +12,10 @@
 
   let scriptSegment = ""; // local script part
 
-  $: {
-    scriptSegment = GridScript.humanize($config.script.slice(3, -5));
+  $: handleConfigChange($config);
+
+  function handleConfigChange(config) {
+    scriptSegment = GridScript.humanize(config.script.slice(3, -5));
   }
 
   function sendData(e) {

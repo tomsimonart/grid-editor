@@ -1,7 +1,7 @@
 import { writable, get, type Writable } from "svelte/store";
 import { writeBuffer, sendHeartbeat } from "./engine.store";
 import { appSettings } from "./app-helper.store";
-import { modal } from "../main/modals/modal.store";
+import { modal, Snap } from "../main/modals/modal.store";
 import { ProtectedStore } from "./smart-store.store";
 import { GridAction, GridRuntime, aliveModules } from "./runtime";
 
@@ -216,7 +216,10 @@ function create_user_input() {
     }
 
     // modal block track physical interaction setting
-    if (typeof get(modal) !== "undefined") {
+    if (
+      typeof get(modal) !== "undefined" &&
+      get(modal).options.snap === Snap.FULL
+    ) {
       return;
     }
 

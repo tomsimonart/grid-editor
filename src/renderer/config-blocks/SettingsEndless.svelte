@@ -25,10 +25,14 @@
 
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
-  import MeltCombo from "./components/MeltCombo.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Validator } from "./_validators.js";
-  import { MeltCheckbox, Block, BlockBody } from "@intechstudio/grid-uikit";
+  import {
+    MeltCheckbox,
+    Block,
+    BlockBody,
+    MeltCombo,
+  } from "@intechstudio/grid-uikit";
 
   export let config;
   export let index;
@@ -44,10 +48,10 @@
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 
-  $: handleScriptChange($config.script);
+  $: handleConfigChange($config);
 
-  function handleScriptChange(script) {
-    const arr = script.split("self:").slice(1);
+  function handleConfigChange(config) {
+    const arr = config.script.split("self:").slice(1);
     const parts = {
       epmo: null,
       epv0: null,

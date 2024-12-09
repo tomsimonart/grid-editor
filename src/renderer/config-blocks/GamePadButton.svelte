@@ -53,7 +53,7 @@
 
 <script lang="ts">
   import { createEventDispatcher, onDestroy, onMount } from "svelte";
-  import MeltCombo from "./components/MeltCombo.svelte";
+  import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { Script } from "./_script_parsers.js";
   import { Validator } from "./_validators.js";
@@ -79,7 +79,9 @@
 
   let scriptSegments = [];
 
-  $: {
+  $: handleConfigChange($config);
+
+  function handleConfigChange(config) {
     scriptSegments = Script.toSegments({
       short: config.short,
       script: config.script,

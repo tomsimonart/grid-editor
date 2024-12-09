@@ -12,7 +12,7 @@
   let midiLSB = ""; // local script part
   let midiMSB = "";
 
-  $: handleConfigChange(config);
+  $: handleConfigChange($config);
 
   function handleConfigChange(config) {
     const arr = config.script.split(" gms");

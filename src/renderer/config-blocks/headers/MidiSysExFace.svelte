@@ -27,7 +27,7 @@
     >
     <div class="bg-primary p-1 my-auto rounded truncate">
       <span class="whitespace-nowrap text-white text-opacity-60">
-        {whatsInParenthesis.exec(config.script)}
+        {whatsInParenthesis.exec($config.script)}
       </span>
     </div>
   </div>

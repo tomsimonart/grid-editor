@@ -32,8 +32,9 @@
 </script>
 
 <script lang="ts">
+  import { onMount, createEventDispatcher, onDestroy } from "svelte";
+  import { MeltCombo } from "@intechstudio/grid-uikit";
   import { createEventDispatcher } from "svelte";
-  import MeltCombo from "./components/MeltCombo.svelte";
   import { GridScript } from "@intechstudio/grid-protocol";
   import { LocalDefinitions } from "../runtime/runtime.store";
   import { Validator } from "./_validators";
@@ -47,10 +48,10 @@
   const whatsInParenthesis = /gtp\(([^"]*)\)/;
   let scriptValue = "";
 
-  $: handleScriptChange($config.script);
+  $: handleConfigChange($config);
 
-  function handleScriptChange(script) {
-    let param1 = whatsInParenthesis.exec(script);
+  function handleConfigChange(config) {
+    let param1 = whatsInParenthesis.exec(config.script);
     if (param1 !== null) {
       if (param1.length > 0) {
         scriptValue = param1[1];
