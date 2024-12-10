@@ -163,6 +163,7 @@
       parameters.length > 0 ? "," + parameters.join(",") : ""
     })`;
     dispatch("update-action", { short: "gks", script: script });
+    dispatch("sync");
   }
 
   let keyDivList = "";
