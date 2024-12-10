@@ -38,10 +38,8 @@ test.describe("Issues", () => {
       .filter({ hasText: 'Code preview: print("hello")' })
       .getByRole("button")
       .nth(2)
-      .click();
-    await page
-      .locator("div:nth-child(2) > div:nth-child(2) > button:nth-child(5)")
-      .click();
+      .click(); //uncheck codeblock
+    await configPage.removeAction();
 
     const preText = await page.locator("#cfg-0").getByText(expectedText); // should find codeblock with hello
     await expect(preText).toBeVisible();
