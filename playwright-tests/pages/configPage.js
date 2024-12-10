@@ -72,7 +72,9 @@ export class ConfigPage {
       "Config limit reached."
     );
     this.characterCount = page.getByTestId("charCount");
-    this.elementMaxResolutionDropdown = page.getByText("7 bit MIDI (default)");
+    this.elementMaxResolution14Bit = page.getByRole("option", {
+      name: "14 bit MIDI",
+    });
   }
 
   async openAndAddActionBlock(category, blockName) {
