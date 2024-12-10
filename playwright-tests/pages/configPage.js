@@ -13,31 +13,19 @@ export class ConfigPage {
 
     // Element Actions
     this.elementButtons = {
-      copy: page.locator(".toolbar-button").first(),
-      overwrite: page
-        .locator("div:nth-child(2) > div > button:nth-child(2)")
-        .first(),
-      discard: page
-        .locator("div:nth-child(2) > div > button:nth-child(3)")
-        .first(),
-      clear: page
-        .locator("div:nth-child(2) > div > button:nth-child(4)")
-        .first(),
+      copy: page.getByTestId("copy_all"),
+      overwrite: page.getByTestId("paste_all"),
+      discard: page.getByTestId("discard_changes"),
+      clear: page.getByTestId("clear_element"),
     };
 
     // Action Buttons
     this.actionButtons = {
-      copy: page
-        .locator("div:nth-child(2) > div:nth-child(2) > button")
-        .first(),
-      paste: page.locator("div:nth-child(2) > button:nth-child(2)").first(),
-      cut: page.locator(
-        "div:nth-child(2) > div:nth-child(2) > button:nth-child(3)"
-      ),
-      merge: page.locator("div:nth-child(2) > button:nth-child(4)"),
-      remove: page.locator(
-        "div:nth-child(2) > div:nth-child(2) > button:nth-child(5)"
-      ),
+      copy: page.getByTestId("copy_action"),
+      paste: page.getByTestId("paste_action"),
+      cut: page.getByTestId("cut_action"),
+      merge: page.getByTestId("merge_code"),
+      remove: page.getByTestId("remove_action"),
     };
 
     this.elementEvent = {
