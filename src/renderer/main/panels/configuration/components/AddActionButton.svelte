@@ -27,25 +27,25 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <action-placeholder
+  bind:this={referenceElement}
   on:click={handleShowActionPicker}
   on:new-config={handleNewConfig}
   on:paste={handlePaste}
   class="cursor-pointer flex w-full items-center truncate"
 >
   <div
-    bind:this={referenceElement}
     class="hover:border-pick hover:bg-select-saturate-10 border-secondary
                 transition-colors duration-300 w-full border-l-4 text-white pl-4 p-2 truncate"
   >
     Add action block...
   </div>
-
-  {#if showActionPicker}
-    <ActionPicker
-      event={target.event}
-      index={target.index}
-      {referenceElement}
-      on:close={handleCloseActionPicker}
-    />
-  {/if}
 </action-placeholder>
+
+{#if showActionPicker}
+  <ActionPicker
+    event={target.event}
+    index={target.index}
+    {referenceElement}
+    on:close={handleCloseActionPicker}
+  />
+{/if}
