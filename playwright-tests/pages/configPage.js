@@ -30,7 +30,7 @@ export class ConfigPage {
       copy: page
         .locator("div:nth-child(2) > div:nth-child(2) > button")
         .first(),
-      paste: page.locator("div:nth-child(2) > button:nth-child(2)"),
+      paste: page.locator("div:nth-child(2) > button:nth-child(2)").first(),
       cut: page.locator(
         "div:nth-child(2) > div:nth-child(2) > button:nth-child(3)"
       ),
