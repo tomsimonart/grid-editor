@@ -49,7 +49,6 @@
   }
 
   let containerWidth: number;
-  let isMultiView = false;
 
   $: {
     if (containerWidth) {
@@ -71,7 +70,7 @@
   });
 </script>
 
-{#key (isMultiView && $user_input.elementnumber) || (!isMultiView && $user_input)}
+{#key ($appSettings.isMultiView && $user_input.elementnumber) || (!$appSettings.isMultiView && $user_input)}
   <container class="flex w-full h-full bg-primary">
     <div
       bind:clientWidth={containerWidth}
@@ -85,7 +84,7 @@
         class="w-full h-full flex flex-col gap-2 px-8 py-4 overflow-hidden"
       >
         <ElementSelectionPanel />
-        {#if !isMultiView}
+        {#if !$appSettings.isMultiView}
           <EventPanel />
         {/if}
         <Toolbar />

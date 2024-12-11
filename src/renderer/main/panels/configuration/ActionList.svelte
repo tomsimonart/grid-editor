@@ -182,11 +182,13 @@
     {/each}
   </ul>
 
-  <BottomPanel
-    target={{ event: event, index: event?.config.length }}
-    on:paste={handlePaste}
-    on:new-config={handleNewConfig}
-  />
+  {#if event}
+    <BottomPanel
+      target={{ event: event, index: $event?.config.length }}
+      on:paste={handlePaste}
+      on:new-config={handleNewConfig}
+    />
+  {/if}
 </div>
 
 <style global>
