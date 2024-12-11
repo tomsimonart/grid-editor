@@ -70,40 +70,36 @@
   });
 </script>
 
-{#key ($appSettings.isMultiView && $user_input.elementnumber) || (!$appSettings.isMultiView && $user_input)}
-  <container class="flex w-full h-full bg-primary">
-    <div
-      bind:clientWidth={containerWidth}
-      class="w-full h-full flex flex-col bg-primary"
-      transition:fade={{
-        duration: 50,
-        delay: 0,
-      }}
+<container class="flex w-full h-full bg-primary">
+  <div
+    bind:clientWidth={containerWidth}
+    class="w-full h-full flex flex-col bg-primary"
+    transition:fade={{
+      duration: 10050,
+      delay: 0,
+    }}
+  >
+    <configs
+      class="w-full h-full flex flex-col gap-2 px-8 py-4 overflow-hidden"
     >
-      <configs
-        class="w-full h-full flex flex-col gap-2 px-8 py-4 overflow-hidden"
-      >
-        <ElementSelectionPanel />
-        {#if !$appSettings.isMultiView}
-          <EventPanel />
-        {/if}
-        <Toolbar />
-        <div
-          class="flex flex-row h-full w-full max-h-full gap-2 overflow-hidden"
-        >
-          {#if $appSettings.isMultiView}
-            {#each $element?.events ?? [] as event, i}
-              <ActionList {event} />
-              <div
-                class="h-full flex border-r border-black"
-                class:hidden={i === $element.events.length - 1}
-              />
-            {/each}
-          {:else}
+      <ElementSelectionPanel />
+      {#if !$appSettings.isMultiView}
+        <EventPanel />
+      {/if}
+      <Toolbar />
+      <div class="flex flex-row h-full w-full max-h-full gap-2 overflow-hidden">
+        {#if $appSettings.isMultiView}
+          {#each $element?.events ?? [] as event, i}
             <ActionList {event} />
-          {/if}
-        </div>
-      </configs>
-    </div>
-  </container>
-{/key}
+            <div
+              class="h-full flex border-r border-black"
+              class:hidden={i === $element.events.length - 1}
+            />
+          {/each}
+        {:else}
+          <ActionList {event} />
+        {/if}
+      </div>
+    </configs>
+  </div>
+</container>
