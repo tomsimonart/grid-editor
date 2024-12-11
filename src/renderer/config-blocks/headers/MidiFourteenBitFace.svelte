@@ -1,6 +1,5 @@
 <script>
   import { createEventDispatcher } from "svelte";
-  import { config_drag } from "../../main/_actions/move.action";
 
   const dispatch = createEventDispatcher();
 
@@ -60,8 +59,7 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <div
-  class="h-full bg-secondary text-white flex items-center flex-row w-full px-2 {typeof $config_drag ===
-  'undefined'
+  class="h-full bg-secondary text-white flex items-center flex-row w-full px-2 {false
     ? 'group-hover/bg-color:bg-select-saturate-10'
     : ''}"
   on:click={handleClick}

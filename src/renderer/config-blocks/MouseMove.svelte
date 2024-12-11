@@ -31,19 +31,19 @@
   };
 </script>
 
-<script>
+<script lang="ts">
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
 
   import { Script } from "./_script_parsers.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
-
-  import { user_input_event } from "../main/panels/configuration/Configuration";
-
   import { Validator } from "./_validators";
+  import { GridEvent } from "./../runtime/runtime";
 
   export let config;
+
+  let event = config.parent as GridEvent;
 
   const dispatch = createEventDispatcher();
 
@@ -89,10 +89,11 @@
     [],
   ];
 
-  $: if ($user_input_event) {
-    const index = $user_input_event.config.findIndex((e) => e.id === config.id);
+  $: {
+    const actions = $event.config;
+    const index = actions.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $user_input_event.config,
+      configs: actions,
       index: index,
     });
     suggestions = _suggestions.map((s, i) => {

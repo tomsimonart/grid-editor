@@ -1,6 +1,6 @@
 import { Analytics } from "./analytics";
 import { appClipboard, ClipboardKey } from "./clipboard.store";
-import { logger, user_input } from "./runtime.store";
+import { logger, user_input, selected_actions } from "./runtime.store";
 import {
   GridOperationResult,
   ElementData,
@@ -227,6 +227,7 @@ export async function mergeActionsToCode(
     .merge(...actions)
     .then((result) => {
       target.sendToGrid();
+      selected_actions.set([result.merged]);
     })
     .catch(handleError)
     .finally(() => {});
@@ -237,6 +238,7 @@ export async function pasteActions(target: GridEvent, index?: number) {
     .pasteFromClipboard(index)
     .then((result) => {
       target.sendToGrid();
+      selected_actions.set(result.pasted);
     })
     .catch(handleError)
     .finally(() => {
@@ -256,6 +258,14 @@ export async function removeActions(
     .remove(...actions)
     .then((result) => {
       target.sendToGrid();
+      selected_actions.update((s) => {
+        for (const action of actions) {
+          if (s.includes(action)) {
+            s = s.filter((item) => item !== action);
+          }
+        }
+        return s;
+      });
     })
     .catch(handleError)
     .finally(() => {
@@ -409,4 +419,33 @@ export async function loadPreset(
         mandatory: false,
       });
     });
+}
+
+export function dropActions(
+  target: GridEvent,
+  index: number,
+  actions: GridAction[]
+) {
+  let targetActions = actions.filter((e) => e.parent === target);
+  let targetIndexes = targetActions.map((action) =>
+    target.config.findIndex((e) => e.id === action.id)
+  );
+  const targetMinIndex = Math.min(...targetIndexes);
+  const targetMaxIndex = Math.max(...targetIndexes);
+
+  if (index >= targetMinIndex && index <= targetMaxIndex + 1) {
+    return; // Invalid drop zone, return the original list
+  }
+
+  for (const action of actions) {
+    const parent = action.parent as GridEvent;
+    parent.remove(action);
+  }
+
+  if (targetActions.length > 0) {
+    const movingDown = index > targetMaxIndex;
+    index = movingDown ? index - targetIndexes.length : index;
+  }
+
+  target.insert(index, ...actions);
 }

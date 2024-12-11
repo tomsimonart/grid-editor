@@ -1,68 +1,117 @@
 <script lang="ts">
-  import { config_panel_blocks, user_input_event } from "./../Configuration";
-  import { grid } from "@intechstudio/grid-protocol";
-  import { derived, writable } from "svelte/store";
-  import { runtime, user_input } from "./../../../../runtime/runtime.store";
   import {
     isClearElementEnabled,
     isCopyElementEnabled,
     isDiscardElementEnabled,
     isOverwriteElementEnabled,
     isCopyActionsEnabled,
-    isPasteActionsEnabled,
     isCutActionsEnabled,
     isMergeActionsEnabled,
     isRemoveActionsEnabled,
+    isPasteActionsEnabled,
   } from "./Toolbar";
-  import { createEventDispatcher } from "svelte";
   import { appClipboard } from "./../../../../runtime/clipboard.store";
   import { GridEvent, GridElement } from "./../../../../runtime/runtime";
-  import { UserInputValue } from "./../../../../runtime/runtime.store";
-  import { runtime, user_input } from "./../../../../runtime/runtime.store";
-  import { shortcut } from "./../../../_actions/shortcut.action";
+  import {
+    runtime,
+    user_input,
+    UserInputValue,
+    selected_actions,
+  } from "./../../../../runtime/runtime.store";
   import MoltenToolbarButton from "../../../user-interface/MoltenToolbarButton.svelte";
-  import Options from "./Options.svelte";
+  import { get } from "svelte/store";
+  import {
+    mergeActionsToCode,
+    copyActions,
+    removeActions,
+    cutActions,
+    discardElement,
+    overwriteElement,
+    copyElement,
+    clearElement,
+    pasteActions,
+  } from "../../../../runtime/operations";
+  import { appSettings } from "../../../../runtime/app-helper.store";
 
-  const dispatch = createEventDispatcher();
-
-  function handleConvertToCodeBlockClicked(e) {
-    dispatch("convert-to-code-block");
+  function handleOverwriteElement() {
+    const ui = get(user_input);
+    const target = runtime.findElement(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber
+    );
+    overwriteElement(target);
   }
 
-  function handleCutClicked(e) {
-    dispatch("cut");
+  function handleCopyElement() {
+    const ui = get(user_input);
+    const target = runtime.findElement(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber
+    );
+    copyElement(target);
   }
 
-  function handleCopyClicked(e) {
-    dispatch("copy");
-  }
-
-  function handlePasteClicked(e) {
-    dispatch("paste");
-  }
-
-  function handleRemoveClicked(e) {
-    dispatch("remove");
-  }
-
-  function handleSelectAllClicked() {
-    dispatch("select-all");
-  }
-
-  function handleCopyAll(e) {
-    dispatch("copy-all");
-  }
-
-  function handleOverwriteAll(e) {
-    dispatch("overwrite-all");
-  }
-
-  function handleDiscard(e) {
-    dispatch("discard");
+  function handleCopy() {
+    copyActions(...get(selected_actions));
   }
 
   function handleClearElement() {
-    dispatch("clear-element");
+    const ui = get(user_input);
+    const target = runtime.findElement(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber
+    );
+
+    clearElement(target);
+  }
+
+  function handleDiscardElement() {
+    const ui = get(user_input);
+    const element = runtime.findElement(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber
+    );
+    discardElement(element);
+  }
+
+  function handleConvertToCodeBlock() {
+    const selected = get(selected_actions);
+    if (!selected.every((e) => e.parent === selected[0].parent)) {
+      throw "Clipboard error: Mismatched clipboard";
+    }
+
+    mergeActionsToCode(selected[0].parent as GridEvent, ...selected);
+  }
+
+  function handleRemove() {
+    const selected = get(selected_actions);
+    if (!selected.every((e) => e.parent === selected[0].parent)) {
+      throw "Clipboard error: Mismatched clipboard";
+    }
+
+    removeActions(selected[0].parent as GridEvent, ...selected);
+  }
+
+  function handleCut() {
+    const selected = get(selected_actions);
+    if (!selected.every((e) => e.parent === selected[0].parent)) {
+      throw "Clipboard error: Mismatched clipboard";
+    }
+
+    cutActions(selected[0].parent as GridEvent, ...selected);
+  }
+
+  function handlePaste(e: CustomEvent) {
+    const { index } = e?.detail ?? { index: undefined };
+    pasteActions(event, index);
   }
 
   let selectedAction = undefined;
@@ -121,151 +170,145 @@
     </div>
     <div class="flex flex-col">
       <div class="flex flex-wrap justify-end">
-        <MoltenToolbarButton
-          on:click={handleCopyAll}
-          on:mouseenter={() =>
-            setToolbarHoverText("Copy Element", `(${modifier[0]} + C)`)}
-          on:mouseleave={handleToolbarButtonBlur}
-          shortcut={{ control: true, code: "KeyC" }}
-          iconPath={"copy_all"}
-          disabled={$isCopyElementEnabled === false}
-          color={"#03cb00"}
-        />
+        <div data-testid="copy_all">
+          <MoltenToolbarButton
+            on:click={handleCopyElement}
+            on:mouseenter={() =>
+              setToolbarHoverText("Copy Element", `(${modifier[0]} + C)`)}
+            on:mouseleave={handleToolbarButtonBlur}
+            shortcut={{ control: true, code: "KeyC" }}
+            iconPath={"copy_all"}
+            disabled={$isCopyElementEnabled === false}
+            color={"#03cb00"}
+          />
+        </div>
 
-        <MoltenToolbarButton
-          on:click={handleOverwriteAll}
-          on:mouseenter={() =>
-            setToolbarHoverText(`Overwrite Element`, `(${modifier[0]} + V)`)}
-          on:mouseleave={handleToolbarButtonBlur}
-          shortcut={{ control: true, code: "KeyV" }}
-          iconPath={"paste_all"}
-          disabled={!isOverwriteElementEnabled($element, $appClipboard)}
-          color={"#006cb7"}
-        />
+        <div data-testid="paste_all">
+          <MoltenToolbarButton
+            on:click={handleOverwriteElement}
+            on:mouseenter={() =>
+              setToolbarHoverText(`Overwrite Element`, `(${modifier[0]} + V)`)}
+            on:mouseleave={handleToolbarButtonBlur}
+            shortcut={{ control: true, code: "KeyV" }}
+            iconPath={"paste_all"}
+            disabled={!isOverwriteElementEnabled($element, $appClipboard)}
+            color={"#006cb7"}
+          />
+        </div>
 
-        <MoltenToolbarButton
-          on:click={handleDiscard}
-          on:mouseenter={() =>
-            setToolbarHoverText(
-              `Discard Element Changes`,
-              `(${modifier[0]} + Shift + D)`
-            )}
-          on:mouseleave={handleToolbarButtonBlur}
-          shortcut={{
-            control: true,
-            shift: true,
-            code: "KeyD",
-          }}
-          iconPath={"clear_from_device_01"}
-          disabled={!isDiscardElementEnabled($element)}
-          color={"#ff2323"}
-        />
+        <div data-testid="discard_changes">
+          <MoltenToolbarButton
+            on:click={handleDiscardElement}
+            on:mouseenter={() =>
+              setToolbarHoverText(
+                `Discard Element Changes`,
+                `(${modifier[0]} + Shift + D)`
+              )}
+            on:mouseleave={handleToolbarButtonBlur}
+            shortcut={{
+              control: true,
+              shift: true,
+              code: "KeyD",
+            }}
+            iconPath={"clear_from_device_01"}
+            disabled={!isDiscardElementEnabled($element)}
+            color={"#ff2323"}
+          />
+        </div>
 
-        <MoltenToolbarButton
-          on:click={handleClearElement}
-          on:mouseenter={() =>
-            setToolbarHoverText(`Clear Element`, `(Shift + Delete)`)}
-          on:mouseleave={handleToolbarButtonBlur}
-          shortcut={{
-            shift: true,
-            code: "Delete",
-          }}
-          iconPath={"clear_element"}
-          disabled={!isClearElementEnabled($element)}
-          color={"#A020F0"}
-        />
+        <div data-testid="clear_element">
+          <MoltenToolbarButton
+            on:click={handleClearElement}
+            on:mouseenter={() =>
+              setToolbarHoverText(`Clear Element`, `(Shift + Delete)`)}
+            on:mouseleave={handleToolbarButtonBlur}
+            shortcut={{
+              shift: true,
+              code: "Delete",
+            }}
+            iconPath={"clear_element"}
+            disabled={!isClearElementEnabled($element)}
+            color={"#A020F0"}
+          />
+        </div>
       </div>
       <div class="flex flex-wrap justify-end">
-        <MoltenToolbarButton
-          on:click={handleCopyClicked}
-          on:mouseenter={() =>
-            setToolbarHoverText(`Copy Action(s)`, `(${modifier[0]} + C)`)}
-          on:mouseleave={handleToolbarButtonBlur}
-          shortcut={{ control: true, code: "KeyC" }}
-          disabled={$isCopyActionsEnabled === false}
-          iconPath={"copy"}
-          color={"#03cb00"}
-        />
+        <div data-testid="copy_action">
+          <MoltenToolbarButton
+            on:click={handleCopy}
+            on:mouseenter={() =>
+              setToolbarHoverText(`Copy Action(s)`, `(${modifier[0]} + C)`)}
+            on:mouseleave={handleToolbarButtonBlur}
+            shortcut={{ control: true, code: "KeyC" }}
+            disabled={$isCopyActionsEnabled === false}
+            iconPath={"copy"}
+            color={"#03cb00"}
+          />
+        </div>
 
-        <MoltenToolbarButton
-          on:click={handlePasteClicked}
-          on:mouseenter={() =>
-            setToolbarHoverText(`Paste Action(s)`, `(${modifier[0]} + V)`)}
-          on:mouseleave={handleToolbarButtonBlur}
-          shortcut={{ control: true, code: "KeyV" }}
-          disabled={$isPasteActionsEnabled === false}
-          iconPath={"paste"}
-          color={"#006cb7"}
-        />
+        {#if !$appSettings.isMultiView}
+          <div data-testid="paste_action">
+            <MoltenToolbarButton
+              on:click={handlePaste}
+              on:mouseenter={() =>
+                setToolbarHoverText(`Paste Action(s)`, `(${modifier[0]} + V)`)}
+              on:mouseleave={handleToolbarButtonBlur}
+              shortcut={{ control: true, code: "KeyV" }}
+              disabled={$isPasteActionsEnabled === false}
+              iconPath={"paste"}
+              color={"#006cb7"}
+            />
+          </div>
+        {/if}
 
-        <MoltenToolbarButton
-          on:click={handleCutClicked}
-          on:mouseenter={() =>
-            setToolbarHoverText(`Cut Action(s)`, `(${modifier[0]} + X)`)}
-          on:mouseleave={handleToolbarButtonBlur}
-          shortcut={{ control: true, code: "KeyX" }}
-          disabled={$isCutActionsEnabled === false}
-          iconPath={"cut"}
-          color={"#ff6100"}
-        />
+        <div data-testid="cut_action">
+          <MoltenToolbarButton
+            on:click={handleCut}
+            on:mouseenter={() =>
+              setToolbarHoverText(`Cut Action(s)`, `(${modifier[0]} + X)`)}
+            on:mouseleave={handleToolbarButtonBlur}
+            shortcut={{ control: true, code: "KeyX" }}
+            disabled={$isCutActionsEnabled === false}
+            iconPath={"cut"}
+            color={"#ff6100"}
+          />
+        </div>
 
-        <MoltenToolbarButton
-          on:click={handleConvertToCodeBlockClicked}
-          on:mouseenter={() =>
-            setToolbarHoverText(
-              `Merge Action(s) into Code`,
-              `(${modifier[0]} + Shift + M)`
-            )}
-          on:mouseleave={handleToolbarButtonBlur}
-          shortcut={{
-            control: true,
-            shift: true,
-            code: "KeyM",
-          }}
-          disabled={$isMergeActionsEnabled === false}
-          iconPath={"merge_as_code"}
-          color={"#ffcc33"}
-        />
+        <div data-testid="merge_code">
+          <MoltenToolbarButton
+            on:click={handleConvertToCodeBlock}
+            on:mouseenter={() =>
+              setToolbarHoverText(
+                `Merge Action(s) into Code`,
+                `(${modifier[0]} + Shift + M)`
+              )}
+            on:mouseleave={handleToolbarButtonBlur}
+            shortcut={{
+              control: true,
+              shift: true,
+              code: "KeyM",
+            }}
+            disabled={$isMergeActionsEnabled === false}
+            iconPath={"merge_as_code"}
+            color={"#ffcc33"}
+          />
+        </div>
 
-        <MoltenToolbarButton
-          on:click={handleRemoveClicked}
-          on:mouseenter={() =>
-            setToolbarHoverText(`Remove Action(s)`, `(Delete)`)}
-          on:mouseleave={handleToolbarButtonBlur}
-          shortcut={{
-            code: "Delete",
-          }}
-          disabled={$isRemoveActionsEnabled === false}
-          iconPath={"remove"}
-          color={"#ff2323"}
-        />
+        <div data-testid="remove_action">
+          <MoltenToolbarButton
+            on:click={handleRemove}
+            on:mouseenter={() =>
+              setToolbarHoverText(`Remove Action(s)`, `(Delete)`)}
+            on:mouseleave={handleToolbarButtonBlur}
+            shortcut={{
+              code: "Delete",
+            }}
+            disabled={$isRemoveActionsEnabled === false}
+            iconPath={"remove"}
+            color={"#ff2323"}
+          />
+        </div>
       </div>
-    </div>
-    <button
-      class="w-fit h-fit mx-2"
-      use:shortcut={{
-        control: true,
-        code: "KeyA",
-        callback: handleSelectAllClicked,
-      }}
-      on:mouseenter={() =>
-        setToolbarHoverText(`Select All`, `(${modifier[0]} + A)`)}
-      on:mouseleave={handleToolbarButtonBlur}
-    >
-      <Options
-        selected={$config_panel_blocks.every((e) => e.selected)}
-        halfSelected={$config_panel_blocks.some((e) => e.selected)}
-        disabled={$config_panel_blocks.length === 0}
-        on:select={handleSelectAllClicked}
-      />
-    </button>
-  </div>
-  <div class="flex flex-row gap-2">
-    <div class="text-gray-500 text-sm">Script length:</div>
-    <div class="text-white text-sm mr-10">
-      <span data-testid="charCount">
-        {$event?.toLua().length ?? 0}/{grid.getProperty("CONFIG_LENGTH") - 1}
-      </span>
     </div>
   </div>
 </div>

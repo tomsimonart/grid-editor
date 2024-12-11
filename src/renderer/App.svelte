@@ -318,6 +318,11 @@
 
 <main
   use:watchResize={resize}
+  on:mousewheel={(e) => {
+    if (event.ctrlKey) {
+      event.preventDefault();
+    }
+  }}
   id="app"
   spellcheck="false"
   class="dark relative flex w-full h-full flex-row justify-between overflow-hidden"
@@ -358,7 +363,7 @@
         <Pane
           bind:size={$splitpanes.right.size}
           minSize={$splitpanes.right.default}
-          maxSize={45}
+          maxSize={65}
         >
           <RightPanelContainer />
         </Pane>

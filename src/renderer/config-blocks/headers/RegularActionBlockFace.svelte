@@ -2,7 +2,6 @@
   import { appSettings } from "./../../runtime/app-helper.store.js";
   import LineEditor from "./../../main/user-interface/LineEditor.svelte";
   import { createEventDispatcher } from "svelte";
-  import { config_drag } from "../../main/_actions/move.action";
   import { SvgIcon } from "@intechstudio/grid-uikit";
   import { onMount } from "svelte";
   import { GridAction } from "../../runtime/runtime";
@@ -68,8 +67,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-  class="justify-between gap-2 w-full h-full px-2 py-1 flex-row text-white flex items-center bg-secondary {typeof $config_drag ===
-  'undefined'
+  class="justify-between gap-2 w-full h-full px-2 py-1 flex-row text-white flex items-center bg-secondary {false
     ? 'group-hover/bg-color:bg-select-saturate-10'
     : ''}"
   on:click={handleClick}
@@ -87,7 +85,7 @@
       />
     </div>
   {:else}
-    <span
+    <span class="truncate"
       >{typeof $config?.name === "undefined"
         ? config.information.displayName
         : $config.name}</span

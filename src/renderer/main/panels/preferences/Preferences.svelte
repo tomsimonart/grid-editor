@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { config_panel_blocks } from "./../configuration/Configuration";
+  import MultiEventView from "./../configuration/MultiEventView.svelte";
+  import { modal } from "./../../modals/modal.store";
   import { logger } from "./../../../runtime/runtime.store";
   import { get } from "svelte/store";
   import { instructions } from "../../../serialport/instructions";
   import { appSettings } from "../../../runtime/app-helper.store";
-  import { runtime } from "../../../runtime/runtime.store";
 
   import {
     BlockBody,
@@ -86,7 +86,11 @@
 <div
   class="bg-primary flex flex-col h-full w-full text-white px-4 py-4 overflow-y-auto"
 >
-  <MeltSelect bind:target={activePreferenceMenu} options={menuItems} />
+  <MeltSelect
+    bind:target={activePreferenceMenu}
+    options={menuItems}
+    disabled={false}
+  />
 
   {#if activePreferenceMenu == PreferenceMenu.GENERAL}
     <Block>
@@ -315,6 +319,15 @@
   {/if}
 
   {#if activePreferenceMenu == PreferenceMenu.DEVELOPER}
+    <Block>
+      <BlockTitle>Multi Event view</BlockTitle>
+      <MoltenButton
+        title={"Open"}
+        click={() => {
+          modal.show({ component: MultiEventView });
+        }}
+      />
+    </Block>
     <Block>
       <BlockTitle>NVM Defrag</BlockTitle>
       <BlockBody>

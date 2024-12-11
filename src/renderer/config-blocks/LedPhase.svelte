@@ -59,12 +59,14 @@
   } from "../runtime/runtime.store";
 
   import { Validator } from "./_validators";
-  import { user_input_event } from "../main/panels/configuration/Configuration";
   import { get } from "svelte/store";
   import { ElementType } from "@intechstudio/grid-protocol";
+  import { GridEvent } from "./../runtime/runtime";
 
   export let config;
   export let index;
+
+  let event = config.parent as GridEvent;
 
   const dispatch = createEventDispatcher();
 
@@ -120,14 +122,15 @@
 
   let suggestions = [];
 
-  $: if ($user_input_event) {
+  $: if ($event) {
     updateSuggestions();
   }
 
   function updateSuggestions() {
-    const index = $user_input_event.config.findIndex((e) => e.id === config.id);
+    const actions = $event.config;
+    const index = actions.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $user_input_event.config,
+      configs: actions,
       index: index,
     });
     suggestions = _suggestions.map((s, i) => {

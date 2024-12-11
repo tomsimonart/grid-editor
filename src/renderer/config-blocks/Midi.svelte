@@ -1,6 +1,4 @@
 <script lang="ts" context="module">
-  import { user_input_event } from "./../main/panels/configuration/Configuration.ts";
-  import { midiCC } from "./_midi.js";
   import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import MidiFace from "./headers/MidiFace.svelte";
@@ -45,12 +43,14 @@
   };
 </script>
 
-<script>
+<script lang="ts">
   import { createEventDispatcher, onDestroy } from "svelte";
   import { MeltCombo } from "@intechstudio/grid-uikit";
   import { GridScript } from "@intechstudio/grid-protocol";
+  import { midiCC } from "./_midi.js";
   import { Script } from "./_script_parsers.js";
   import { LocalDefinitions } from "../runtime/runtime.store";
+  import { GridEvent } from "./../runtime/runtime";
 
   import { Validator } from "./_validators";
 
@@ -60,6 +60,8 @@
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import TabButton from "../main/user-interface/TabButton.svelte";
   import { MusicalNotes } from "../main/panels/MidiMonitor/MidiMonitor.store";
+
+  let event = config.parent as GridEvent;
 
   const dispatch = createEventDispatcher();
 
@@ -137,7 +139,7 @@
 
   let suggestions = [];
 
-  $: if ($user_input_event) {
+  $: if ($event) {
     renderSuggestions();
   }
 
@@ -165,9 +167,10 @@
       suggestions = _suggestions;
     }
 
-    const index = $user_input_event.config.findIndex((e) => e.id === config.id);
+    const actions = $event.config;
+    const index = actions.findIndex((e) => e.id === config.id);
     const localDefinitions = LocalDefinitions.getFrom({
-      configs: $user_input_event.config,
+      configs: actions,
       index: index,
     });
     suggestions = suggestions.map((s) => [...localDefinitions, ...s]);

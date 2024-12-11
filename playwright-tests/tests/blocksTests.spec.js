@@ -38,10 +38,8 @@ test.describe("Issues", () => {
       .filter({ hasText: 'Code preview: print("hello")' })
       .getByRole("button")
       .nth(2)
-      .click();
-    await page
-      .locator("div:nth-child(2) > div:nth-child(2) > button:nth-child(5)")
-      .click();
+      .click(); //uncheck codeblock
+    await configPage.removeAction();
 
     const preText = await page.locator("#cfg-0").getByText(expectedText); // should find codeblock with hello
     await expect(preText).toBeVisible();
@@ -68,6 +66,22 @@ test.describe("Issues", () => {
       "NRPN CC"
     );
     await expect(actualValue).toBe(expectedValue);
+  });
+
+  test("Element name freezes Editor", async () => {
+    await configPage.removeAllActions();
+    await configPage.openAndAddActionBlock("code", "Element Name");
+    await configPage.writeActionBlockField(
+      "code",
+      "Element Name",
+      "input",
+      "testwrite"
+    );
+    await modulePage.selectModuleElement(2);
+    await modulePage.selectModuleElement(0);
+
+    const actualValue = await configPage.getTextFromName();
+    await expect(actualValue).toBe("testwrite");
   });
 });
 
@@ -161,18 +175,18 @@ test.describe("Element Mode MAX value", () => {
     await configPage.removeAllActions();
   });
 
-  // test("Potmeter", async () => {
-  //   const category = "element";
-  //   const blockName = "Potmeter Mode";
-  //   await configPage.openAndAddActionBlock(category, blockName);
-  //   await configPage.clickActionBlockElement(
-  //     category,
-  //     blockName,
-  //     "Enable Min/Max Value"
-  //   );
-  //   await configPage.clickActionBlockElement(category, blockName, "Max");
-  //   await expect(configPage.elementMaxResolutionDropdown).toBeVisible();
-  // });
+  test("Potmeter", async () => {
+    const category = "element";
+    const blockName = "Potmeter Mode";
+    await configPage.openAndAddActionBlock(category, blockName);
+    await configPage.clickActionBlockElement(
+      category,
+      blockName,
+      "Enable Min/Max Value"
+    );
+    await configPage.clickActionBlockElement(category, blockName, "Max");
+    await expect(configPage.elementMaxResolution14Bit).toBeVisible();
+  });
 
   /*
   test("Encoder", async () => {
@@ -185,7 +199,7 @@ test.describe("Element Mode MAX value", () => {
       "Enable Min/Max Value"
     );
     await configPage.clickActionBlockElement(category, blockName, "Max");
-    await expect(configPage.elementMaxResolutionDropdown).toBeVisible();
+    await expect(configPage.elementMaxResolution14Bit).toBeVisible();
   });
 
   test("Endless", async () => {
@@ -198,7 +212,7 @@ test.describe("Element Mode MAX value", () => {
       "Enable Min/Max Value"
     );
     await configPage.clickActionBlockElement(category, blockName, "Max");
-    await expect(configPage.elementMaxResolutionDropdown).toBeVisible();
+    await expect(configPage.elementMaxResolution14Bit).toBeVisible();
   });
 
   test("Button", async () => {
@@ -211,7 +225,7 @@ test.describe("Element Mode MAX value", () => {
       "Enable Min/Max Value"
     );
     await configPage.clickActionBlockElement(category, blockName, "Max");
-    await expect(configPage.elementMaxResolutionDropdown).toBeVisible();
+    await expect(configPage.elementMaxResolution14Bit).toBeVisible();
   });
   */
 });

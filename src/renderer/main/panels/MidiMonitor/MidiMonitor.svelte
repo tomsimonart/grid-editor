@@ -1,6 +1,9 @@
 <script lang="ts">
-  import { MidiMonitorItem } from "./MidiMonitor.store.ts";
-  import { user_input_event } from "./../configuration/Configuration";
+  import {
+    user_input,
+    UserInputValue,
+    runtime,
+  } from "./../../../runtime/runtime.store";
   import Toggle from "../../user-interface/Toggle.svelte";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { derived, get, writable } from "svelte/store";
@@ -14,9 +17,22 @@
   } from "./MidiMonitor.store";
   import { grid } from "@intechstudio/grid-protocol";
   import { MoltenPushButton, SvgIcon } from "@intechstudio/grid-uikit";
+  import { GridEvent } from "../../../runtime/runtime";
 
-  // ok but slow nice
-  let event = $user_input_event;
+  let event: GridEvent;
+
+  $: handleUserInputChange($user_input);
+
+  function handleUserInputChange(ui: UserInputValue) {
+    event = runtime.findEvent(
+      ui.dx,
+      ui.dy,
+      ui.pagenumber,
+      ui.elementnumber,
+      ui.eventtype
+    );
+  }
+
   let configScriptLength = 0;
 
   function replaceNRPNMessages(messages: MidiMonitorItem[]) {

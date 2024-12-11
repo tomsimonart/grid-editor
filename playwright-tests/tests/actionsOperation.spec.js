@@ -40,11 +40,10 @@ test.describe("Action Block Operations", () => {
     await modulePage.selectModuleElement(3);
     await configPage.selectElementEvent("Timer");
     await configPage.pasteAction();
-    await expect(await configPage.getTextFromComment()).toHaveValue(
-      expectedComment
-    );
+    await expect(await configPage.getTextFromComment()).toBe(expectedComment);
     await expect(page.locator("#cfg-1")).toBeVisible(); //last action block is comment visible
   });
+
   test("Cut and Paste", async () => {
     const expectedComment = "action operation";
     await configPage.removeAllActions();
@@ -55,10 +54,9 @@ test.describe("Action Block Operations", () => {
     await modulePage.selectModuleElement(5);
     await configPage.selectElementEvent("Timer");
     await configPage.pasteAction();
-    await expect(await configPage.getTextFromComment()).toHaveValue(
-      expectedComment
-    );
+    await expect(await configPage.getTextFromComment()).toBe(expectedComment);
   });
+
   test("Merge", async ({ page }) => {
     const expectedComment = "merged comment";
     await configPage.removeAllActions();
@@ -71,6 +69,7 @@ test.describe("Action Block Operations", () => {
       page.getByText(`--[[${expectedComment}]]--[[This Is A Comment]]`)
     ).toBeVisible();
   });
+
   test("Remove", async () => {
     await configPage.removeAllActions();
     await expect(await configPage.noActionAddActionButton).toBeVisible();
@@ -103,17 +102,11 @@ test.describe("Element Operations", () => {
     await modulePage.selectModuleElement(3);
     await configPage.overwriteElement();
 
-    await expect(await configPage.getTextFromComment()).toHaveValue(
-      timerComment
-    );
+    await expect(await configPage.getTextFromComment()).toBe(timerComment);
     await configPage.selectElementEvent("Setup");
-    await expect(await configPage.getTextFromComment()).toHaveValue(
-      initComment
-    );
+    await expect(await configPage.getTextFromComment()).toBe(initComment);
     await configPage.selectElementEvent("Button");
-    await expect(await configPage.getTextFromComment()).toHaveValue(
-      buttonComment
-    );
+    await expect(await configPage.getTextFromComment()).toBe(buttonComment);
   });
 
   test("Overwrite element", async ({ page }) => {
@@ -130,7 +123,9 @@ test.describe("Element Operations", () => {
     await configPage.discardElement();
     await configPage.selectElementEvent("Button");
 
-    await expect(await configPage.getTextFromComment()).toBeHidden();
+    await expect(
+      await configPage.getActionBlock("code", "Comment Block")
+    ).toBeHidden();
     await expect(page.locator("#cfg-2")).toBeVisible(); //default last action block is visible
   });
 
@@ -148,7 +143,9 @@ test.describe("Element Operations", () => {
     await configPage.clearElement();
     await configPage.selectElementEvent("Button");
 
-    await expect(await configPage.getTextFromComment()).toBeHidden();
+    await expect(
+      await configPage.getActionBlock("code", "Comment Block")
+    ).toBeHidden();
     await expect(page.locator("#cfg-2")).toBeVisible(); //default last action block is visible
   });
 
@@ -161,9 +158,7 @@ test.describe("Element Operations", () => {
     await modulePage.copyElement();
     await modulePage.rightClickModuleElement(1);
     await modulePage.overwriteElement();
-    await expect(await configPage.getTextFromComment()).toHaveValue(
-      expectedComment
-    );
+    await expect(await configPage.getTextFromComment()).toBe(expectedComment);
   });
 
   test("Discard with Element right click", async ({ page }) => {
@@ -175,7 +170,9 @@ test.describe("Element Operations", () => {
     await modulePage.discardElement();
     await configPage.selectElementEvent("Button");
 
-    await expect(await configPage.getTextFromComment()).toBeHidden();
+    await expect(
+      await configPage.getActionBlock("code", "Comment Block")
+    ).toBeHidden();
     await expect(page.locator("#cfg-2")).toBeVisible(); //default last action block is visible
   });
 
@@ -188,7 +185,9 @@ test.describe("Element Operations", () => {
     await modulePage.clearElement();
     await configPage.selectElementEvent("Button");
 
-    await expect(await configPage.getTextFromComment()).toBeHidden();
+    await expect(
+      await configPage.getActionBlock("code", "Comment Block")
+    ).toBeHidden();
     await expect(page.locator("#cfg-2")).toBeVisible(); //default last action block is visible
   });
 });

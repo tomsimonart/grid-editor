@@ -112,6 +112,7 @@ export interface GridOperationResult {
 
 export interface PasteActionsResult extends GridOperationResult {
   info: EventInfo;
+  pasted: GridAction[];
 }
 export interface DiscardElementResult extends GridOperationResult {}
 export interface OverwriteElementResult extends GridOperationResult {}
@@ -120,6 +121,7 @@ export interface UpdateActionResult extends GridOperationResult {
 }
 export interface MergeActionsToCodeResult extends GridOperationResult {
   info: EventInfo;
+  merged: GridAction;
 }
 export interface RemoveActionsResult extends GridOperationResult {}
 export interface CutActionsResult extends GridOperationResult {}
@@ -254,8 +256,12 @@ export class ActionData extends NodeData {
   }
 
   public get indentation() {
-    let indentation = 0;
     const event = this.parent as GridEvent;
+    if (typeof event === "undefined") {
+      return 0;
+    }
+
+    let indentation = 0;
     for (let i = 0; i < event.config.length; ++i) {
       let action = event.config[i];
       if (action.id === this.id) {
@@ -441,6 +447,10 @@ export class EventData extends NodeData {
     return this.stored !== this.toLua();
   }
 
+  public getName(): string {
+    return Grid.toFirstCase(NumberToEventType(this.type));
+  }
+
   public toLua(): string {
     return `<?lua ${this.config
       .map((e) => e.toLua())
@@ -499,6 +509,10 @@ export class GridEvent extends RuntimeNode<EventData> {
 
   public getInfo() {
     return this.data.getInfo();
+  }
+
+  public getName() {
+    return this.data.getName();
   }
 
   public async replace(
@@ -650,6 +664,7 @@ export class GridEvent extends RuntimeNode<EventData> {
         text: "OK",
         type: GridOperationType.PASTE_ACTION,
         info: this.getInfo(),
+        pasted: actions,
       });
     } catch (e) {
       return Promise.reject({
@@ -800,6 +815,7 @@ export class GridEvent extends RuntimeNode<EventData> {
       text: "OK",
       type: GridOperationType.MERGE_ACTIONS_TO_CODE,
       info: this.getInfo(),
+      merged: codeBlock,
     });
   }
 
@@ -1767,6 +1783,7 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
 
   destroy_module(dx, dy) {
     console.log("DESTORY", dx, dy);
+    user_input.module_destroy_handler(dx, dy);
     // remove the destroyed device from runtime
     const removed = this.modules.find((e) => e.dx == dx && e.dy == dy);
     this.modules = this.modules.filter((e) => e.dx !== dx && e.dy !== dy);
@@ -1785,7 +1802,6 @@ export class GridRuntime extends RuntimeNode<RuntimeData> {
       });
     }
 
-    user_input.module_destroy_handler(dx, dy);
     if (removed.architecture === "virtual") {
       virtual_runtime.destroyModule(dx, dy);
     } else {

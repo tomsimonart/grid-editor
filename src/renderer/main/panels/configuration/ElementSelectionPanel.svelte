@@ -100,7 +100,6 @@
       />
     </div>
   </div>
-  {#key options}
-    <MeltSelect bind:target={selectedElementNumber} {options} />
-  {/key}
+
+  <MeltSelect bind:target={selectedElementNumber} {options} disabled={false} />
 </div>
