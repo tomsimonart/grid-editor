@@ -146,11 +146,10 @@
         $event.config[index + 1]?.indentation === action.indentation &&
         $appSettings.persistent.actionHelperText}
 
-      <!-- <div
+      <anim-block
         animate:flip={{ duration: 300, easing: eases.backOut }}
-        transition:fade={{ duration: 75 }}
-      > -->
-      <div>
+        in:fade|global={{ delay: 0 }}
+      >
         <div class="flex flex-row gap-2">
           <DynamicWrapper
             {index}
@@ -179,7 +178,7 @@
         {:else}
           <SeparatorLine target={{ event: event, index: index + 1 }} />
         {/if}
-      </div>
+      </anim-block>
     {/each}
   </ul>
 

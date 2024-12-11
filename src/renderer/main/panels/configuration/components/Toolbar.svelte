@@ -172,7 +172,7 @@
       <div class="flex flex-wrap justify-end">
         <div data-testid="copy_all">
           <MoltenToolbarButton
-            on:click={handleOverwriteElement}
+            on:click={handleCopyElement}
             on:mouseenter={() =>
               setToolbarHoverText("Copy Element", `(${modifier[0]} + C)`)}
             on:mouseleave={handleToolbarButtonBlur}
