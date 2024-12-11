@@ -146,10 +146,11 @@
         $event.config[index + 1]?.indentation === action.indentation &&
         $appSettings.persistent.actionHelperText}
 
-      <div
+      <!-- <div
         animate:flip={{ duration: 300, easing: eases.backOut }}
         transition:fade={{ duration: 75 }}
-      >
+      > -->
+      <div>
         <div class="flex flex-row gap-2">
           <DynamicWrapper
             {index}
