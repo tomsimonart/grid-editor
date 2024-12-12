@@ -75,7 +75,7 @@
     bind:clientWidth={containerWidth}
     class="w-full h-full flex flex-col bg-primary"
     transition:fade={{
-      duration: 10050,
+      duration: 150,
       delay: 0,
     }}
   >
