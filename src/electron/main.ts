@@ -836,5 +836,9 @@ app.on("activate", () => {
 // termination of application, closing the windows, used for macOS hide flag
 app.on("before-quit", (evt) => {
   log.info("before-quit evt", evt);
+  serial.mainWindow.webContents.executeJavaScript(
+    `if(navigator.disconnectGrid){navigator.disconnectGrid()}`,
+    true
+  );
   app.quitting = true;
 });

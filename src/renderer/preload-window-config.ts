@@ -25,6 +25,7 @@ declare global {
     serial: any;
     debugSerial: boolean;
     tryConnectGrid: () => any;
+    disconnectGrid: () => any;
   }
 }
 

@@ -106,7 +106,13 @@ class GridConnectionManager {
     });
   }
 
-  disconnectPort() {}
+  disconnectPort() {
+    console.log("Disconnecting all ports");
+    for (let port of get(this._ports)) {
+      port.readable.cancel();
+      port.close();
+    }
+  }
 
   get active() {
     return this._active;
@@ -235,10 +241,15 @@ class GridConnectionManager {
     } finally {
       reader.releaseLock();
     }
+    await port.close();
   }
 }
 
 export const connection_manager = new GridConnectionManager();
+
+navigator.disconnectGrid = async () => {
+  connection_manager.disconnectPort();
+}
 
 navigator.tryConnectGrid = async () => {
   try {
